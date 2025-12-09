@@ -21,7 +21,7 @@ export function Sidebar() {
         <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-full fixed left-0 top-0 z-30">
             <div className="p-6 border-b border-gray-100 flex justify-center">
                 <Link href="/dashboard">
-                    <Image src="/logo.png" alt="InnovaPort" width={150} height={40} className="object-contain" priority />
+                    <Image src="/innovaport-logo.png" alt="InnovaPort" width={160} height={48} className="w-auto h-10 object-contain" priority />
                 </Link>
             </div>
 

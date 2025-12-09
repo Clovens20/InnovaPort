@@ -13,10 +13,10 @@ export default function Home() {
             <Image
               src="/innovaport-logo.png"
               alt="InnovaPort"
-              width={200}
-              height={60}
+              width={300}
+              height={90}
               priority
-              className="h-16 w-auto object-contain"
+              className="h-20 w-auto object-contain"
             />
           </div>
 
@@ -28,13 +28,13 @@ export default function Home() {
 
           <div className="flex items-center gap-4">
             <Link
-              href="/dashboard"
+              href="/auth/login"
               className="text-sm font-semibold text-gray-700 hover:text-[#1E3A8A] transition-colors"
             >
               Se connecter
             </Link>
             <Link
-              href="/dashboard"
+              href="/auth/register"
               className="px-5 py-2.5 bg-[#1E3A8A] text-white rounded-lg text-sm font-semibold hover:bg-[#1E40AF] transition-all shadow-lg shadow-blue-900/10"
             >
               Commencer
@@ -65,10 +65,10 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
-                href="/dashboard"
+                href="/auth/register"
                 className="px-8 py-4 bg-[#1E3A8A] text-white rounded-xl font-bold text-lg hover:bg-[#1E40AF] transition-all shadow-xl shadow-blue-900/20 flex items-center justify-center gap-2"
               >
-                Accéder au Dashboard
+                Commencer Gratuitement
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
