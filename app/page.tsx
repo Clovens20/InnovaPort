@@ -13,10 +13,10 @@ export default function Home() {
             <Image
               src="/innovaport-logo.png"
               alt="InnovaPort"
-              width={160}
-              height={48}
+              width={200}
+              height={60}
               priority
-              className="h-12 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
           </div>
 
@@ -148,6 +148,86 @@ export default function Home() {
                 <p className="text-gray-600 leading-relaxed">{feat.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold text-[#1E3A8A] mb-4">Comment ça marche ?</h2>
+            <p className="text-lg text-gray-600">Lancez votre activité en 3 étapes simples.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-12 relative">
+            <div className="text-center relative z-10">
+              <div className="w-16 h-16 bg-blue-100 text-[#1E3A8A] rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
+              <h3 className="text-xl font-bold mb-3">Créez votre Portfolio</h3>
+              <p className="text-gray-600">Choisissez un template, personnalisez vos couleurs et importez vos projets.</p>
+            </div>
+            <div className="text-center relative z-10">
+              <div className="w-16 h-16 bg-blue-100 text-[#1E3A8A] rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
+              <h3 className="text-xl font-bold mb-3">Partagez votre lien</h3>
+              <p className="text-gray-600">Envoyez votre lien unique à vos prospects ou mettez-le sur vos réseaux.</p>
+            </div>
+            <div className="text-center relative z-10">
+              <div className="w-16 h-16 bg-blue-100 text-[#1E3A8A] rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
+              <h3 className="text-xl font-bold mb-3">Recevez des Devis</h3>
+              <p className="text-gray-600">Recevez des demandes qualifiées directement dans votre dashboard.</p>
+            </div>
+
+            {/* Connector Line (Desktop) */}
+            <div className="hidden md:block absolute top-8 left-0 w-full h-0.5 bg-blue-50 -z-0" />
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl font-bold text-[#1E3A8A] mb-4">Tarifs simples et transparents</h2>
+            <p className="text-lg text-gray-600">Commencez gratuitement, passez pro quand vous grandissez.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Free */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Gratuit</h3>
+              <div className="mb-6"><span className="text-4xl font-bold">0€</span>/mois</div>
+              <ul className="space-y-3 mb-8 text-gray-600 text-sm">
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> 5 projets</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Formulaire de base</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Sous-domaine</li>
+              </ul>
+              <Link href="/dashboard" className="block w-full py-3 bg-gray-100 text-gray-900 font-semibold text-center rounded-xl hover:bg-gray-200 transition-colors">Commencer</Link>
+            </div>
+
+            {/* Pro */}
+            <div className="bg-[#1E3A8A] p-8 rounded-2xl shadow-xl text-white transform md:-translate-y-4 relative">
+              <div className="absolute top-0 right-0 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">POPULAIRE</div>
+              <h3 className="text-xl font-bold mb-2">Pro</h3>
+              <div className="mb-6"><span className="text-4xl font-bold">19€</span>/mois</div>
+              <ul className="space-y-3 mb-8 text-blue-100 text-sm">
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Projets illimités</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Domaine personnalisé</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Sans filigrane</li>
+              </ul>
+              <Link href="/dashboard/billing" className="block w-full py-3 bg-white text-[#1E3A8A] font-semibold text-center rounded-xl hover:bg-gray-100 transition-colors">Choisir Pro</Link>
+            </div>
+
+            {/* Business */}
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Business</h3>
+              <div className="mb-6"><span className="text-4xl font-bold">49€</span>/mois</div>
+              <ul className="space-y-3 mb-8 text-gray-600 text-sm">
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Tout du plan Pro</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Support prioritaire</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> API Access</li>
+              </ul>
+              <Link href="/dashboard/billing" className="block w-full py-3 bg-gray-100 text-gray-900 font-semibold text-center rounded-xl hover:bg-gray-200 transition-colors">Contacter</Link>
+            </div>
           </div>
         </div>
       </section>
