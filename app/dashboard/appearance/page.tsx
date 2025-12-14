@@ -75,7 +75,7 @@ export default function AppearancePage() {
 
     const currentTemplate = templates.find(t => t.id === currentTemplateId) || templates[0];
 
-    const applyPalette = (palette: any) => {
+    const applyPalette = (palette: { primary: string; secondary: string }) => {
         setPrimaryColor(palette.primary);
         setSecondaryColor(palette.secondary);
     };

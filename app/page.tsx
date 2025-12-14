@@ -1,7 +1,12 @@
+'use client';
+
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Layout, RefreshCw, CreditCard, ShieldCheck, Palette } from "lucide-react";
-
+import { DashboardPreview } from "./_components/dashboard-preview";
+import { SocialProofSection } from "./_components/social-proof-section";
+import { UserCountBadge } from "./_components/user-count-badge";
+import { TestimonialsSection } from "./_components/testimonials-section";
 export default function Home() {
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900">
@@ -13,10 +18,10 @@ export default function Home() {
             <Image
               src="/innovaport-logo.png"
               alt="InnovaPort"
-              width={300}
-              height={90}
+              width={400}
+              height={120}
               priority
-              className="h-20 w-auto object-contain"
+              className="h-36 w-auto object-contain"
             />
           </div>
 
@@ -47,20 +52,15 @@ export default function Home() {
       <section className="pt-32 pb-24 px-6 relative overflow-hidden">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-[#1E3A8A] text-sm font-bold mb-8">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-              </span>
-              InnovaPort v1.0 est disponible
-            </div>
+            <UserCountBadge />
 
             <h1 className="text-5xl lg:text-7xl font-extrabold text-gray-900 leading-[1.1] mb-6">
               Gérez vos <span className="text-[#10B981]">Projets</span> & <span className="text-[#1E3A8A]">Devis</span> en un clic.
             </h1>
 
             <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-xl">
-              La plateforme tout-en-un pour les freelances et agences. Créez des portfolios époustouflants, recevez des demandes de devis qualifiées et gérez votre business.
+              Transformez votre chaos administratif en système automatisé<br />
+              Une seule plateforme pour gérer projets, devis et portfolios.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -73,20 +73,13 @@ export default function Home() {
               </Link>
               <Link
                 href="/preview/demo"
-                className="px-8 py-4 bg-white text-gray-900 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition-colors flex items-center justify-center"
+                className="px-8 py-4 bg-white text-gray-900 border-2 border-gray-300 rounded-xl font-bold text-lg hover:bg-gray-50 hover:border-gray-400 transition-all flex items-center justify-center shadow-sm"
               >
-                Voir une démo
+                Voir une démo (2min)
               </Link>
             </div>
 
-            <div className="mt-12 flex items-center gap-6 text-sm font-medium text-gray-500">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
-                ))}
-              </div>
-              <div>+200 freelances nous font confiance</div>
-            </div>
+            <SocialProofSection />
           </div>
 
           <div className="relative lg:h-[600px] w-full hidden lg:block">
@@ -94,32 +87,8 @@ export default function Home() {
             <div className="absolute top-10 right-10 w-96 h-96 bg-[#10B981]/10 rounded-full blur-3xl animate-pulse" />
             <div className="absolute bottom-10 left-10 w-96 h-96 bg-[#1E3A8A]/10 rounded-full blur-3xl" />
 
-            {/* Mockup Container */}
-            <div className="absolute inset-0 bg-gray-50 rounded-2xl shadow-2xl border border-gray-200 overflow-hidden transform rotate-2 hover:rotate-0 transition-transform duration-700">
-              {/* Mockup Header */}
-              <div className="h-10 bg-white border-b border-gray-100 flex items-center px-4 gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-400" />
-                <div className="w-3 h-3 rounded-full bg-amber-400" />
-                <div className="w-3 h-3 rounded-full bg-green-400" />
-              </div>
-              {/* Mockup Content */}
-              <div className="p-8">
-                <div className="flex justify-between items-center mb-8">
-                  <div className="h-8 w-32 bg-gray-200 rounded-lg" />
-                  <div className="h-8 w-24 bg-[#1E3A8A] rounded-lg" />
-                </div>
-                <div className="grid grid-cols-3 gap-6 mb-8">
-                  <div className="h-24 bg-blue-50 rounded-xl border border-blue-100" />
-                  <div className="h-24 bg-green-50 rounded-xl border border-green-100" />
-                  <div className="h-24 bg-purple-50 rounded-xl border border-purple-100" />
-                </div>
-                <div className="space-y-4">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-16 bg-white border border-gray-100 rounded-xl shadow-sm" />
-                  ))}
-                </div>
-              </div>
-            </div>
+            {/* Real Dashboard Preview */}
+            <DashboardPreview />
           </div>
         </div>
       </section>
@@ -191,46 +160,67 @@ export default function Home() {
             <p className="text-lg text-gray-600">Commencez gratuitement, passez pro quand vous grandissez.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Free */}
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
               <h3 className="text-xl font-bold text-gray-900 mb-2">Gratuit</h3>
-              <div className="mb-6"><span className="text-4xl font-bold">0€</span>/mois</div>
+              <div className="mb-6">
+                <span className="text-4xl font-bold">$0</span>
+                <span className="text-gray-600 text-lg">/mois</span>
+              </div>
               <ul className="space-y-3 mb-8 text-gray-600 text-sm">
-                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> 5 projets</li>
-                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Formulaire de base</li>
-                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Sous-domaine</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> 5 projets actifs</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Gestion de devis basique</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Formulaire de contact</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Sous-domaine InnovaPort</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Avec logo InnovaPort</li>
               </ul>
-              <Link href="/dashboard" className="block w-full py-3 bg-gray-100 text-gray-900 font-semibold text-center rounded-xl hover:bg-gray-200 transition-colors">Commencer</Link>
+              <Link href="/auth/register" className="block w-full py-3 bg-gray-100 text-gray-900 font-semibold text-center rounded-xl hover:bg-gray-200 transition-colors">Commencer</Link>
             </div>
 
             {/* Pro */}
             <div className="bg-[#1E3A8A] p-8 rounded-2xl shadow-xl text-white transform md:-translate-y-4 relative">
-              <div className="absolute top-0 right-0 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">POPULAIRE</div>
               <h3 className="text-xl font-bold mb-2">Pro</h3>
-              <div className="mb-6"><span className="text-4xl font-bold">19€</span>/mois</div>
+              <div className="mb-6">
+                <span className="text-4xl font-bold">$19</span>
+                <span className="text-blue-100 text-lg">/mois</span>
+              </div>
               <ul className="space-y-3 mb-8 text-blue-100 text-sm">
                 <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Projets illimités</li>
                 <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Domaine personnalisé</li>
-                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Sans filigrane</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Sans filigrane ni logo</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Devis & factures automatiques</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Signatures électroniques</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Export PDF/Excel</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Analytics et rapports</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">✓</div> Support prioritaire</li>
               </ul>
               <Link href="/dashboard/billing" className="block w-full py-3 bg-white text-[#1E3A8A] font-semibold text-center rounded-xl hover:bg-gray-100 transition-colors">Choisir Pro</Link>
             </div>
 
-            {/* Business */}
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Business</h3>
-              <div className="mb-6"><span className="text-4xl font-bold">49€</span>/mois</div>
-              <ul className="space-y-3 mb-8 text-gray-600 text-sm">
-                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Tout du plan Pro</li>
-                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> Support prioritaire</li>
-                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs">✓</div> API Access</li>
+            {/* Premium */}
+            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 p-8 rounded-2xl shadow-xl text-white">
+              <h3 className="text-xl font-bold mb-2">Premium</h3>
+              <div className="mb-6">
+                <span className="text-4xl font-bold">$39</span>
+                <span className="text-purple-100 text-lg">/mois</span>
+              </div>
+              <ul className="space-y-3 mb-8 text-purple-100 text-sm">
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">✓</div> Tout du plan Pro</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">✓</div> Multi-utilisateurs (équipe)</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">✓</div> Espace client personnalisé</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">✓</div> Intégration comptable</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">✓</div> Automatisations avancées</li>
+                <li className="flex gap-2"><div className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs">✓</div> Rapports personnalisés</li>
               </ul>
-              <Link href="/dashboard/billing" className="block w-full py-3 bg-gray-100 text-gray-900 font-semibold text-center rounded-xl hover:bg-gray-200 transition-colors">Contacter</Link>
+              <Link href="/dashboard/billing" className="block w-full py-3 bg-white text-purple-600 font-semibold text-center rounded-xl hover:bg-gray-100 transition-colors">Choisir Premium</Link>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Testimonials Section */}
+      <TestimonialsSection />
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 py-12 px-6">
@@ -239,9 +229,9 @@ export default function Home() {
             <Image
               src="/innovaport-logo.png"
               alt="InnovaPort"
-              width={120}
-              height={40}
-              className="h-10 w-auto object-contain"
+              width={280}
+              height={84}
+              className="h-28 w-auto object-contain"
             />
           </div>
           <p className="text-gray-500 text-sm">© 2024 InnovaPort. Tous droits réservés.</p>

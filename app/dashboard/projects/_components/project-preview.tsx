@@ -3,8 +3,22 @@
 import { Monitor, Smartphone } from "lucide-react";
 import clsx from "clsx";
 import { useState } from "react";
+import Image from "next/image";
 
-export function ProjectPreview({ data }: { data: any }) {
+interface ProjectFormData {
+    title: string;
+    slug: string;
+    category: string;
+    shortDescription: string;
+    fullDescription: string;
+    technologies: string[];
+    projectUrl: string;
+    image: string | null;
+    featured: boolean;
+    published: boolean;
+}
+
+export function ProjectPreview({ data }: { data: ProjectFormData }) {
     const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
 
     return (
@@ -56,9 +70,9 @@ export function ProjectPreview({ data }: { data: any }) {
 
                     <div className="p-6">
                         {/* Thumbnail */}
-                        <div className="aspect-video bg-gray-200 rounded-lg mb-6 flex items-center justify-center overflow-hidden">
+                        <div className="aspect-video bg-gray-200 rounded-lg mb-6 flex items-center justify-center overflow-hidden relative">
                             {data.image ? (
-                                <img src={data.image} alt="Cover" className="w-full h-full object-cover" />
+                                <Image src={data.image} alt="Cover" fill className="object-cover" loading="lazy" sizes="(max-width: 768px) 100vw, 50vw" />
                             ) : (
                                 <span className="text-gray-400 text-4xl">🖼️</span>
                             )}

@@ -4,14 +4,8 @@ import { useSearchParams, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Github, Twitter, Linkedin, Mail } from "lucide-react";
 import clsx from "clsx";
-
-// Use hex to rgba for light bg
-const hexToRgba = (hex: string, alpha: number) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+import { hexToRgba } from "@/utils/color-utils";
+import { getDicebearAvatarUrl } from "@/lib/constants";
 
 export default function PortfolioPreview() {
     const params = useParams();
@@ -27,7 +21,7 @@ export default function PortfolioPreview() {
         name: "Jean Dupont",
         title: "Product Designer & Developer",
         bio: "Passionné par la création d'expériences numériques mémorables. Je transforme vos idées en produits réels et impactants.",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jean",
+        avatar: getDicebearAvatarUrl("Jean"),
     };
 
     const projects = [

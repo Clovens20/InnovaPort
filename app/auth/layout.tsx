@@ -11,9 +11,9 @@ export default function AuthLayout({
                 <Image
                     src="/innovaport-logo.png"
                     alt="InnovaPort"
-                    width={400}
-                    height={120}
-                    className="h-32 w-auto object-contain mb-8"
+                    width={560}
+                    height={168}
+                    className="h-48 w-auto object-contain mb-8"
                     priority
                 />
             </div>

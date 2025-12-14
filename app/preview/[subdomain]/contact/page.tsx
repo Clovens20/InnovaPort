@@ -2,29 +2,16 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Smartphone, Monitor, ShoppingCart, Globe, Server, Upload } from "lucide-react";
+import { Check } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import clsx from "clsx";
-
-const projectTypes = [
-    { value: "web_app", label: "Application Web", icon: <Monitor />, description: "Saas, Dashboard, Outil métier" },
-    { value: "mobile_app", label: "Application Mobile", icon: <Smartphone />, description: "iOS & Android" },
-    { value: "ecommerce", label: "E-commerce", icon: <ShoppingCart />, description: "Boutique en ligne" },
-    { value: "website", label: "Site Vitrine", icon: <Globe />, description: "Présentation entreprise" },
-];
-
-const budgetRanges = [
-    { value: "small", label: "< 5 000€" },
-    { value: "medium", label: "5k€ - 10k€" },
-    { value: "large", label: "10k€ - 20k€" },
-    { value: "xl", label: "> 20 000€" },
-];
-
-const featuresList = [
-    "Paiement en ligne", "Authentification", "Multi-langues", "Dashboard admin", "Blog / News", "Réservation", "Chat / Messagerie", "Map / Géolocalisation"
-];
+import { projectTypes, budgetRanges, featuresList } from "@/utils/contact-constants";
 
 export default function PublicQuoteForm() {
+    const params = useParams();
+    const subdomain = params.subdomain as string;
+    
     const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
         name: "", email: "", phone: "", company: "", location: "",
@@ -41,7 +28,7 @@ export default function PublicQuoteForm() {
         consentPrivacy: false
     });
 
-    const updateFormData = (field: string, value: any) => {
+    const updateFormData = (field: string, value: string | boolean | string[] | { ios: boolean; android: boolean }) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -54,8 +41,36 @@ export default function PublicQuoteForm() {
         }));
     };
 
-    const handleSubmit = () => {
-        alert("Demande envoyée avec succès ! (Simulation)");
+    const handleSubmit = async () => {
+        if (!formData.name || !formData.email || !formData.projectType || !formData.budget || !formData.description) {
+            alert("Veuillez remplir tous les champs requis");
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/quotes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: subdomain,
+                    ...formData,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de l\'envoi');
+            }
+
+            alert("Demande envoyée avec succès !");
+            // Optionnel: rediriger ou réinitialiser le formulaire
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Erreur lors de l\'envoi de la demande';
+            alert(errorMessage);
+        }
     };
 
     return (
@@ -155,7 +170,7 @@ export default function PublicQuoteForm() {
                                                 formData.projectType === type.value ? "border-blue-900 bg-blue-50" : "border-gray-200 hover:border-gray-300"
                                             )}
                                         >
-                                            <div className="text-3xl mb-3 text-blue-900">{type.icon}</div>
+                                            <div className="text-3xl mb-3 text-blue-900"><type.icon /></div>
                                             <h3 className="font-semibold text-gray-900 mb-1">{type.label}</h3>
                                             <p className="text-sm text-gray-500">{type.description}</p>
                                         </button>

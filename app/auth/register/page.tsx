@@ -3,14 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
-
 export default function RegisterPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -25,6 +25,13 @@ export default function RegisterPage() {
 
         const supabase = createClient();
 
+        // Validation du mot de passe
+        if (password.length < 8) {
+            setError('Le mot de passe doit contenir au moins 8 caractères');
+            setIsLoading(false);
+            return;
+        }
+
         // Sign up with Supabase Auth
         // The handle_new_user trigger in Postgres (Setup in Schema) will handle profile creation
         const { error: authError, data } = await supabase.auth.signUp({
@@ -33,31 +40,40 @@ export default function RegisterPage() {
             options: {
                 data: {
                     full_name: name,
+                    username: email.split('@')[0], // Générer un username basé sur l'email
                 },
+                emailRedirectTo: `${window.location.origin}/auth/login`,
             },
         });
 
         if (authError) {
-            setError(authError.message);
+            // Log error for debugging (in production, this would go to a logging service)
+            if (process.env.NODE_ENV === 'development') {
+                console.error('Registration error:', authError);
+            }
+            setError(authError.message || 'Erreur lors de la création du compte. Vérifiez vos informations.');
             setIsLoading(false);
             return;
         }
 
         if (data.user) {
-            // If email confirmation is enabled, we need to tell user to check email.
-            // For now, assuming auto-confirm or email check.
-            setMessage("Compte créé avec succès ! Vérifiez votre email ou connectez-vous.");
-
-            // Auto redirect if session established immediately (depends on Supabase settings)
+            // Si email confirmation est activé dans Supabase
             if (data.session) {
-                router.push("/dashboard");
-            } else {
-                // Wait a bit then redirect to login
+                // Session créée immédiatement (auto-confirm activé)
+                setMessage('Compte créé avec succès ! Redirection...');
                 setTimeout(() => {
-                    router.push("/auth/login?registered=true");
-                }, 2000);
+                    router.push("/dashboard");
+                    router.refresh();
+                }, 1000);
+            } else {
+                // Email confirmation requise
+                setMessage('Compte créé ! Vérifiez votre email pour confirmer votre compte. Vous serez redirigé vers la page de connexion.');
+                setTimeout(() => {
+                    router.push("/auth/login?registered=true&email=" + encodeURIComponent(email));
+                }, 3000);
             }
         } else {
+            setError('Erreur inattendue lors de la création du compte');
             setIsLoading(false);
         }
     };
@@ -119,17 +135,31 @@ export default function RegisterPage() {
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                         Mot de passe
                     </label>
-                    <div className="mt-1">
+                    <div className="mt-1 relative">
                         <input
                             id="password"
                             name="password"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             autoComplete="new-password"
                             required
-                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
+                            minLength={8}
+                            className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
                             placeholder="Min. 8 caractères"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                            tabIndex={-1}
+                        >
+                            {showPassword ? (
+                                <EyeOff className="h-5 w-5" />
+                            ) : (
+                                <Eye className="h-5 w-5" />
+                            )}
+                        </button>
                     </div>
+                    <p className="mt-1 text-xs text-gray-500">Minimum 8 caractères</p>
                 </div>
 
                 <div>
@@ -141,7 +171,7 @@ export default function RegisterPage() {
                         {isLoading ? (
                             <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Création en cours...</>
                         ) : (
-                            "Commencer gratuitement"
+                            'Commencer gratuitement'
                         )}
                     </button>
                 </div>

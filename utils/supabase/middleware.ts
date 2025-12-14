@@ -37,22 +37,12 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/auth') &&
-        !request.nextUrl.pathname.startsWith('/_next') &&
-        request.nextUrl.pathname !== '/' &&
-        !request.nextUrl.pathname.startsWith('/preview') && /* Allow public preview */
-        !request.nextUrl.pathname.includes('.') /* Allow static files */
-    ) {
-        // If user is not signed in and trying to access a protected route (dashboard, etc),
-        // redirect the user to /auth/login
-        // We allow public routes: /, /auth/*, /preview/* (public portfolios)
-        if (request.nextUrl.pathname.startsWith('/dashboard')) {
-            const url = request.nextUrl.clone()
-            url.pathname = '/auth/login'
-            return NextResponse.redirect(url)
-        }
+    // Only protect /dashboard routes - all other routes are public (portfolios, preview, auth, etc.)
+    if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+        // If user is not signed in and trying to access dashboard, redirect to login
+        const url = request.nextUrl.clone()
+        url.pathname = '/auth/login'
+        return NextResponse.redirect(url)
     }
 
     return supabaseResponse
