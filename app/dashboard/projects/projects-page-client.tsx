@@ -13,16 +13,16 @@ export function ProjectsPageClient({ projects }: { projects: any[] }) {
                         <Sparkles className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.projects.title')}</h1>
+                        <h1 className="text-3xl font-bold text-gray-900">Mes Projets</h1>
                         {projects.length > 0 && (
                             <p className="text-sm text-gray-600 mt-1">
-                                {projects.length} {t('dashboard.projects.activeProjects')}
+                                {projects.length} projet{projects.length > 1 ? 's' : ''} actif{projects.length > 1 ? 's' : ''}
                             </p>
                         )}
                     </div>
                 </div>
                 <p className="text-gray-600 ml-14">
-                    {t('dashboard.projects.subtitle')}
+                    Gérez vos projets et partagez-les avec vos clients
                 </p>
             </div>
 
@@ -48,7 +48,7 @@ export function ProjectsPageClient({ projects }: { projects: any[] }) {
                                             <div className="w-16 h-16 bg-primary/20 rounded-lg flex items-center justify-center mx-auto mb-2">
                                                 <Eye className="w-8 h-8 text-primary" />
                                             </div>
-                                            <p className="text-sm text-gray-500">{t('dashboard.projects.noImage')}</p>
+                                            <p className="text-sm text-gray-500">Aucune image</p>
                                         </div>
                                     </div>
                                 )}
@@ -57,12 +57,12 @@ export function ProjectsPageClient({ projects }: { projects: any[] }) {
                                     {project.published ? (
                                         <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full flex items-center gap-1">
                                             <CheckCircle2 className="w-3 h-3" />
-                                            {t('dashboard.projects.published')}
+                                            Publié
                                         </span>
                                     ) : (
                                         <span className="px-3 py-1 bg-gray-500 text-white text-xs font-semibold rounded-full flex items-center gap-1">
                                             <Clock className="w-3 h-3" />
-                                            {t('dashboard.projects.draft')}
+                                            Brouillon
                                         </span>
                                     )}
                                 </div>
@@ -73,7 +73,7 @@ export function ProjectsPageClient({ projects }: { projects: any[] }) {
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex-1">
                                         <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1">
-                                            {project.title || t('dashboard.projects.noTitle')}
+                                            {project.title || 'Sans titre'}
                                         </h3>
                                         {project.category && (
                                             <p className="text-sm text-gray-500">{project.category}</p>
@@ -113,7 +113,7 @@ export function ProjectsPageClient({ projects }: { projects: any[] }) {
                                         className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
                                     >
                                         <Edit className="w-4 h-4" />
-                                        {t('dashboard.projects.edit')}
+                                        Modifier
                                     </Link>
                                     {project.published && (
                                         <a
@@ -123,7 +123,7 @@ export function ProjectsPageClient({ projects }: { projects: any[] }) {
                                             className="px-4 py-2 border border-primary text-primary rounded-lg hover:bg-primary/5 transition-colors text-sm font-medium flex items-center gap-2"
                                         >
                                             <ExternalLink className="w-4 h-4" />
-                                            {t('dashboard.projects.view')}
+                                            Voir
                                         </a>
                                     )}
                                 </div>
@@ -136,16 +136,16 @@ export function ProjectsPageClient({ projects }: { projects: any[] }) {
                     <div className="w-20 h-20 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center mx-auto mb-6">
                         <Plus className="w-10 h-10 text-primary" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{t('dashboard.projects.startTitle')}</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Commencez à créer vos projets</h3>
                     <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                        {t('dashboard.projects.startDesc')}
+                        Ajoutez votre premier projet pour le partager avec vos clients et le mettre en avant sur votre portfolio.
                     </p>
                     <Link
                         href="/dashboard/projects/new"
                         className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 font-semibold text-lg"
                     >
                         <Plus className="w-6 h-6" />
-                        {t('dashboard.projects.addFirst')}
+                        Ajouter mon premier projet
                     </Link>
                 </div>
             )}

@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createAnalyticsSchema } from '@/lib/validations/schemas';
+import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit';
 
 // Utiliser la service role key pour bypasser RLS lors de l'insertion publique
 const supabaseAdmin = createClient(
@@ -23,6 +24,29 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(request: NextRequest) {
+    // OPTIMISATION: Rate limiting pour protéger contre les abus
+    // Limite: 20 requêtes par minute par IP (plus permissif car analytics est appelé fréquemment)
+    const identifier = getRateLimitIdentifier(request);
+    const rateLimitResult = checkRateLimit(identifier, 20, 60000); // 20 req/min
+
+    if (!rateLimitResult.allowed) {
+        return NextResponse.json(
+            {
+                error: 'Trop de requêtes',
+                message: `Limite de 20 requêtes par minute atteinte. Réessayez dans ${Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)} secondes.`,
+            },
+            {
+                status: 429,
+                headers: {
+                    'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
+                    'X-RateLimit-Limit': '20',
+                    'X-RateLimit-Remaining': '0',
+                    'X-RateLimit-Reset': String(rateLimitResult.resetTime),
+                },
+            }
+        );
+    }
+
     try {
         const body = await request.json();
 
@@ -102,10 +126,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        return NextResponse.json(
+        const response = NextResponse.json(
             { success: true, message: 'Événement analytics enregistré' },
             { status: 201 }
         );
+
+        // Ajouter les headers de rate limit à la réponse
+        response.headers.set('X-RateLimit-Limit', '20');
+        response.headers.set('X-RateLimit-Remaining', String(rateLimitResult.remaining));
+        response.headers.set('X-RateLimit-Reset', String(rateLimitResult.resetTime));
+
+        return response;
     } catch (error) {
         // Log error for debugging (in production, this would go to a logging service)
         if (process.env.NODE_ENV === 'development') {

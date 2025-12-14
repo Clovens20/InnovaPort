@@ -14,11 +14,8 @@ import { Check, Loader2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { projectTypes, budgetRanges, featuresList } from '@/utils/contact-constants';
-import { useTranslation } from 'react-i18next';
-import { LanguageSwitcher } from '@/app/_components/language-switcher';
 
 export default function ContactPage() {
-    const { t } = useTranslation();
     const params = useParams();
     const router = useRouter();
     const username = params.username as string;
@@ -87,7 +84,7 @@ export default function ContactPage() {
                 if (otherFeature.length <= 200) {
                     allFeatures.push(otherFeature);
                 } else {
-                    setSubmitError(t('contact.errors.featuresTooLong'));
+                    setSubmitError('Les fonctionnalités sont trop longues (maximum 200 caractères)');
                     setIsSubmitting(false);
                     return;
                 }
@@ -145,18 +142,14 @@ export default function ContactPage() {
         return (
             <div className="min-h-screen bg-gray-50 py-12 px-4 font-sans flex items-center justify-center">
                 <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-                    {/* Language Switcher */}
-                    <div className="fixed top-4 right-4 z-50">
-                        <LanguageSwitcher />
-                    </div>
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Check className="w-8 h-8 text-green-600" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('contact.success.title')}</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Demande envoyée avec succès !</h2>
                     <p className="text-gray-600 mb-6">
-                        {t('contact.success.message')}
+                        Votre demande de devis a été transmise au développeur. Vous recevrez une réponse dans les plus brefs délais.
                     </p>
-                    <p className="text-sm text-gray-500">{t('contact.success.redirecting')}</p>
+                    <p className="text-sm text-gray-500">Redirection en cours...</p>
                 </div>
             </div>
         );
@@ -164,14 +157,10 @@ export default function ContactPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 font-sans">
-            {/* Language Switcher */}
-            <div className="fixed top-4 right-4 z-50">
-                <LanguageSwitcher />
-            </div>
             <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('contact.title')}</h1>
-                    <p className="text-xl text-gray-600">{t('contact.subtitle')}</p>
+                    <h1 className="text-4xl font-bold text-gray-900 mb-4">Demande de devis</h1>
+                    <p className="text-xl text-gray-600">Remplissez le formulaire ci-dessous pour obtenir un devis personnalisé</p>
                 </div>
 
                 {/* Progress Bar */}
@@ -199,10 +188,10 @@ export default function ContactPage() {
                         ))}
                     </div>
                     <div className="flex justify-between text-sm text-gray-600 px-2">
-                        <span>{t('contact.steps.contact')}</span>
-                        <span>{t('contact.steps.project')}</span>
-                        <span>{t('contact.steps.details')}</span>
-                        <span>{t('contact.steps.finalization')}</span>
+                        <span>Vos informations</span>
+                        <span>Type de projet</span>
+                        <span>Détails</span>
+                        <span>Finalisation</span>
                     </div>
                 </div>
 
@@ -223,28 +212,28 @@ export default function ContactPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.form.yourInfo')}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">Vos informations</h2>
                                 <div className="space-y-6">
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                {t('contact.form.name')} *
+                                                Nom complet *
                                             </label>
                                             <input
                                                 type="text"
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                                placeholder={t('auth.register.namePlaceholder')}
+                                                placeholder="Jean Dupont"
                                                 value={formData.name}
                                                 onChange={(e) => updateFormData('name', e.target.value)}
                                                 required
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('contact.form.email')} *</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
                                             <input
                                                 type="email"
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                                placeholder={t('auth.login.emailPlaceholder')}
+                                                placeholder="jean@example.com"
                                                 value={formData.email}
                                                 onChange={(e) => updateFormData('email', e.target.value)}
                                                 required
@@ -253,32 +242,32 @@ export default function ContactPage() {
                                     </div>
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('contact.form.phone')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
                                             <input
                                                 type="tel"
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                                placeholder={t('contact.form.phonePlaceholder')}
+                                                placeholder="+33 6 12 34 56 78"
                                                 value={formData.phone}
                                                 onChange={(e) => updateFormData('phone', e.target.value)}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('contact.form.company')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Entreprise</label>
                                             <input
                                                 type="text"
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                                placeholder={t('contact.form.companyPlaceholder')}
+                                                placeholder="Nom de votre entreprise"
                                                 value={formData.company}
                                                 onChange={(e) => updateFormData('company', e.target.value)}
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('contact.form.location')}</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Localisation</label>
                                         <input
                                             type="text"
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                            placeholder={t('contact.form.locationPlaceholder')}
+                                            placeholder="Ville, Pays"
                                             value={formData.location}
                                             onChange={(e) => updateFormData('location', e.target.value)}
                                         />
@@ -296,7 +285,7 @@ export default function ContactPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.form.projectTypeTitle')}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">Type de projet</h2>
                                 <div className="grid md:grid-cols-2 gap-4 mb-8">
                                     {projectTypes.map((type) => (
                                         <button
@@ -327,10 +316,10 @@ export default function ContactPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.form.projectDetails')}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">Détails du projet</h2>
 
                                 <div className="mb-8">
-                                    <label className="block text-sm font-medium text-gray-700 mb-3">{t('contact.form.budget')} *</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">Budget *</label>
                                     <div className="grid md:grid-cols-2 gap-3">
                                         {budgetRanges.map((range) => (
                                             <label
@@ -358,7 +347,7 @@ export default function ContactPage() {
 
                                 <div className="mb-8">
                                     <label className="block text-sm font-medium text-gray-700 mb-3">
-                                        {t('contact.form.features')}
+                                        Fonctionnalités souhaitées
                                     </label>
                                     <div className="grid md:grid-cols-2 gap-3 mb-4">
                                         {featuresList.map((feature) => (
@@ -389,20 +378,20 @@ export default function ContactPage() {
                                                 }}
                                                 className="mr-3 rounded text-blue-900 focus:ring-blue-900"
                                             />
-                                            <span className="text-sm">{t('contact.form.other')}</span>
+                                            <span className="text-sm">Autre</span>
                                         </label>
                                     </div>
                                     
                                     {showOtherFeatures && (
                                         <div className="mt-4">
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                {t('contact.form.other')}
+                                                Précisez vos autres fonctionnalités
                                             </label>
                                             <textarea
                                                 rows={3}
                                                 value={otherFeaturesText}
                                                 onChange={(e) => setOtherFeaturesText(e.target.value)}
-                                                placeholder={t('contact.form.otherPlaceholder')}
+                                                placeholder="Décrivez vos autres besoins..."
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
                                             />
                                         </div>
@@ -420,17 +409,17 @@ export default function ContactPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.steps.finalization')}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">Finalisation</h2>
 
                                 <div className="space-y-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            {t('contact.form.description')} *
+                                            Description du projet *
                                         </label>
                                         <textarea
                                             rows={6}
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                            placeholder={t('contact.form.descriptionPlaceholder')}
+                                            placeholder="Décrivez votre projet en détail..."
                                             value={formData.description}
                                             onChange={(e) => updateFormData('description', e.target.value)}
                                             required
@@ -446,9 +435,9 @@ export default function ContactPage() {
                                                 onChange={(e) => updateFormData('hasVagueIdea', e.target.checked)}
                                             />
                                             <div>
-                                                <span className="font-semibold text-gray-900">{t('contact.form.vagueIdea')} ?</span>
+                                                <span className="font-semibold text-gray-900">Vous avez une idée vague ?</span>
                                                 <p className="text-sm text-gray-600 mt-1">
-                                                    {t('contact.form.vagueIdeaHelp')}
+                                                    Cochez cette case si vous avez besoin d'aide pour définir votre projet.
                                                 </p>
                                             </div>
                                         </label>
@@ -462,7 +451,7 @@ export default function ContactPage() {
                                                 checked={formData.consentContact}
                                                 onChange={(e) => updateFormData('consentContact', e.target.checked)}
                                             />
-                                            <span className="text-sm">{t('contact.form.consentContact')} *</span>
+                                            <span className="text-sm">J'accepte d'être contacté pour des informations complémentaires</span>
                                         </label>
                                         <label className="flex items-center">
                                             <input
@@ -472,7 +461,7 @@ export default function ContactPage() {
                                                 onChange={(e) => updateFormData('consentPrivacy', e.target.checked)}
                                                 required
                                             />
-                                            <span className="text-sm">{t('contact.form.consentPrivacy')} *</span>
+                                            <span className="text-sm">J'accepte la politique de confidentialité *</span>
                                         </label>
                                     </div>
                                 </div>
@@ -482,13 +471,13 @@ export default function ContactPage() {
 
                     {/* Navigation Controls */}
                     <div className="mt-12 flex justify-between items-center pt-6 border-t border-gray-100">
-                        {currentStep > 1 && (
+                                {currentStep > 1 && (
                             <button
                                 onClick={() => setCurrentStep((c) => c - 1)}
                                 className="px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-colors"
                                 disabled={isSubmitting}
                             >
-                                ← {t('contact.form.previous')}
+                                ← Précédent
                             </button>
                         )}
 
@@ -498,7 +487,7 @@ export default function ContactPage() {
                                     onClick={() => setCurrentStep((c) => c + 1)}
                                     className="px-8 py-3 bg-[#10B981] text-white rounded-lg font-semibold hover:bg-[#059669] transition-colors"
                                 >
-                                    {t('contact.form.next')} →
+                                    Suivant →
                                 </button>
                             ) : (
                                 <button
@@ -509,11 +498,11 @@ export default function ContactPage() {
                                     {isSubmitting ? (
                                         <>
                                             <Loader2 className="w-5 h-5 animate-spin" />
-                                            {t('contact.form.submitting')}
+                                            Envoi en cours...
                                         </>
                                     ) : (
                                         <>
-                                            {t('contact.form.submit')}
+                                            Envoyer la demande
                                             <Check className="w-5 h-5" />
                                         </>
                                     )}

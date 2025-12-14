@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sendQuoteNotificationEmail, sendQuoteConfirmationEmail } from '@/utils/resend';
 import { createQuoteSchema } from '@/lib/validations/schemas';
+import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit';
 
 // Utiliser la service role key pour bypasser RLS lors de l'insertion publique
 const supabaseAdmin = createClient(
@@ -24,6 +25,29 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(request: NextRequest) {
+    // OPTIMISATION: Rate limiting pour protéger contre les abus
+    // Limite: 5 requêtes par minute par IP
+    const identifier = getRateLimitIdentifier(request);
+    const rateLimitResult = checkRateLimit(identifier, 5, 60000); // 5 req/min
+
+    if (!rateLimitResult.allowed) {
+        return NextResponse.json(
+            {
+                error: 'Trop de requêtes',
+                message: `Limite de 5 requêtes par minute atteinte. Réessayez dans ${Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)} secondes.`,
+            },
+            {
+                status: 429,
+                headers: {
+                    'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
+                    'X-RateLimit-Limit': '5',
+                    'X-RateLimit-Remaining': '0',
+                    'X-RateLimit-Reset': String(rateLimitResult.resetTime),
+                },
+            }
+        );
+    }
+
     try {
         const body = await request.json();
 
@@ -117,9 +141,11 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Envoyer l'email de notification au développeur
-        try {
-            await sendQuoteNotificationEmail({
+        // OPTIMISATION: Envoyer les deux emails en parallèle pour réduire le temps de réponse
+        // Les deux emails sont indépendants et peuvent être envoyés simultanément
+        const emailPromises = [
+            // Envoyer l'email de notification au développeur
+            sendQuoteNotificationEmail({
                 to: profile.email || email, // Fallback sur l'email du client si pas d'email dans le profil
                 developerName: profile.full_name || profile.username,
                 quoteData: {
@@ -129,30 +155,30 @@ export async function POST(request: NextRequest) {
                     budget,
                     description,
                 },
-            });
-        } catch (emailError) {
-            // Log error for debugging (in production, this would go to a logging service)
-            if (process.env.NODE_ENV === 'development') {
-                console.error('Error sending notification email:', emailError);
-            }
-            // Ne pas faire échouer la requête si l'email échoue
-        }
-
-        // Envoyer l'email de confirmation au client
-        try {
-            await sendQuoteConfirmationEmail({
+            }).catch((emailError) => {
+                // Log error for debugging (in production, this would go to a logging service)
+                if (process.env.NODE_ENV === 'development') {
+                    console.error('Error sending notification email:', emailError);
+                }
+                // Ne pas faire échouer la requête si l'email échoue
+            }),
+            // Envoyer l'email de confirmation au client
+            sendQuoteConfirmationEmail({
                 to: email,
                 clientName: name,
-            });
-        } catch (emailError) {
-            // Log error for debugging (in production, this would go to a logging service)
-            if (process.env.NODE_ENV === 'development') {
-                console.error('Error sending confirmation email:', emailError);
-            }
-            // Ne pas faire échouer la requête si l'email échoue
-        }
+            }).catch((emailError) => {
+                // Log error for debugging (in production, this would go to a logging service)
+                if (process.env.NODE_ENV === 'development') {
+                    console.error('Error sending confirmation email:', emailError);
+                }
+                // Ne pas faire échouer la requête si l'email échoue
+            }),
+        ];
 
-        return NextResponse.json(
+        // Attendre que les deux emails soient envoyés (ou échouent silencieusement)
+        await Promise.allSettled(emailPromises);
+
+        const response = NextResponse.json(
             {
                 success: true,
                 message: 'Demande de devis enregistrée avec succès',
@@ -160,6 +186,13 @@ export async function POST(request: NextRequest) {
             },
             { status: 201 }
         );
+
+        // Ajouter les headers de rate limit à la réponse
+        response.headers.set('X-RateLimit-Limit', '5');
+        response.headers.set('X-RateLimit-Remaining', String(rateLimitResult.remaining));
+        response.headers.set('X-RateLimit-Reset', String(rateLimitResult.resetTime));
+
+        return response;
     } catch (error) {
         // Log error for debugging (in production, this would go to a logging service)
         if (process.env.NODE_ENV === 'development') {
