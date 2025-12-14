@@ -7,6 +7,7 @@ import { DashboardPreview } from "./_components/dashboard-preview";
 import { SocialProofSection } from "./_components/social-proof-section";
 import { UserCountBadge } from "./_components/user-count-badge";
 import { TestimonialsSection } from "./_components/testimonials-section";
+import { DeveloperTestimonialsSection } from "./_components/developer-testimonials-section";
 export default function Home() {
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900">
@@ -221,6 +222,9 @@ export default function Home() {
 
       {/* Testimonials Section */}
       <TestimonialsSection />
+      
+      {/* Developer Testimonials Section */}
+      <DeveloperTestimonialsSection />
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-100 py-12 px-6">

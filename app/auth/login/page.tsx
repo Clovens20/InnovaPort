@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
@@ -21,7 +23,7 @@ export default function LoginPage() {
         const password = formData.get("password") as string;
 
         const supabase = createClient();
-        const { error: authError } = await supabase.auth.signInWithPassword({
+        const { error: authError, data } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
@@ -30,7 +32,39 @@ export default function LoginPage() {
             setError(authError.message);
             setIsLoading(false);
         } else {
-            router.push("/dashboard");
+            // Vérifier le rôle de l'utilisateur pour déterminer la redirection
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', data.user.id)
+                .single();
+
+            // Récupérer le paramètre redirectTo
+            const redirectTo = searchParams.get('redirectTo');
+            
+            // Si l'utilisateur est admin
+            if (profile?.role === 'admin') {
+                // Si redirectTo est spécifié et commence par /admin, l'utiliser
+                if (redirectTo && (redirectTo === '/admin' || redirectTo.startsWith('/admin'))) {
+                    router.push(redirectTo);
+                } else {
+                    // Sinon, rediriger vers /admin par défaut pour les admins
+                    router.push("/admin");
+                }
+            } else {
+                // Si l'utilisateur n'est pas admin
+                if (redirectTo && redirectTo.startsWith('/admin')) {
+                    // Si redirectTo pointe vers admin mais l'utilisateur n'est pas admin, rediriger vers dashboard
+                    router.push("/dashboard");
+                } else if (redirectTo) {
+                    // Utiliser le redirectTo si c'est une route valide pour développeur
+                    router.push(redirectTo);
+                } else {
+                    // Rediriger vers dashboard par défaut pour les développeurs
+                    router.push("/dashboard");
+                }
+            }
+            
             router.refresh();
         }
     };

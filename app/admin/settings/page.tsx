@@ -1,24 +1,28 @@
-// app/admin/social-proof/page.tsx
+/**
+ * Page: /admin/settings
+ * 
+ * Fonction: Permet aux admins de compléter et gérer leur profil
+ */
+
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import SocialProofClient from './SocialProofClient';
+import { AdminSettingsClient } from './AdminSettingsClient';
 
 export const metadata = {
-    title: "Social Proof Admin | InnovaPort",
+    title: "Mon Profil Admin | InnovaPort",
 };
 
-export default async function SocialProofAdminPage() {
-    // Vérification admin avec redirection automatique si non-admin
+export default async function AdminSettingsPage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        redirect('/auth/login?redirectTo=/admin/social-proof');
+        redirect('/auth/login?redirectTo=/admin/settings');
     }
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('*')
         .eq('id', user.id)
         .single();
 
@@ -26,5 +30,8 @@ export default async function SocialProofAdminPage() {
         redirect('/dashboard');
     }
 
-    return <SocialProofClient />;
+    return (
+        <AdminSettingsClient initialProfile={profile} />
+    );
 }
+

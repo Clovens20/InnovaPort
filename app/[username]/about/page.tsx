@@ -86,9 +86,6 @@ export default function AboutPage() {
                             <Link href={`/${username}/about`} className="text-white font-semibold">
                                 À propos
                             </Link>
-                            <Link href={`/${username}/contact`} className="text-slate-300 hover:text-white transition-colors">
-                                Contact
-                            </Link>
                         </nav>
                     </div>
                 </div>

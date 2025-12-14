@@ -311,28 +311,52 @@ export function PortfolioClient({
                             <h2 className="text-4xl font-bold text-center mb-12">Mes Projets</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {projects.map((project) => (
-                                    <div key={project.id} className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all">
-                                        {project.image_url && (
-                                            <div className="aspect-video relative">
-                                                <Image
-                                                    src={project.image_url}
-                                                    alt={project.title}
-                                                    fill
-                                                    className="object-cover"
-                                                />
-                                            </div>
+                                    <div key={project.id} className={`bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all ${project.project_url ? 'cursor-pointer' : ''}`}>
+                                        {project.project_url ? (
+                                            <a href={project.project_url} target="_blank" rel="noopener noreferrer" className="block">
+                                                {project.image_url && (
+                                                    <div className="aspect-video relative">
+                                                        <Image
+                                                            src={project.image_url}
+                                                            alt={project.title}
+                                                            fill
+                                                            className="object-cover"
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="p-6">
+                                                    <h3 className="text-xl font-bold mb-2 hover:text-blue-600 transition-colors">{project.title}</h3>
+                                                    <p className="text-gray-600 text-sm mb-4">{project.short_description}</p>
+                                                    <span className="text-blue-600 font-semibold text-sm hover:underline inline-flex items-center gap-1">
+                                                        Visiter le projet <ArrowRight className="w-4 h-4" />
+                                                    </span>
+                                                </div>
+                                            </a>
+                                        ) : (
+                                            <>
+                                                {project.image_url && (
+                                                    <div className="aspect-video relative">
+                                                        <Image
+                                                            src={project.image_url}
+                                                            alt={project.title}
+                                                            fill
+                                                            className="object-cover"
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="p-6">
+                                                    <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                                                    <p className="text-gray-600 text-sm mb-4">{project.short_description}</p>
+                                                    <Link
+                                                        href={`/${profile.username}/contact`}
+                                                        className="text-blue-600 font-semibold text-sm hover:underline"
+                                                        onClick={handleQuoteClick}
+                                                    >
+                                                        Demander un devis
+                                                    </Link>
+                                                </div>
+                                            </>
                                         )}
-                                        <div className="p-6">
-                                            <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                                            <p className="text-gray-600 text-sm mb-4">{project.short_description}</p>
-                                            <Link
-                                                href={`/${profile.username}/contact`}
-                                                className="text-blue-600 font-semibold text-sm hover:underline"
-                                                onClick={handleQuoteClick}
-                                            >
-                                                Demander un devis
-                                            </Link>
-                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -647,52 +671,99 @@ export function PortfolioClient({
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                                    className={`group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${project.project_url ? 'cursor-pointer' : ''}`}
                                 >
-                                    <div className="aspect-video bg-gray-200 overflow-hidden relative">
-                                        {project.image_url ? (
-                                            <Image
-                                                src={project.image_url}
-                                                alt={project.title}
-                                                fill
-                                                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                                loading="lazy"
-                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                                {project.title}
+                                    {project.project_url ? (
+                                        <a href={project.project_url} target="_blank" rel="noopener noreferrer" className="block">
+                                            <div className="aspect-video bg-gray-200 overflow-hidden relative">
+                                                {project.image_url ? (
+                                                    <Image
+                                                        src={project.image_url}
+                                                        alt={project.title}
+                                                        fill
+                                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                                        loading="lazy"
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                        {project.title}
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                    <div className="p-6">
-                                        {project.technologies && project.technologies.length > 0 && (
-                                            <div className="flex gap-2 mb-3 flex-wrap">
-                                                {project.technologies.slice(0, 3).map((tech) => (
-                                                    <span
-                                                        key={tech}
-                                                        className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-medium"
-                                                    >
-                                                        {tech}
-                                                    </span>
-                                                ))}
+                                            <div className="p-6">
+                                                {project.technologies && project.technologies.length > 0 && (
+                                                    <div className="flex gap-2 mb-3 flex-wrap">
+                                                        {project.technologies.slice(0, 3).map((tech) => (
+                                                            <span
+                                                                key={tech}
+                                                                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-medium"
+                                                            >
+                                                                {tech}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                                    {project.title}
+                                                </h3>
+                                                <p className="text-gray-500 text-sm mb-4">
+                                                    {project.short_description || 'Projet réalisé avec soin et attention aux détails'}
+                                                </p>
+                                                <span className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all">
+                                                    Visiter le projet
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </span>
                                             </div>
-                                        )}
-                                        <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                                            {project.title}
-                                        </h3>
-                                        <p className="text-gray-500 text-sm mb-4">
-                                            {project.short_description || 'Projet réalisé avec soin et attention aux détails'}
-                                        </p>
-                                        <Link
-                                            href={`/${profile.username}/contact`}
-                                            className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all"
-                                            onClick={handleQuoteClick}
-                                        >
-                                            Demander un devis
-                                            <ArrowRight className="w-4 h-4" />
-                                        </Link>
-                                    </div>
+                                        </a>
+                                    ) : (
+                                        <>
+                                            <div className="aspect-video bg-gray-200 overflow-hidden relative">
+                                                {project.image_url ? (
+                                                    <Image
+                                                        src={project.image_url}
+                                                        alt={project.title}
+                                                        fill
+                                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                                        loading="lazy"
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                        {project.title}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="p-6">
+                                                {project.technologies && project.technologies.length > 0 && (
+                                                    <div className="flex gap-2 mb-3 flex-wrap">
+                                                        {project.technologies.slice(0, 3).map((tech) => (
+                                                            <span
+                                                                key={tech}
+                                                                className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-medium"
+                                                            >
+                                                                {tech}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                                    {project.title}
+                                                </h3>
+                                                <p className="text-gray-500 text-sm mb-4">
+                                                    {project.short_description || 'Projet réalisé avec soin et attention aux détails'}
+                                                </p>
+                                                <Link
+                                                    href={`/${profile.username}/contact`}
+                                                    className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all"
+                                                    onClick={handleQuoteClick}
+                                                >
+                                                    Demander un devis
+                                                    <ArrowRight className="w-4 h-4" />
+                                                </Link>
+                                            </div>
+                                        </>
+                                    )}
                                 </motion.div>
                             ))}
                         </div>

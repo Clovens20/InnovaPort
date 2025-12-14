@@ -1,19 +1,23 @@
-// app/admin/social-proof/page.tsx
+/**
+ * Page: /admin/appearance
+ * 
+ * Fonction: Gérer l'apparence globale du site
+ */
+
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
-import SocialProofClient from './SocialProofClient';
+import { AppearanceAdminClient } from './AppearanceAdminClient';
 
 export const metadata = {
-    title: "Social Proof Admin | InnovaPort",
+    title: "Apparence | Admin InnovaPort",
 };
 
-export default async function SocialProofAdminPage() {
-    // Vérification admin avec redirection automatique si non-admin
+export default async function AdminAppearancePage() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-        redirect('/auth/login?redirectTo=/admin/social-proof');
+        redirect('/auth/login?redirectTo=/admin/appearance');
     }
 
     const { data: profile } = await supabase
@@ -26,5 +30,6 @@ export default async function SocialProofAdminPage() {
         redirect('/dashboard');
     }
 
-    return <SocialProofClient />;
+    return <AppearanceAdminClient />;
 }
+

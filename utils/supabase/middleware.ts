@@ -37,13 +37,20 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // Only protect /dashboard routes - all other routes are public (portfolios, preview, auth, etc.)
-    if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
-        // If user is not signed in and trying to access dashboard, redirect to login
+    const pathname = request.nextUrl.pathname
+
+    // Protection des routes /dashboard : nécessite une authentification
+    if (!user && pathname.startsWith('/dashboard')) {
         const url = request.nextUrl.clone()
         url.pathname = '/auth/login'
+        url.searchParams.set('redirectTo', pathname)
         return NextResponse.redirect(url)
     }
+
+    // Protection des routes /admin : la vérification est faite côté client par AdminGuard
+    // Exception : /admin/login est accessible sans authentification
+    // On laisse passer toutes les routes /admin pour que AdminGuard puisse gérer la vérification
+    // Cela évite les redirections immédiates côté serveur
 
     return supabaseResponse
 }
