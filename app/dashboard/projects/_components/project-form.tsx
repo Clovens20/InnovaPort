@@ -17,10 +17,13 @@ export default function ProjectForm() {
     
     const [formData, setFormData] = useState({
         title: "",
+        titleEn: "",
         slug: "",
         category: "",
         shortDescription: "",
+        shortDescriptionEn: "",
         fullDescription: "",
+        fullDescriptionEn: "",
         problem: "",
         technologies: [] as string[],
         clientType: "personal",
@@ -179,10 +182,13 @@ export default function ProjectForm() {
             const payload = {
                 ...(projectId && { id: projectId }),
                 title: formData.title,
+                title_en: formData.titleEn || null,
                 slug: formData.slug,
                 category: formData.category || null,
                 short_description: formData.shortDescription || null,
+                short_description_en: formData.shortDescriptionEn || null,
                 full_description: formData.fullDescription || null,
+                full_description_en: formData.fullDescriptionEn || null,
                 problem: formData.problem || null,
                 technologies: formData.technologies,
                 client_type: formData.clientType,
@@ -277,14 +283,23 @@ export default function ProjectForm() {
 
                         <div className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Nom du projet *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Nom du projet (FR) *</label>
                                 <input
                                     type="text"
                                     name="title"
                                     value={formData.title}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all mb-2"
                                     placeholder="Ex: AMORA - Application de rencontres"
+                                />
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Project Name (EN) <span className="text-gray-400 font-normal">- Optionnel</span></label>
+                                <input
+                                    type="text"
+                                    name="titleEn"
+                                    value={formData.titleEn}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all"
+                                    placeholder="Ex: AMORA - Dating App"
                                 />
                                 <p className="mt-1 text-xs text-gray-500">Le nom du projet tel qu'il apparaîtra sur votre portfolio</p>
                             </div>
@@ -341,30 +356,49 @@ export default function ProjectForm() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Description courte *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Description courte (FR) *</label>
                                 <textarea
                                     name="shortDescription"
                                     value={formData.shortDescription}
                                     onChange={handleChange}
                                     rows={2}
                                     maxLength={150}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
                                     placeholder="Application de rencontres multiculturelles avec matching intelligent et chat temps réel"
                                     required
+                                />
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Short Description (EN) <span className="text-gray-400 font-normal">- Optionnel</span></label>
+                                <textarea
+                                    name="shortDescriptionEn"
+                                    value={formData.shortDescriptionEn}
+                                    onChange={handleChange}
+                                    rows={2}
+                                    maxLength={150}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                    placeholder="Multicultural dating app with intelligent matching and real-time chat"
                                 />
                                 <p className="mt-1 text-sm text-gray-500 text-right">{formData.shortDescription.length}/150 caractères</p>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Description complète *</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Description complète (FR) *</label>
                                 <textarea
                                     name="fullDescription"
                                     value={formData.fullDescription}
                                     onChange={handleChange}
                                     rows={8}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none mb-2"
                                     placeholder="Décrivez le projet en détail : contexte, fonctionnalités, technologies..."
                                     required
+                                />
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Full Description (EN) <span className="text-gray-400 font-normal">- Optionnel</span></label>
+                                <textarea
+                                    name="fullDescriptionEn"
+                                    value={formData.fullDescriptionEn}
+                                    onChange={handleChange}
+                                    rows={8}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none"
+                                    placeholder="Describe the project in detail: context, features, technologies..."
                                 />
                             </div>
 

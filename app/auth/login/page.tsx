@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import ReCAPTCHA from 'react-google-recaptcha';
 import { createClient } from "@/utils/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -14,6 +15,8 @@ function LoginForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -23,6 +26,42 @@ function LoginForm() {
         const formData = new FormData(e.currentTarget);
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
+
+        // Vérification du CAPTCHA (seulement si configuré)
+        const recaptchaSiteKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY : undefined;
+        if (recaptchaSiteKey) {
+            if (!captchaToken) {
+                setError(t('auth.login.captchaRequired') || t('register.captchaRequired') || 'Veuillez compléter le CAPTCHA');
+                setIsLoading(false);
+                return;
+            }
+
+            // Vérifier le CAPTCHA côté serveur
+            try {
+                const captchaResponse = await fetch('/api/verify-captcha', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: captchaToken }),
+                });
+
+                const captchaData = await captchaResponse.json();
+
+                if (!captchaData.success) {
+                    setError(t('auth.login.captchaInvalid') || t('register.captchaInvalid') || 'CAPTCHA invalide. Veuillez réessayer.');
+                    recaptchaRef.current?.reset();
+                    setCaptchaToken(null);
+                    setIsLoading(false);
+                    return;
+                }
+            } catch (captchaError) {
+                console.error('CAPTCHA verification error:', captchaError);
+                setError(t('auth.login.captchaError') || t('register.captchaError') || 'Erreur lors de la vérification du CAPTCHA. Veuillez réessayer.');
+                setIsLoading(false);
+                return;
+            }
+        }
 
         const supabase = createClient();
         const { error: authError, data } = await supabase.auth.signInWithPassword({
@@ -150,6 +189,25 @@ function LoginForm() {
                         </a>
                     </div>
                 </div>
+
+                {/* CAPTCHA - Seulement si configuré */}
+                {typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                            {t('auth.login.captchaLabel') || t('register.captchaLabel') || 'Vérification de sécurité'} *
+                        </label>
+                        <ReCAPTCHA
+                            ref={recaptchaRef}
+                            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                            onChange={(token) => setCaptchaToken(token)}
+                            onExpired={() => setCaptchaToken(null)}
+                            onError={() => {
+                                setCaptchaToken(null);
+                                setError(t('auth.login.captchaError') || t('register.captchaError') || 'Erreur lors du chargement du CAPTCHA');
+                            }}
+                        />
+                    </div>
+                )}
 
                 <div>
                     <button

@@ -17,10 +17,12 @@ export default function SettingsPage() {
     const [username, setUsername] = useState("");
     const [fullName, setFullName] = useState("");
     const [title, setTitle] = useState("");
+    const [titleEn, setTitleEn] = useState("");
     const [email, setEmail] = useState("");
     const [avatarUrl, setAvatarUrl] = useState("");
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [bio, setBio] = useState("");
+    const [bioEn, setBioEn] = useState("");
     const [tiktokUrl, setTiktokUrl] = useState("");
     const [facebookUrl, setFacebookUrl] = useState("");
     const [twitterUrl, setTwitterUrl] = useState("");
@@ -36,9 +38,11 @@ export default function SettingsPage() {
     const [initialUsername, setInitialUsername] = useState("");
     const [initialFullName, setInitialFullName] = useState("");
     const [initialTitle, setInitialTitle] = useState("");
+    const [initialTitleEn, setInitialTitleEn] = useState("");
     const [initialEmail, setInitialEmail] = useState("");
     const [initialAvatarUrl, setInitialAvatarUrl] = useState("");
     const [initialBio, setInitialBio] = useState("");
+    const [initialBioEn, setInitialBioEn] = useState("");
     const [initialTiktokUrl, setInitialTiktokUrl] = useState("");
     const [initialFacebookUrl, setInitialFacebookUrl] = useState("");
     const [initialTwitterUrl, setInitialTwitterUrl] = useState("");
@@ -58,7 +62,7 @@ export default function SettingsPage() {
 
             const { data, error } = await supabase
                 .from("profiles")
-                .select("username, subscription_tier, avatar_url, bio, full_name, title, public_email, tiktok_url, facebook_url, twitter_url, linkedin_url")
+                .select("username, subscription_tier, avatar_url, bio, bio_en, full_name, title, title_en, public_email, tiktok_url, facebook_url, twitter_url, linkedin_url")
                 .eq("id", user.id)
                 .maybeSingle();
 
@@ -68,10 +72,12 @@ export default function SettingsPage() {
             setUsername(data?.username || "");
             setFullName(data?.full_name || "");
             setTitle(data?.title || "");
+            setTitleEn(data?.title_en || "");
             setEmail(data?.public_email || "");
             setAvatarUrl(data?.avatar_url || "");
             setAvatarPreview(data?.avatar_url || null);
             setBio(data?.bio || "");
+            setBioEn(data?.bio_en || "");
             setTiktokUrl(data?.tiktok_url || "");
             setFacebookUrl(data?.facebook_url || "");
             setTwitterUrl(data?.twitter_url || "");
@@ -81,9 +87,11 @@ export default function SettingsPage() {
             setInitialUsername(data?.username || "");
             setInitialFullName(data?.full_name || "");
             setInitialTitle(data?.title || "");
+            setInitialTitleEn(data?.title_en || "");
             setInitialEmail(data?.public_email || "");
             setInitialAvatarUrl(data?.avatar_url || "");
             setInitialBio(data?.bio || "");
+            setInitialBioEn(data?.bio_en || "");
             setInitialTiktokUrl(data?.tiktok_url || "");
             setInitialFacebookUrl(data?.facebook_url || "");
             setInitialTwitterUrl(data?.twitter_url || "");
@@ -256,9 +264,11 @@ export default function SettingsPage() {
                 .update({
                     full_name: fullName || null,
                     title: title || null,
+                    title_en: titleEn || null,
                     public_email: email || null,
                     avatar_url: avatarUrl || null,
                     bio: bio || null,
+                    bio_en: bioEn || null,
                     tiktok_url: tiktokUrl || null,
                     facebook_url: facebookUrl || null,
                     twitter_url: twitterUrl || null,
@@ -273,9 +283,11 @@ export default function SettingsPage() {
                 ...profile, 
                 full_name: fullName,
                 title: title,
+                title_en: titleEn,
                 public_email: email,
                 avatar_url: avatarUrl, 
                 bio: bio,
+                bio_en: bioEn,
                 tiktok_url: tiktokUrl,
                 facebook_url: facebookUrl,
                 twitter_url: twitterUrl,
@@ -285,9 +297,11 @@ export default function SettingsPage() {
             // Mettre à jour les valeurs initiales après sauvegarde
             setInitialFullName(fullName);
             setInitialTitle(title);
+            setInitialTitleEn(titleEn);
             setInitialEmail(email);
             setInitialAvatarUrl(avatarUrl);
             setInitialBio(bio);
+            setInitialBioEn(bioEn);
             setInitialTiktokUrl(tiktokUrl);
             setInitialFacebookUrl(facebookUrl);
             setInitialTwitterUrl(twitterUrl);
@@ -331,9 +345,11 @@ export default function SettingsPage() {
     const hasProfileChanges = 
         fullName !== initialFullName ||
         title !== initialTitle ||
+        titleEn !== initialTitleEn ||
         email !== initialEmail ||
         avatarUrl !== initialAvatarUrl || 
         bio !== initialBio ||
+        bioEn !== initialBioEn ||
         tiktokUrl !== initialTiktokUrl ||
         facebookUrl !== initialFacebookUrl ||
         twitterUrl !== initialTwitterUrl ||
@@ -409,7 +425,7 @@ export default function SettingsPage() {
 
                         <div className="space-y-2">
                             <label className="block text-sm font-medium text-gray-700">
-                                {t('dashboard.settings.professionTitle')}
+                                {t('dashboard.settings.professionTitle')} (FR)
                             </label>
                             <input
                                 type="text"
@@ -419,6 +435,19 @@ export default function SettingsPage() {
                                     setIsDirty(true);
                                 }}
                                 placeholder={t('dashboard.settings.professionTitlePlaceholder')}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none mb-2"
+                            />
+                            <label className="block text-sm font-medium text-gray-700">
+                                {t('dashboard.settings.professionTitle')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={titleEn}
+                                onChange={(e) => {
+                                    setTitleEn(e.target.value);
+                                    setIsDirty(true);
+                                }}
+                                placeholder="Freelance Developer"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                             />
                         </div>
@@ -460,7 +489,7 @@ export default function SettingsPage() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                {t('dashboard.settings.bio')}
+                                {t('dashboard.settings.bio')} (FR)
                             </label>
                             <textarea
                                 value={bio}
@@ -470,6 +499,19 @@ export default function SettingsPage() {
                                 }}
                                 rows={4}
                                 placeholder={t('dashboard.settings.bioPlaceholder')}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none mb-2"
+                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                {t('dashboard.settings.bio')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span>
+                            </label>
+                            <textarea
+                                value={bioEn}
+                                onChange={(e) => {
+                                    setBioEn(e.target.value);
+                                    setIsDirty(true);
+                                }}
+                                rows={4}
+                                placeholder="Creator of custom web solutions"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                             />
                             <p className="text-xs text-gray-500 mt-2">

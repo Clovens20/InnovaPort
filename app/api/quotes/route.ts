@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     // OPTIMISATION: Rate limiting pour protéger contre les abus
     // Limite: 5 requêtes par minute par IP
     const identifier = getRateLimitIdentifier(request);
-    const rateLimitResult = checkRateLimit(identifier, 5, 60000); // 5 req/min
+    const rateLimitResult = await checkRateLimit(identifier, 5, 60000); // 5 req/min
 
     if (!rateLimitResult.allowed) {
         return NextResponse.json(

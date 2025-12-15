@@ -8,11 +8,12 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Loader2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import clsx from 'clsx';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { projectTypes, budgetRanges, featuresList } from '@/utils/contact-constants';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { LanguageSwitcher } from '@/app/_components/language-switcher';
@@ -29,6 +30,8 @@ export default function ContactPage() {
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [showOtherFeatures, setShowOtherFeatures] = useState(false);
     const [otherFeaturesText, setOtherFeaturesText] = useState('');
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -73,6 +76,38 @@ export default function ContactPage() {
             if (!formData.consentPrivacy) {
                 setSubmitError(t('contact.form.consentPrivacy') + ' ' + t('common.required'));
                 return;
+            }
+
+            // Vérification du CAPTCHA (seulement si configuré)
+            if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+                if (!captchaToken) {
+                    setSubmitError(t('contact.form.captchaRequired') || 'Veuillez compléter le CAPTCHA');
+                    return;
+                }
+
+                // Vérifier le CAPTCHA côté serveur
+                try {
+                    const captchaResponse = await fetch('/api/verify-captcha', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ token: captchaToken }),
+                    });
+
+                    const captchaData = await captchaResponse.json();
+
+                    if (!captchaData.success) {
+                        setSubmitError(t('contact.form.captchaInvalid') || 'CAPTCHA invalide. Veuillez réessayer.');
+                        recaptchaRef.current?.reset();
+                        setCaptchaToken(null);
+                        return;
+                    }
+                } catch (captchaError) {
+                    console.error('CAPTCHA verification error:', captchaError);
+                    setSubmitError(t('contact.form.captchaError') || 'Erreur lors de la vérification du CAPTCHA. Veuillez réessayer.');
+                    return;
+                }
             }
 
         setIsSubmitting(true);
@@ -467,6 +502,25 @@ export default function ContactPage() {
                                             <span className="text-sm">{t('contact.form.consentPrivacy')} *</span>
                                         </label>
                                     </div>
+
+                                    {/* CAPTCHA - Seulement si configuré */}
+                                    {typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+                                        <div className="pt-6 border-t border-gray-200">
+                                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                                {t('contact.form.captchaLabel') || 'Vérification de sécurité'} *
+                                            </label>
+                                            <ReCAPTCHA
+                                                ref={recaptchaRef}
+                                                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                                                onChange={(token) => setCaptchaToken(token)}
+                                                onExpired={() => setCaptchaToken(null)}
+                                                onError={() => {
+                                                    setCaptchaToken(null);
+                                                    setSubmitError(t('contact.form.captchaError') || 'Erreur lors du chargement du CAPTCHA');
+                                                }}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         )}

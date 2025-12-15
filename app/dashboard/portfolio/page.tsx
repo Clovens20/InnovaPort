@@ -25,8 +25,11 @@ export default function PortfolioEditorPage() {
     // Hero Section
     const [availableForWork, setAvailableForWork] = useState(true);
     const [heroTitle, setHeroTitle] = useState('');
+    const [heroTitleEn, setHeroTitleEn] = useState('');
     const [heroSubtitle, setHeroSubtitle] = useState('');
+    const [heroSubtitleEn, setHeroSubtitleEn] = useState('');
     const [heroDescription, setHeroDescription] = useState('');
+    const [heroDescriptionEn, setHeroDescriptionEn] = useState('');
 
     // Stats
     const [statsYears, setStatsYears] = useState(5);
@@ -46,14 +49,21 @@ export default function PortfolioEditorPage() {
 
     // CTA
     const [ctaTitle, setCtaTitle] = useState('');
+    const [ctaTitleEn, setCtaTitleEn] = useState('');
     const [ctaSubtitle, setCtaSubtitle] = useState('');
+    const [ctaSubtitleEn, setCtaSubtitleEn] = useState('');
     const [ctaButtonText, setCtaButtonText] = useState('Demander un devis gratuit');
+    const [ctaButtonTextEn, setCtaButtonTextEn] = useState('');
     const [ctaFooterText, setCtaFooterText] = useState('');
+    const [ctaFooterTextEn, setCtaFooterTextEn] = useState('');
 
     // À propos
     const [aboutJourney, setAboutJourney] = useState('');
+    const [aboutJourneyEn, setAboutJourneyEn] = useState('');
     const [aboutApproach, setAboutApproach] = useState('');
+    const [aboutApproachEn, setAboutApproachEn] = useState('');
     const [aboutWhyChoose, setAboutWhyChoose] = useState('');
+    const [aboutWhyChooseEn, setAboutWhyChooseEn] = useState('');
 
     // Charger les données existantes
     useEffect(() => {
@@ -79,8 +89,11 @@ export default function PortfolioEditorPage() {
             if (data) {
                 setAvailableForWork(data.available_for_work ?? true);
                 setHeroTitle(data.hero_title || '');
+                setHeroTitleEn(data.hero_title_en || '');
                 setHeroSubtitle(data.hero_subtitle || '');
+                setHeroSubtitleEn(data.hero_subtitle_en || '');
                 setHeroDescription(data.hero_description || '');
+                setHeroDescriptionEn(data.hero_description_en || '');
                 setStatsYears(data.stats_years_experience ?? 5);
                 setStatsProjects(data.stats_projects_delivered ?? 15);
                 setStatsClients(data.stats_clients_satisfied ?? 10);
@@ -89,12 +102,19 @@ export default function PortfolioEditorPage() {
                 setWorkProcess(data.work_process || []);
                 setTechnologies(data.technologies_list || []);
                 setCtaTitle(data.cta_title || '');
+                setCtaTitleEn(data.cta_title_en || '');
                 setCtaSubtitle(data.cta_subtitle || '');
+                setCtaSubtitleEn(data.cta_subtitle_en || '');
                 setCtaButtonText(data.cta_button_text || 'Demander un devis gratuit');
+                setCtaButtonTextEn(data.cta_button_text_en || '');
                 setCtaFooterText(data.cta_footer_text || '');
+                setCtaFooterTextEn(data.cta_footer_text_en || '');
                 setAboutJourney(data.about_journey || '');
+                setAboutJourneyEn(data.about_journey_en || '');
                 setAboutApproach(data.about_approach || '');
+                setAboutApproachEn(data.about_approach_en || '');
                 setAboutWhyChoose(data.about_why_choose || '');
+                setAboutWhyChooseEn(data.about_why_choose_en || '');
             }
         } catch (error) {
             console.error('Error loading profile:', error);
@@ -117,8 +137,11 @@ export default function PortfolioEditorPage() {
                 .update({
                     available_for_work: availableForWork,
                     hero_title: heroTitle || null,
+                    hero_title_en: heroTitleEn || null,
                     hero_subtitle: heroSubtitle || null,
+                    hero_subtitle_en: heroSubtitleEn || null,
                     hero_description: heroDescription || null,
+                    hero_description_en: heroDescriptionEn || null,
                     stats_years_experience: statsYears,
                     stats_projects_delivered: statsProjects,
                     stats_clients_satisfied: statsClients,
@@ -127,12 +150,19 @@ export default function PortfolioEditorPage() {
                     work_process: workProcess.length > 0 ? workProcess : null,
                     technologies_list: technologies.length > 0 ? technologies : null,
                     cta_title: ctaTitle || null,
+                    cta_title_en: ctaTitleEn || null,
                     cta_subtitle: ctaSubtitle || null,
+                    cta_subtitle_en: ctaSubtitleEn || null,
                     cta_button_text: ctaButtonText || null,
+                    cta_button_text_en: ctaButtonTextEn || null,
                     cta_footer_text: ctaFooterText || null,
+                    cta_footer_text_en: ctaFooterTextEn || null,
                     about_journey: aboutJourney || null,
+                    about_journey_en: aboutJourneyEn || null,
                     about_approach: aboutApproach || null,
+                    about_approach_en: aboutApproachEn || null,
                     about_why_choose: aboutWhyChoose || null,
+                    about_why_choose_en: aboutWhyChooseEn || null,
                 })
                 .eq('id', user.id);
 
@@ -313,31 +343,55 @@ export default function PortfolioEditorPage() {
                         </label>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.mainTitle')}</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.mainTitle')} (FR)</label>
                         <input
                             type="text"
                             value={heroTitle}
                             onChange={(e) => setHeroTitle(e.target.value)}
                             placeholder={t('dashboard.portfolio.hero.mainTitlePlaceholder')}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.mainTitle')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
+                        <input
+                            type="text"
+                            value={heroTitleEn}
+                            onChange={(e) => setHeroTitleEn(e.target.value)}
+                            placeholder="I transform your ideas into high-performance web applications"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.subtitle')}</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.subtitle')} (FR)</label>
                         <input
                             type="text"
                             value={heroSubtitle}
                             onChange={(e) => setHeroSubtitle(e.target.value)}
                             placeholder={t('dashboard.portfolio.hero.subtitlePlaceholder')}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.subtitle')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
+                        <input
+                            type="text"
+                            value={heroSubtitleEn}
+                            onChange={(e) => setHeroSubtitleEn(e.target.value)}
+                            placeholder="Solutions tailored to your needs and budget"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.description')}</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.description')} (FR)</label>
                         <textarea
                             value={heroDescription}
                             onChange={(e) => setHeroDescription(e.target.value)}
                             placeholder={t('dashboard.portfolio.hero.descriptionPlaceholder')}
+                            rows={3}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.description')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
+                        <textarea
+                            value={heroDescriptionEn}
+                            onChange={(e) => setHeroDescriptionEn(e.target.value)}
+                            placeholder="Full-Stack Developer specialized in React, Next.js and Node.js..."
                             rows={3}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
@@ -623,42 +677,74 @@ export default function PortfolioEditorPage() {
                 <h2 className="text-2xl font-bold mb-6">{t('dashboard.portfolio.cta.title')}</h2>
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.ctaTitle')}</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.ctaTitle')} (FR)</label>
                         <input
                             type="text"
                             value={ctaTitle}
                             onChange={(e) => setCtaTitle(e.target.value)}
                             placeholder={t('dashboard.portfolio.cta.ctaTitlePlaceholder')}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.ctaTitle')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
+                        <input
+                            type="text"
+                            value={ctaTitleEn}
+                            onChange={(e) => setCtaTitleEn(e.target.value)}
+                            placeholder="Ready to start your project?"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.ctaSubtitle')}</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.ctaSubtitle')} (FR)</label>
                         <input
                             type="text"
                             value={ctaSubtitle}
                             onChange={(e) => setCtaSubtitle(e.target.value)}
                             placeholder={t('dashboard.portfolio.cta.ctaSubtitlePlaceholder')}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.ctaSubtitle')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
+                        <input
+                            type="text"
+                            value={ctaSubtitleEn}
+                            onChange={(e) => setCtaSubtitleEn(e.target.value)}
+                            placeholder="Get a free quote in less than 48h"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.buttonText')}</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.buttonText')} (FR)</label>
                         <input
                             type="text"
                             value={ctaButtonText}
                             onChange={(e) => setCtaButtonText(e.target.value)}
                             placeholder={t('dashboard.portfolio.cta.buttonTextPlaceholder')}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.buttonText')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
+                        <input
+                            type="text"
+                            value={ctaButtonTextEn}
+                            onChange={(e) => setCtaButtonTextEn(e.target.value)}
+                            placeholder="Request a free quote"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.footerText')}</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.footerText')} (FR)</label>
                         <input
                             type="text"
                             value={ctaFooterText}
                             onChange={(e) => setCtaFooterText(e.target.value)}
                             placeholder={t('dashboard.portfolio.cta.footerTextPlaceholder')}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.footerText')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
+                        <input
+                            type="text"
+                            value={ctaFooterTextEn}
+                            onChange={(e) => setCtaFooterTextEn(e.target.value)}
+                            placeholder="No commitment • Quick response • Advice included"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
@@ -674,12 +760,22 @@ export default function PortfolioEditorPage() {
                 <div className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('dashboard.portfolio.about.journey')} <span className="text-gray-500">{t('dashboard.portfolio.about.optional')}</span>
+                            {t('dashboard.portfolio.about.journey')} (FR) <span className="text-gray-500">{t('dashboard.portfolio.about.optional')}</span>
                         </label>
                         <textarea
                             value={aboutJourney}
                             onChange={(e) => setAboutJourney(e.target.value)}
                             placeholder={t('dashboard.portfolio.about.journeyPlaceholder')}
+                            rows={6}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('dashboard.portfolio.about.journey')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span>
+                        </label>
+                        <textarea
+                            value={aboutJourneyEn}
+                            onChange={(e) => setAboutJourneyEn(e.target.value)}
+                            placeholder="Describe your professional journey, experiences, training..."
                             rows={6}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none"
                         />
@@ -689,12 +785,22 @@ export default function PortfolioEditorPage() {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('dashboard.portfolio.about.approach')} <span className="text-gray-500">{t('dashboard.portfolio.about.optional')}</span>
+                            {t('dashboard.portfolio.about.approach')} (FR) <span className="text-gray-500">{t('dashboard.portfolio.about.optional')}</span>
                         </label>
                         <textarea
                             value={aboutApproach}
                             onChange={(e) => setAboutApproach(e.target.value)}
                             placeholder={t('dashboard.portfolio.about.approachPlaceholder')}
+                            rows={6}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('dashboard.portfolio.about.approach')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span>
+                        </label>
+                        <textarea
+                            value={aboutApproachEn}
+                            onChange={(e) => setAboutApproachEn(e.target.value)}
+                            placeholder="Explain your working method, process, how you approach projects..."
                             rows={6}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none"
                         />
@@ -704,12 +810,22 @@ export default function PortfolioEditorPage() {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {t('dashboard.portfolio.about.whyChoose')} <span className="text-gray-500">{t('dashboard.portfolio.about.optional')}</span>
+                            {t('dashboard.portfolio.about.whyChoose')} (FR) <span className="text-gray-500">{t('dashboard.portfolio.about.optional')}</span>
                         </label>
                         <textarea
                             value={aboutWhyChoose}
                             onChange={(e) => setAboutWhyChoose(e.target.value)}
                             placeholder={t('dashboard.portfolio.about.whyChoosePlaceholder')}
+                            rows={6}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none mb-2"
+                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {t('dashboard.portfolio.about.whyChoose')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span>
+                        </label>
+                        <textarea
+                            value={aboutWhyChooseEn}
+                            onChange={(e) => setAboutWhyChooseEn(e.target.value)}
+                            placeholder="Highlight your strengths, differences, what makes you unique..."
                             rows={6}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none"
                         />

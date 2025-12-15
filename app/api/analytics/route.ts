@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     // OPTIMISATION: Rate limiting pour protéger contre les abus
     // Limite: 20 requêtes par minute par IP (plus permissif car analytics est appelé fréquemment)
     const identifier = getRateLimitIdentifier(request);
-    const rateLimitResult = checkRateLimit(identifier, 20, 60000); // 20 req/min
+    const rateLimitResult = await checkRateLimit(identifier, 20, 60000); // 20 req/min
 
     if (!rateLimitResult.allowed) {
         return NextResponse.json(

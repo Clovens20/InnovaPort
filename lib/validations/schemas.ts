@@ -214,6 +214,13 @@ export const createOrUpdateProjectSchema = z.object({
         .max(200, 'Le titre ne peut pas dépasser 200 caractères')
         .trim(),
     
+    title_en: z
+        .string()
+        .max(200, 'Le titre anglais ne peut pas dépasser 200 caractères')
+        .trim()
+        .optional()
+        .nullable(),
+    
     slug: z
         .string({ message: 'Le slug est requis' })
         .min(1, 'Le slug ne peut pas être vide')
@@ -235,9 +242,23 @@ export const createOrUpdateProjectSchema = z.object({
         .optional()
         .nullable(),
     
+    short_description_en: z
+        .string()
+        .max(500, 'La description courte anglaise ne peut pas dépasser 500 caractères')
+        .trim()
+        .optional()
+        .nullable(),
+    
     full_description: z
         .string()
         .max(10000, 'La description complète ne peut pas dépasser 10000 caractères')
+        .trim()
+        .optional()
+        .nullable(),
+    
+    full_description_en: z
+        .string()
+        .max(10000, 'La description complète anglaise ne peut pas dépasser 10000 caractères')
         .trim()
         .optional()
         .nullable(),

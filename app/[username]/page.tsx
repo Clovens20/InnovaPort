@@ -38,6 +38,8 @@ const supabasePublic = createSupabaseClient(
 async function getCachedProfile(username: string) {
     return unstable_cache(
         async () => {
+            // Utiliser select('*') pour récupérer toutes les colonnes disponibles
+            // Cela évite les erreurs si les colonnes _en n'existent pas encore (migration non exécutée)
             const { data, error } = await supabasePublic
                 .from('profiles')
                 .select('*')
@@ -60,6 +62,8 @@ async function getCachedProfile(username: string) {
 async function getCachedProjects(userId: string) {
     return unstable_cache(
         async () => {
+            // Utiliser select('*') pour récupérer toutes les colonnes disponibles
+            // Cela évite les erreurs si les colonnes _en n'existent pas encore (migration non exécutée)
             const { data, error } = await supabasePublic
                 .from('projects')
                 .select('*')

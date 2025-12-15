@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import ReCAPTCHA from 'react-google-recaptcha';
 import { createClient } from "@/utils/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 
@@ -14,6 +15,8 @@ export default function RegisterPage() {
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -26,14 +29,50 @@ export default function RegisterPage() {
         const password = formData.get("password") as string;
         const name = formData.get("name") as string;
 
-        const supabase = createClient();
-
         // Validation du mot de passe
         if (password.length < 8) {
             setError(t('register.passwordMin'));
             setIsLoading(false);
             return;
         }
+
+        // Vérification du CAPTCHA (seulement si configuré)
+        const recaptchaSiteKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY : undefined;
+        if (recaptchaSiteKey) {
+            if (!captchaToken) {
+                setError(t('register.captchaRequired') || t('contact.form.captchaRequired') || 'Veuillez compléter le CAPTCHA');
+                setIsLoading(false);
+                return;
+            }
+
+            // Vérifier le CAPTCHA côté serveur
+            try {
+                const captchaResponse = await fetch('/api/verify-captcha', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: captchaToken }),
+                });
+
+                const captchaData = await captchaResponse.json();
+
+                if (!captchaData.success) {
+                    setError(t('register.captchaInvalid') || t('contact.form.captchaInvalid') || 'CAPTCHA invalide. Veuillez réessayer.');
+                    recaptchaRef.current?.reset();
+                    setCaptchaToken(null);
+                    setIsLoading(false);
+                    return;
+                }
+            } catch (captchaError) {
+                console.error('CAPTCHA verification error:', captchaError);
+                setError(t('register.captchaError') || t('contact.form.captchaError') || 'Erreur lors de la vérification du CAPTCHA. Veuillez réessayer.');
+                setIsLoading(false);
+                return;
+            }
+        }
+
+        const supabase = createClient();
 
         // Sign up with Supabase Auth
         // The handle_new_user trigger in Postgres (Setup in Schema) will handle profile creation
@@ -164,6 +203,25 @@ export default function RegisterPage() {
                     </div>
                     <p className="mt-1 text-xs text-gray-500">{t('register.passwordMinLabel')}</p>
                 </div>
+
+                {/* CAPTCHA - Seulement si configuré */}
+                {typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                            {t('register.captchaLabel') || t('contact.form.captchaLabel') || 'Vérification de sécurité'} *
+                        </label>
+                        <ReCAPTCHA
+                            ref={recaptchaRef}
+                            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                            onChange={(token) => setCaptchaToken(token)}
+                            onExpired={() => setCaptchaToken(null)}
+                            onError={() => {
+                                setCaptchaToken(null);
+                                setError(t('register.captchaError') || t('contact.form.captchaError') || 'Erreur lors du chargement du CAPTCHA');
+                            }}
+                        />
+                    </div>
+                )}
 
                 <div>
                     <button

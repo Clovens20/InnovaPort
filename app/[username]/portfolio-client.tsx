@@ -17,13 +17,16 @@ import { motion } from 'framer-motion';
 import { Testimonial, Service, WorkProcessStep } from '@/types';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { LanguageSwitcher } from '@/app/_components/language-switcher';
+import { getTranslatedTextWithFallback } from '@/lib/i18n/getTranslatedText';
 
 interface Profile {
     id: string;
     username: string;
     full_name: string | null;
     bio: string | null;
+    bio_en: string | null;
     title: string | null;
+    title_en: string | null;
     avatar_url: string | null;
     primary_color: string;
     secondary_color: string;
@@ -34,8 +37,11 @@ interface Profile {
     email: string | null;
     available_for_work: boolean;
     hero_title: string | null;
+    hero_title_en: string | null;
     hero_subtitle: string | null;
+    hero_subtitle_en: string | null;
     hero_description: string | null;
+    hero_description_en: string | null;
     stats_years_experience: number | null;
     stats_projects_delivered: number | null;
     stats_clients_satisfied: number | null;
@@ -44,22 +50,32 @@ interface Profile {
     work_process: WorkProcessStep[] | null;
     technologies_list: string[] | null;
     cta_title: string | null;
+    cta_title_en: string | null;
     cta_subtitle: string | null;
+    cta_subtitle_en: string | null;
     cta_button_text: string | null;
+    cta_button_text_en: string | null;
     cta_footer_text: string | null;
+    cta_footer_text_en: string | null;
     about_journey: string | null;
+    about_journey_en: string | null;
     about_approach: string | null;
+    about_approach_en: string | null;
     about_why_choose: string | null;
+    about_why_choose_en: string | null;
     subscription_tier: 'free' | 'pro' | 'premium';
 }
 
 interface Project {
     id: string;
     title: string;
+    title_en: string | null;
     slug: string;
     category: string | null;
     short_description: string | null;
+    short_description_en: string | null;
     full_description: string | null;
+    full_description_en: string | null;
     technologies: string[];
     project_url: string | null;
     image_url: string | null;
@@ -143,13 +159,13 @@ export function PortfolioClient({
 
     const avatarUrl = profile.avatar_url || getDicebearAvatarUrl(profile.username);
     const displayName = profile.full_name || profile.username;
-    const displayTitle = profile.title || t('portfolio.defaults.title');
-    const displayBio = profile.bio || t('portfolio.defaults.bio');
+    const displayTitle = getTranslatedTextWithFallback(language, profile.title, profile.title_en, t('portfolio.defaults.title'));
+    const displayBio = getTranslatedTextWithFallback(language, profile.bio, profile.bio_en, t('portfolio.defaults.bio'));
 
-    // Valeurs par défaut pour les sections personnalisables
-    const heroTitle = profile.hero_title || t('portfolio.defaults.heroTitle');
-    const heroSubtitle = profile.hero_subtitle || t('portfolio.defaults.heroSubtitle');
-    const heroDescription = profile.hero_description || t('portfolio.defaults.heroDescription');
+    // Valeurs par défaut pour les sections personnalisables (avec traduction)
+    const heroTitle = getTranslatedTextWithFallback(language, profile.hero_title, profile.hero_title_en, t('portfolio.defaults.heroTitle'));
+    const heroSubtitle = getTranslatedTextWithFallback(language, profile.hero_subtitle, profile.hero_subtitle_en, t('portfolio.defaults.heroSubtitle'));
+    const heroDescription = getTranslatedTextWithFallback(language, profile.hero_description, profile.hero_description_en, t('portfolio.defaults.heroDescription'));
     const availableForWork = profile.available_for_work ?? true;
 
     const stats = {
@@ -323,11 +339,11 @@ export function PortfolioClient({
         ? profile.technologies_list
         : defaultTechnologies;
 
-    // CTA
-    const ctaTitle = profile.cta_title || t('portfolio.defaults.ctaTitle');
-    const ctaSubtitle = profile.cta_subtitle || t('portfolio.defaults.ctaSubtitle');
-    const ctaButtonText = profile.cta_button_text || t('portfolio.defaults.ctaButtonText');
-    const ctaFooterText = profile.cta_footer_text || t('portfolio.defaults.ctaFooterText');
+    // CTA (avec traduction)
+    const ctaTitle = getTranslatedTextWithFallback(language, profile.cta_title, profile.cta_title_en, t('portfolio.defaults.ctaTitle'));
+    const ctaSubtitle = getTranslatedTextWithFallback(language, profile.cta_subtitle, profile.cta_subtitle_en, t('portfolio.defaults.ctaSubtitle'));
+    const ctaButtonText = getTranslatedTextWithFallback(language, profile.cta_button_text, profile.cta_button_text_en, t('portfolio.defaults.ctaButtonText'));
+    const ctaFooterText = getTranslatedTextWithFallback(language, profile.cta_footer_text, profile.cta_footer_text_en, t('portfolio.defaults.ctaFooterText'));
 
     // Template Minimal (simplifié)
     if (template === 'minimal') {
@@ -400,7 +416,11 @@ export function PortfolioClient({
                         <div className="max-w-6xl mx-auto">
                             <h2 className="text-4xl font-bold text-center mb-12">{t('portfolio.projects.title')}</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {projects.map((project) => (
+                                {projects.map((project) => {
+                                    const projectTitle = getTranslatedTextWithFallback(language, project.title, project.title_en, project.title);
+                                    const projectShortDesc = getTranslatedTextWithFallback(language, project.short_description, project.short_description_en, project.short_description || t('portfolio.projects.defaultDescription'));
+                                    
+                                    return (
                                     <div key={project.id} className={`bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all ${project.project_url ? 'cursor-pointer' : ''}`}>
                                         {project.project_url ? (
                                             <a href={project.project_url} target="_blank" rel="noopener noreferrer" className="block">
@@ -408,15 +428,15 @@ export function PortfolioClient({
                                                     <div className="aspect-video relative">
                                                         <Image
                                                             src={project.image_url}
-                                                            alt={project.title}
+                                                            alt={projectTitle}
                                                             fill
                                                             className="object-cover"
                                                         />
                                                     </div>
                                                 )}
                                                 <div className="p-6">
-                                                    <h3 className="text-xl font-bold mb-2 hover:text-blue-600 transition-colors">{project.title}</h3>
-                                                    <p className="text-gray-600 text-sm mb-4">{project.short_description}</p>
+                                                    <h3 className="text-xl font-bold mb-2 hover:text-blue-600 transition-colors">{projectTitle}</h3>
+                                                    <p className="text-gray-600 text-sm mb-4">{projectShortDesc}</p>
                                                     <span className="text-blue-600 font-semibold text-sm hover:underline inline-flex items-center gap-1">
                                                         {t('portfolio.projects.visitProject')} <ArrowRight className="w-4 h-4" />
                                                     </span>
@@ -428,15 +448,15 @@ export function PortfolioClient({
                                                     <div className="aspect-video relative">
                                                         <Image
                                                             src={project.image_url}
-                                                            alt={project.title}
+                                                            alt={projectTitle}
                                                             fill
                                                             className="object-cover"
                                                         />
                                                     </div>
                                                 )}
                                                 <div className="p-6">
-                                                    <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                                                    <p className="text-gray-600 text-sm mb-4">{project.short_description}</p>
+                                                    <h3 className="text-xl font-bold mb-2">{projectTitle}</h3>
+                                                    <p className="text-gray-600 text-sm mb-4">{projectShortDesc}</p>
                                                     <Link
                                                         href={`/${profile.username}/contact`}
                                                         className="text-blue-600 font-semibold text-sm hover:underline"
@@ -448,7 +468,8 @@ export function PortfolioClient({
                                             </>
                                         )}
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </section>
@@ -761,8 +782,12 @@ export function PortfolioClient({
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {projects.map((project, index) => (
-                                <motion.div
+                                {projects.map((project, index) => {
+                                    const projectTitle = getTranslatedTextWithFallback(language, project.title, project.title_en, project.title);
+                                    const projectShortDesc = getTranslatedTextWithFallback(language, project.short_description, project.short_description_en, project.short_description || t('portfolio.projects.defaultDescription'));
+                                    
+                                    return (
+                                    <motion.div
                                     key={project.id}
                                     initial={{ opacity: 0, y: 30 }}
                                     whileInView={{ opacity: 1, y: 0 }}
@@ -776,7 +801,7 @@ export function PortfolioClient({
                                                 {project.image_url ? (
                                                     <Image
                                                         src={project.image_url}
-                                                        alt={project.title}
+                                                        alt={projectTitle}
                                                         fill
                                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                                                         loading="lazy"
@@ -784,7 +809,7 @@ export function PortfolioClient({
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                                        {project.title}
+                                                        {projectTitle}
                                                     </div>
                                                 )}
                                             </div>
@@ -802,10 +827,10 @@ export function PortfolioClient({
                                                     </div>
                                                 )}
                                                 <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                                                    {project.title}
+                                                    {projectTitle}
                                                 </h3>
                                                 <p className="text-gray-500 text-sm mb-4">
-                                                    {project.short_description || t('portfolio.projects.defaultDescription')}
+                                                    {projectShortDesc}
                                                 </p>
                                                 <span className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all">
                                                     {t('portfolio.projects.visitProject')}
@@ -862,7 +887,8 @@ export function PortfolioClient({
                                         </>
                                     )}
                                 </motion.div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 </section>
