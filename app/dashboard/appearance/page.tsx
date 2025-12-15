@@ -5,6 +5,7 @@ import Image from "next/image";
 import Editor from "@monaco-editor/react";
 import { Monitor, Smartphone, Check, X, Lock } from "lucide-react";
 import clsx from "clsx";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 const templates = [
     {
@@ -59,6 +60,7 @@ const presetPalettes = [
 ];
 
 export default function AppearancePage() {
+    const { t } = useTranslation();
     const [currentTemplateId, setCurrentTemplateId] = useState("modern");
     const [showTemplateModal, setShowTemplateModal] = useState(false);
 
@@ -87,10 +89,10 @@ export default function AppearancePage() {
 
                 {/* Template Selection */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Template actuel</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.appearance.currentTemplate')}</h2>
                     <div className="border-2 border-primary rounded-lg overflow-hidden bg-gray-100 h-48 mb-4 flex items-center justify-center text-gray-400">
                         {/* Replace with actual image in production */}
-                        <span className="text-sm">Aperçu {currentTemplate.name}</span>
+                        <span className="text-sm">{t('dashboard.appearance.preview', { name: currentTemplate.name })}</span>
                     </div>
                     <div className="mb-4">
                         <h3 className="font-semibold text-gray-900">{currentTemplate.name}</h3>
@@ -100,16 +102,16 @@ export default function AppearancePage() {
                         onClick={() => setShowTemplateModal(true)}
                         className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                        Changer de template
+                        {t('dashboard.appearance.changeTemplate')}
                     </button>
                 </div>
 
                 {/* Colors */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Couleurs</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.appearance.colors')}</h2>
 
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-3">Couleur primaire</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">{t('dashboard.appearance.primaryColor')}</label>
                         <div className="flex items-center gap-4">
                             <input
                                 type="color"
@@ -127,7 +129,7 @@ export default function AppearancePage() {
                     </div>
 
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-3">Couleur secondaire</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">{t('dashboard.appearance.secondaryColor')}</label>
                         <div className="flex items-center gap-4">
                             <input
                                 type="color"
@@ -145,7 +147,7 @@ export default function AppearancePage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">Palettes suggérées</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">{t('dashboard.appearance.suggestedPalettes')}</label>
                         <div className="grid grid-cols-4 gap-3">
                             {presetPalettes.map((palette, i) => (
                                 <button
@@ -166,10 +168,10 @@ export default function AppearancePage() {
 
                 {/* Typography */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4">Typographie</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.appearance.typography')}</h2>
 
                     <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-3">Police des titres</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">{t('dashboard.appearance.headingFont')}</label>
                         <select
                             value={headingFont}
                             onChange={(e) => setHeadingFont(e.target.value)}
@@ -183,7 +185,7 @@ export default function AppearancePage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">Police du texte</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">{t('dashboard.appearance.bodyFont')}</label>
                         <select
                             value={bodyFont}
                             onChange={(e) => setBodyFont(e.target.value)}
@@ -200,10 +202,10 @@ export default function AppearancePage() {
                 {/* Custom CSS (Pro) */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-gray-900">CSS personnalisé</h2>
+                        <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.appearance.customCSS')}</h2>
                         {plan === 'free' && (
                             <span className="px-2 py-0.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full uppercase tracking-wide">
-                                PRO
+                                {t('dashboard.appearance.proFeature')}
                             </span>
                         )}
                     </div>
@@ -213,13 +215,13 @@ export default function AppearancePage() {
                             <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <Lock className="w-5 h-5 text-gray-500" />
                             </div>
-                            <h3 className="font-semibold text-gray-900 mb-1">Fonctionnalité Pro</h3>
-                            <p className="text-sm text-gray-600 mb-4">Ajoutez votre propre CSS pour une personnalisation complète.</p>
+                            <h3 className="font-semibold text-gray-900 mb-1">{t('dashboard.appearance.proFeatureTitle')}</h3>
+                            <p className="text-sm text-gray-600 mb-4">{t('dashboard.appearance.proFeatureDesc')}</p>
                             <button
                                 onClick={() => setPlan('pro')}
                                 className="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-primary/90 transition-colors"
                             >
-                                Passer au plan Pro (Demo)
+                                {t('dashboard.appearance.upgradeToPro')}
                             </button>
                         </div>
                     ) : (
@@ -242,7 +244,7 @@ export default function AppearancePage() {
             <div className="flex-1 min-w-0 flex flex-col h-full sticky top-6">
                 <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col h-full">
                     <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                        <h3 className="font-semibold text-gray-900">Aperçu en temps réel</h3>
+                        <h3 className="font-semibold text-gray-900">{t('dashboard.appearance.livePreview')}</h3>
                         <div className="flex bg-gray-100 rounded-lg p-1">
                             <button
                                 onClick={() => setDevice("desktop")}
@@ -278,10 +280,10 @@ export default function AppearancePage() {
 
                     <div className="mt-4 flex justify-end gap-3 flex-shrink-0">
                         <button className="px-5 py-2.5 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
-                            Réinitialiser
+                            {t('dashboard.appearance.reset')}
                         </button>
                         <button className="px-6 py-2.5 bg-secondary text-white rounded-lg hover:bg-secondary/90 font-medium transition-colors shadow-lg shadow-secondary/20">
-                            Enregistrer les changements
+                            {t('dashboard.appearance.saveChanges')}
                         </button>
                     </div>
                 </div>
@@ -292,7 +294,7 @@ export default function AppearancePage() {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-8">
                     <div className="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                            <h2 className="text-2xl font-bold text-gray-900">Choisissez votre template</h2>
+                            <h2 className="text-2xl font-bold text-gray-900">{t('dashboard.appearance.chooseTemplate')}</h2>
                             <button onClick={() => setShowTemplateModal(false)} className="text-gray-400 hover:text-gray-600">
                                 <X className="w-6 h-6" />
                             </button>
@@ -318,7 +320,7 @@ export default function AppearancePage() {
 
                                         {template.popular && (
                                             <span className="absolute top-3 right-3 px-2 py-0.5 bg-amber-500 text-white text-[10px] font-bold rounded-full uppercase">
-                                                Populaire
+                                                {t('dashboard.appearance.popular')}
                                             </span>
                                         )}
 
@@ -352,13 +354,13 @@ export default function AppearancePage() {
                                 onClick={() => setShowTemplateModal(false)}
                                 className="px-6 py-2.5 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
                             >
-                                Annuler
+                                {t('dashboard.appearance.cancel')}
                             </button>
                             <button
                                 onClick={() => setShowTemplateModal(false)}
                                 className="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 font-medium transition-colors shadow-lg shadow-primary/20"
                             >
-                                Sélectionner ce template
+                                {t('dashboard.appearance.selectTemplate')}
                             </button>
                         </div>
                     </div>

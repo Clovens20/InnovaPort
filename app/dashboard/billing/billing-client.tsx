@@ -5,8 +5,10 @@ import { Check, Loader2 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export function BillingClient() {
+    const { t } = useTranslation();
     const router = useRouter();
     const searchParams = useSearchParams();
     const supabase = createClient();
@@ -21,13 +23,13 @@ export function BillingClient() {
         if (searchParams.get('success') === 'true') {
             const plan = searchParams.get('plan');
             if (plan) {
-                alert(`Abonnement ${plan} activé avec succès !`);
+                alert(t('dashboard.billing.subscriptionActivated', { plan }));
                 router.replace('/dashboard/billing');
             }
         }
         
         if (searchParams.get('canceled') === 'true') {
-            alert('Paiement annulé');
+            alert(t('dashboard.billing.paymentCanceled'));
             router.replace('/dashboard/billing');
         }
     }, [searchParams, router]);
@@ -55,7 +57,7 @@ export function BillingClient() {
 
     const handleSubscribe = async (plan: 'pro' | 'premium') => {
         if (currentPlan === plan) {
-            alert('Vous êtes déjà abonné à ce plan.');
+            alert(t('dashboard.billing.alreadySubscribed'));
             return;
         }
 
@@ -72,18 +74,18 @@ export function BillingClient() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || 'Erreur lors de la création de la session de paiement');
+                throw new Error(data.error || t('common.error'));
             }
 
             // Rediriger vers Stripe Checkout
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                throw new Error('URL de paiement non disponible');
+                throw new Error(t('common.error'));
             }
         } catch (error) {
             console.error('Error subscribing:', error);
-            alert(error instanceof Error ? error.message : 'Erreur lors de l\'abonnement');
+            alert(error instanceof Error ? error.message : t('common.error'));
         } finally {
             setLoading(false);
         }
@@ -91,82 +93,82 @@ export function BillingClient() {
 
     return (
         <div className="max-w-6xl mx-auto py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-12">Abonnement</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-12">{t('dashboard.billing.title')}</h1>
 
             <div className="grid md:grid-cols-3 gap-8">
                 {/* Free Plan */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 flex flex-col">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Gratuit</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">{t('dashboard.billing.free')}</h3>
                     <div className="mb-6">
                         <span className="text-4xl font-black text-gray-900">$0</span>
-                        <span className="text-gray-600">/mois</span>
+                        <span className="text-gray-600">{t('dashboard.billing.perMonth')}</span>
                     </div>
                     <ul className="space-y-3 mb-8 flex-1 text-sm text-gray-600">
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                            <span>5 projets actifs</span>
+                            <span>{t('dashboard.billing.features.free.activeProjects')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                            <span>Gestion de devis basique</span>
+                            <span>{t('dashboard.billing.features.free.basicQuotes')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                            <span>Formulaire de contact</span>
+                            <span>{t('dashboard.billing.features.free.contactForm')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                            <span>Sous-domaine InnovaPort</span>
+                            <span>{t('dashboard.billing.features.free.subdomain')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                            <span>Avec logo InnovaPort</span>
+                            <span>{t('dashboard.billing.features.free.withLogo')}</span>
                         </li>
                     </ul>
                     <button className="w-full py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold bg-gray-50 cursor-not-allowed">
-                        Plan actuel
+                        {t('dashboard.billing.currentPlan')}
                     </button>
                 </div>
 
                 {/* Pro Plan */}
                 <div className="bg-[#1E3A8A] rounded-xl shadow-xl text-white p-8 relative flex flex-col transform md:-translate-y-4">
-                    <h3 className="text-xl font-bold mb-2">Pro</h3>
+                    <h3 className="text-xl font-bold mb-2">{t('dashboard.billing.pro')}</h3>
                     <div className="mb-6">
                         <span className="text-4xl font-black">$19</span>
-                        <span className="text-blue-100">/mois</span>
+                        <span className="text-blue-100">{t('dashboard.billing.perMonth')}</span>
                     </div>
                     <ul className="space-y-3 mb-8 flex-1 text-sm text-blue-100">
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Projets illimités</span>
+                            <span>{t('dashboard.billing.features.pro.unlimitedProjects')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Domaine personnalisé</span>
+                            <span>{t('dashboard.billing.features.pro.customDomain')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Sans filigrane ni logo</span>
+                            <span>{t('dashboard.billing.features.pro.noWatermark')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Devis & factures automatiques</span>
+                            <span>{t('dashboard.billing.features.pro.autoQuotes')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Signatures électroniques</span>
+                            <span>{t('dashboard.billing.features.pro.eSignatures')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Export PDF/Excel</span>
+                            <span>{t('dashboard.billing.features.pro.export')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Analytics et rapports</span>
+                            <span>{t('dashboard.billing.features.pro.analytics')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Support prioritaire</span>
+                            <span>{t('dashboard.billing.features.pro.prioritySupport')}</span>
                         </li>
                     </ul>
                     <button
@@ -182,47 +184,47 @@ export function BillingClient() {
                         {loading && currentPlan !== 'pro' ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                Chargement...
+                                {t('dashboard.billing.loading')}
                             </>
                         ) : currentPlan === 'pro' ? (
-                            'Plan actuel'
+                            t('dashboard.billing.currentPlan')
                         ) : (
-                            'Choisir Pro'
+                            t('dashboard.billing.choosePro')
                         )}
                     </button>
                 </div>
 
                 {/* Premium Plan */}
                 <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-xl shadow-xl text-white p-8 flex flex-col">
-                    <h3 className="text-xl font-bold mb-2">Premium</h3>
+                    <h3 className="text-xl font-bold mb-2">{t('dashboard.billing.premium')}</h3>
                     <div className="mb-6">
                         <span className="text-4xl font-black">$39</span>
-                        <span className="text-purple-100">/mois</span>
+                        <span className="text-purple-100">{t('dashboard.billing.perMonth')}</span>
                     </div>
                     <ul className="space-y-3 mb-8 flex-1 text-sm text-purple-100">
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Tout du plan Pro</span>
+                            <span>{t('dashboard.billing.features.premium.allPro')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Multi-utilisateurs (équipe)</span>
+                            <span>{t('dashboard.billing.features.premium.multiUsers')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Espace client personnalisé</span>
+                            <span>{t('dashboard.billing.features.premium.customClientSpace')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Intégration comptable</span>
+                            <span>{t('dashboard.billing.features.premium.accountingIntegration')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Automatisations avancées</span>
+                            <span>{t('dashboard.billing.features.premium.advancedAutomations')}</span>
                         </li>
                         <li className="flex items-start gap-2">
                             <Check className="w-5 h-5 text-white flex-shrink-0" />
-                            <span>Rapports personnalisés</span>
+                            <span>{t('dashboard.billing.features.premium.customReports')}</span>
                         </li>
                     </ul>
                     <button
@@ -238,12 +240,12 @@ export function BillingClient() {
                         {loading && currentPlan !== 'premium' ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                Chargement...
+                                {t('dashboard.billing.loading')}
                             </>
                         ) : currentPlan === 'premium' ? (
-                            'Plan actuel'
+                            t('dashboard.billing.currentPlan')
                         ) : (
-                            'Choisir Premium'
+                            t('dashboard.billing.choosePremium')
                         )}
                     </button>
                 </div>

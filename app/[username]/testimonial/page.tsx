@@ -12,8 +12,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { Star, Check, X, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { LanguageSwitcher } from '@/app/_components/language-switcher';
 
 export default function TestimonialPage() {
+    const { t } = useTranslation();
     const params = useParams();
     const router = useRouter();
     const username = params.username as string;
@@ -76,25 +79,25 @@ export default function TestimonialPage() {
 
         // Validation basique
         if (!formData.client_name.trim()) {
-            setError('Le nom est requis');
+            setError(t('portfolio.testimonialForm.nameRequired'));
             setSubmitting(false);
             return;
         }
 
         if (!formData.client_email.trim() || !formData.client_email.includes('@')) {
-            setError('Un email valide est requis');
+            setError(t('portfolio.testimonialForm.emailRequired'));
             setSubmitting(false);
             return;
         }
 
         if (!formData.testimonial_text.trim() || formData.testimonial_text.length < 10) {
-            setError('Le témoignage doit contenir au moins 10 caractères');
+            setError(t('portfolio.testimonialForm.testimonialMinLength'));
             setSubmitting(false);
             return;
         }
 
         if (!userId) {
-            setError('Erreur: développeur non trouvé');
+            setError(t('portfolio.testimonialForm.developerNotFound'));
             setSubmitting(false);
             return;
         }
@@ -123,9 +126,9 @@ export default function TestimonialPage() {
             if (!response.ok) {
                 if (data.details && Array.isArray(data.details)) {
                     const errorMessages = data.details.map((err: any) => err.message).join(', ');
-                    throw new Error(errorMessages || data.error || 'Erreur lors de l\'envoi');
+                    throw new Error(errorMessages || data.error || t('portfolio.testimonialForm.errorSending'));
                 }
-                throw new Error(data.error || 'Erreur lors de l\'envoi');
+                throw new Error(data.error || t('portfolio.testimonialForm.errorSending'));
             }
 
             setSuccess(true);
@@ -133,7 +136,7 @@ export default function TestimonialPage() {
                 router.push(`/${username}`);
             }, 3000);
         } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'envoi du témoignage';
+            const errorMessage = err instanceof Error ? err.message : t('portfolio.testimonialForm.errorSendingTestimonial');
             setError(errorMessage);
         } finally {
             setSubmitting(false);
@@ -145,7 +148,7 @@ export default function TestimonialPage() {
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="text-center">
                     <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Chargement...</p>
+                    <p className="text-gray-600">{t('common.loading')}</p>
                 </div>
             </div>
         );
@@ -162,11 +165,11 @@ export default function TestimonialPage() {
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Check className="w-8 h-8 text-green-600" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Merci pour votre témoignage !</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('portfolio.testimonialForm.successTitle')}</h2>
                     <p className="text-gray-600 mb-6">
-                        Votre témoignage a été soumis avec succès. Il sera visible après approbation par {developerName}.
+                        {t('portfolio.testimonialForm.successMessage', { name: developerName })}
                     </p>
-                    <p className="text-sm text-gray-500">Redirection en cours...</p>
+                    <p className="text-sm text-gray-500">{t('portfolio.testimonialForm.redirecting')}</p>
                 </motion.div>
             </div>
         );
@@ -174,6 +177,13 @@ export default function TestimonialPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4">
+            {/* Header avec Language Switcher */}
+            <header className="border-b border-gray-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 mb-8">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-end">
+                    <LanguageSwitcher />
+                </div>
+            </header>
+
             <div className="max-w-2xl mx-auto">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -181,9 +191,9 @@ export default function TestimonialPage() {
                     className="bg-white rounded-xl shadow-lg p-8"
                 >
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Laissez un témoignage</h1>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('portfolio.testimonialForm.title')}</h1>
                         <p className="text-gray-600">
-                            Partagez votre expérience avec {developerName}
+                            {t('portfolio.testimonialForm.subtitle', { name: developerName })}
                         </p>
                     </div>
 
@@ -197,7 +207,7 @@ export default function TestimonialPage() {
                         {/* Nom */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Votre nom <span className="text-red-500">*</span>
+                                {t('portfolio.testimonialForm.yourName')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
@@ -205,14 +215,14 @@ export default function TestimonialPage() {
                                 onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
                                 required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                                placeholder="Jean Dupont"
+                                placeholder={t('portfolio.testimonialForm.namePlaceholder')}
                             />
                         </div>
 
                         {/* Email */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Votre email <span className="text-red-500">*</span>
+                                {t('portfolio.testimonialForm.yourEmail')} <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="email"
@@ -220,7 +230,7 @@ export default function TestimonialPage() {
                                 onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
                                 required
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                                placeholder="jean@example.com"
+                                placeholder={t('portfolio.testimonialForm.emailPlaceholder')}
                             />
                         </div>
 
@@ -228,26 +238,26 @@ export default function TestimonialPage() {
                         <div className="grid md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Entreprise (optionnel)
+                                    {t('portfolio.testimonialForm.company')} ({t('common.optional')})
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.client_company}
                                     onChange={(e) => setFormData({ ...formData, client_company: e.target.value })}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                                    placeholder="Mon Entreprise"
+                                    placeholder={t('portfolio.testimonialForm.companyPlaceholder')}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Poste (optionnel)
+                                    {t('portfolio.testimonialForm.position')} ({t('common.optional')})
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.client_position}
                                     onChange={(e) => setFormData({ ...formData, client_position: e.target.value })}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                                    placeholder="CEO, Directeur..."
+                                    placeholder={t('portfolio.testimonialForm.positionPlaceholder')}
                                 />
                             </div>
                         </div>
@@ -255,7 +265,7 @@ export default function TestimonialPage() {
                         {/* Note */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Note (optionnel)
+                                {t('portfolio.testimonialForm.rating')} ({t('common.optional')})
                             </label>
                             <div className="flex gap-2">
                                 {[1, 2, 3, 4, 5].map((star) => (
@@ -281,26 +291,26 @@ export default function TestimonialPage() {
                         <div className="grid md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Nom du projet (optionnel)
+                                    {t('portfolio.testimonialForm.projectName')} ({t('common.optional')})
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.project_name}
                                     onChange={(e) => setFormData({ ...formData, project_name: e.target.value })}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                                    placeholder="Site web e-commerce"
+                                    placeholder={t('portfolio.testimonialForm.projectNamePlaceholder')}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    URL du projet (optionnel)
+                                    {t('portfolio.testimonialForm.projectUrl')} ({t('common.optional')})
                                 </label>
                                 <input
                                     type="url"
                                     value={formData.project_url}
                                     onChange={(e) => setFormData({ ...formData, project_url: e.target.value })}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
-                                    placeholder="https://example.com"
+                                    placeholder={t('portfolio.testimonialForm.projectUrlPlaceholder')}
                                 />
                             </div>
                         </div>
@@ -308,7 +318,7 @@ export default function TestimonialPage() {
                         {/* Témoignage */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Votre témoignage <span className="text-red-500">*</span>
+                                {t('portfolio.testimonialForm.yourTestimonial')} <span className="text-red-500">*</span>
                             </label>
                             <textarea
                                 value={formData.testimonial_text}
@@ -318,10 +328,10 @@ export default function TestimonialPage() {
                                 minLength={10}
                                 maxLength={1000}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none resize-none"
-                                placeholder="Décrivez votre expérience de travail avec ce développeur..."
+                                placeholder={t('portfolio.testimonialForm.testimonialPlaceholder')}
                             />
                             <p className="text-sm text-gray-500 mt-2">
-                                {formData.testimonial_text.length}/1000 caractères
+                                {formData.testimonial_text.length}/1000 {t('portfolio.testimonialForm.characters')}
                             </p>
                         </div>
 
@@ -332,7 +342,7 @@ export default function TestimonialPage() {
                                 onClick={() => router.push(`/${username}`)}
                                 className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
                             >
-                                Annuler
+                                {t('common.cancel')}
                             </button>
                             <button
                                 type="submit"
@@ -342,10 +352,10 @@ export default function TestimonialPage() {
                                 {submitting ? (
                                     <>
                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                        Envoi en cours...
+                                        {t('portfolio.testimonialForm.submitting')}
                                     </>
                                 ) : (
-                                    'Soumettre le témoignage'
+                                    t('portfolio.testimonialForm.submit')
                                 )}
                             </button>
                         </div>

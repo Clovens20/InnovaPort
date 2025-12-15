@@ -12,8 +12,10 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Star, Check, X, Trash2, Eye, EyeOff } from 'lucide-react';
 import { Testimonial } from '@/types';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function TestimonialsPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export default function TestimonialsPage() {
             setTestimonials(testimonials.map((t) => (t.id === id ? { ...t, approved: true } : t)));
         } catch (error) {
             console.error('Error approving testimonial:', error);
-            alert('Erreur lors de l\'approbation');
+            alert(t('dashboard.testimonials.errorApproving'));
         }
     };
 
@@ -76,12 +78,12 @@ export default function TestimonialsPage() {
             setTestimonials(testimonials.map((t) => (t.id === id ? { ...t, approved: false } : t)));
         } catch (error) {
             console.error('Error rejecting testimonial:', error);
-            alert('Erreur lors du rejet');
+            alert(t('dashboard.testimonials.errorRejecting'));
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Êtes-vous sûr de vouloir supprimer ce témoignage ?')) return;
+        if (!confirm(t('dashboard.testimonials.deleteConfirm'))) return;
 
         try {
             const { error } = await supabase
@@ -94,7 +96,7 @@ export default function TestimonialsPage() {
             setTestimonials(testimonials.filter((t) => t.id !== id));
         } catch (error) {
             console.error('Error deleting testimonial:', error);
-            alert('Erreur lors de la suppression');
+            alert(t('dashboard.testimonials.errorDeleting'));
         }
     };
 
@@ -110,7 +112,7 @@ export default function TestimonialsPage() {
             setTestimonials(testimonials.map((t) => (t.id === id ? { ...t, featured: !currentFeatured } : t)));
         } catch (error) {
             console.error('Error toggling featured:', error);
-            alert('Erreur lors de la modification');
+            alert(t('dashboard.testimonials.errorToggling'));
         }
     };
 
@@ -125,7 +127,7 @@ export default function TestimonialsPage() {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Chargement...</p>
+                    <p className="text-gray-600">{t('dashboard.testimonials.loading')}</p>
                 </div>
             </div>
         );
@@ -134,8 +136,8 @@ export default function TestimonialsPage() {
     return (
         <div className="max-w-7xl mx-auto p-6">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Témoignages</h1>
-                <p className="text-gray-600">Gérez les témoignages de vos clients</p>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('dashboard.testimonials.title')}</h1>
+                <p className="text-gray-600">{t('dashboard.testimonials.subtitle')}</p>
             </div>
 
             {/* Filtres */}
@@ -148,7 +150,7 @@ export default function TestimonialsPage() {
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
-                    Tous ({testimonials.length})
+                    {t('dashboard.testimonials.all')} ({testimonials.length})
                 </button>
                 <button
                     onClick={() => setFilter('approved')}
@@ -158,7 +160,7 @@ export default function TestimonialsPage() {
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
-                    Approuvés ({testimonials.filter((t) => t.approved).length})
+                    {t('dashboard.testimonials.approved')} ({testimonials.filter((t) => t.approved).length})
                 </button>
                 <button
                     onClick={() => setFilter('pending')}
@@ -168,14 +170,20 @@ export default function TestimonialsPage() {
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                 >
-                    En attente ({testimonials.filter((t) => !t.approved).length})
+                    {t('dashboard.testimonials.pending')} ({testimonials.filter((t) => !t.approved).length})
                 </button>
             </div>
 
             {/* Liste des témoignages */}
             {filteredTestimonials.length === 0 ? (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                    <p className="text-gray-600 text-lg">Aucun témoignage {filter === 'approved' ? 'approuvé' : filter === 'pending' ? 'en attente' : ''}</p>
+                    <p className="text-gray-600 text-lg">
+                        {filter === 'approved' 
+                            ? t('dashboard.testimonials.noTestimonialsApproved')
+                            : filter === 'pending'
+                            ? t('dashboard.testimonials.noTestimonialsPending')
+                            : t('dashboard.testimonials.noTestimonials')}
+                    </p>
                 </div>
             ) : (
                 <div className="grid gap-6">
@@ -232,7 +240,7 @@ export default function TestimonialsPage() {
                                     <p className="text-gray-700 italic mb-4">"{testimonial.testimonial_text}"</p>
                                     {testimonial.project_name && (
                                         <div className="text-sm text-gray-600 mb-2">
-                                            <strong>Projet:</strong> {testimonial.project_name}
+                                            <strong>{t('dashboard.testimonials.project')}</strong> {testimonial.project_name}
                                             {testimonial.project_url && (
                                                 <a
                                                     href={testimonial.project_url}
@@ -240,13 +248,13 @@ export default function TestimonialsPage() {
                                                     rel="noopener noreferrer"
                                                     className="text-blue-600 hover:underline ml-2"
                                                 >
-                                                    Voir le projet →
+                                                    {t('dashboard.testimonials.viewProject')}
                                                 </a>
                                             )}
                                         </div>
                                     )}
                                     <div className="text-xs text-gray-500">
-                                        Reçu le {new Date(testimonial.created_at).toLocaleDateString('fr-FR', {
+                                        {t('dashboard.testimonials.receivedOn')} {new Date(testimonial.created_at).toLocaleDateString(t('common.locale') === 'en' ? 'en-US' : 'fr-FR', {
                                             year: 'numeric',
                                             month: 'long',
                                             day: 'numeric',
@@ -258,19 +266,19 @@ export default function TestimonialsPage() {
                                         <button
                                             onClick={() => handleApprove(testimonial.id)}
                                             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                                            title="Approuver"
+                                            title={t('dashboard.testimonials.approve')}
                                         >
                                             <Check className="w-4 h-4" />
-                                            Approuver
+                                            {t('dashboard.testimonials.approve')}
                                         </button>
                                     ) : (
                                         <button
                                             onClick={() => handleReject(testimonial.id)}
                                             className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors flex items-center gap-2"
-                                            title="Désapprouver"
+                                            title={t('dashboard.testimonials.disapprove')}
                                         >
                                             <X className="w-4 h-4" />
-                                            Désapprouver
+                                            {t('dashboard.testimonials.disapprove')}
                                         </button>
                                     )}
                                     <button
@@ -280,22 +288,22 @@ export default function TestimonialsPage() {
                                                 ? 'bg-blue-600 text-white hover:bg-blue-700'
                                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                         }`}
-                                        title={testimonial.featured ? 'Retirer de la mise en avant' : 'Mettre en avant'}
+                                        title={testimonial.featured ? t('dashboard.testimonials.removeFeatured') : t('dashboard.testimonials.unfeatured')}
                                     >
                                         {testimonial.featured ? (
                                             <Eye className="w-4 h-4" />
                                         ) : (
                                             <EyeOff className="w-4 h-4" />
                                         )}
-                                        {testimonial.featured ? 'Mis en avant' : 'Mettre en avant'}
+                                        {testimonial.featured ? t('dashboard.testimonials.featured') : t('dashboard.testimonials.unfeatured')}
                                     </button>
                                     <button
                                         onClick={() => handleDelete(testimonial.id)}
                                         className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
-                                        title="Supprimer"
+                                        title={t('dashboard.testimonials.delete')}
                                     >
                                         <Trash2 className="w-4 h-4" />
-                                        Supprimer
+                                        {t('dashboard.testimonials.delete')}
                                     </button>
                                 </div>
                             </div>

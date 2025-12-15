@@ -1,14 +1,17 @@
 'use client';
 
 import { CheckCircle2, Clock, FileText, ArrowRight } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export function DashboardPreview() {
+  const { t } = useTranslation();
+  
   const projects = [
     {
       title: 'Site E-commerce',
       client: 'BelleMode Inc.',
       quote: '8,500$',
-      status: 'En cours',
+      status: t('home.dashboardPreview.status.inProgress'),
       statusColor: 'bg-green-500',
       progress: 65,
     },
@@ -16,14 +19,14 @@ export function DashboardPreview() {
       title: 'Refonte Logo',
       client: 'TechStart',
       quote: '1,200$',
-      status: 'Devis envoyé',
+      status: t('home.dashboardPreview.status.quoteSent'),
       statusColor: 'bg-sky-500',
       hasDetails: true,
     },
     {
       title: 'App Mobile',
       client: 'FitnessPro',
-      status: 'Brouillon',
+      status: t('home.dashboardPreview.status.draft'),
       statusColor: 'bg-gray-400',
     },
   ];
@@ -45,12 +48,12 @@ export function DashboardPreview() {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Mes Projets</h2>
-            <p className="text-sm text-gray-500 mt-1">8 projets actifs</p>
+            <h2 className="text-2xl font-bold text-gray-900">{t('home.dashboardPreview.title')}</h2>
+            <p className="text-sm text-gray-500 mt-1">{t('home.dashboardPreview.activeProjects', { count: 8 })}</p>
           </div>
           <button className="px-4 py-2 bg-[#1E3A8A] text-white rounded-lg font-semibold text-sm flex items-center gap-2 hover:bg-[#1E40AF] transition-colors">
             <span className="text-lg">+</span>
-            Nouveau projet
+            {t('home.dashboardPreview.newProject')}
           </button>
         </div>
 
@@ -65,10 +68,10 @@ export function DashboardPreview() {
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-gray-900 mb-1">{project.title}</h3>
                   <p className="text-sm text-gray-600 mb-2">
-                    Client: {project.client}
+                    {t('home.dashboardPreview.client')}: {project.client}
                     {project.quote && (
                       <span className="ml-2">
-                        · Devis: <span className="font-semibold text-gray-900">{project.quote}</span>
+                        · {t('home.dashboardPreview.quote')}: <span className="font-semibold text-gray-900">{project.quote}</span>
                       </span>
                     )}
                   </p>
@@ -94,7 +97,7 @@ export function DashboardPreview() {
                       href="#"
                       className="text-sky-500 text-sm font-medium hover:text-sky-600 flex items-center gap-1"
                     >
-                      Voir détails
+                      {t('home.dashboardPreview.viewDetails')}
                       <ArrowRight className="w-3 h-3" />
                     </a>
                   )}

@@ -3,19 +3,22 @@
 import Link from 'next/link';
 import { FolderKanban, MessageSquareQuote, Eye, TrendingUp, CheckCircle2, Clock } from 'lucide-react';
 import { PortfolioUrlCard } from './_components/portfolio-url-card';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+
 export function DashboardPageClient({ stats, projects, profile, username }: { 
     stats: any, 
     projects: any[], 
     profile: any, 
     username: string 
 }) {
+    const { t } = useTranslation();
 
     return (
         <div className="space-y-8">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
-                <p className="text-gray-600 mt-1">Bienvenue dans votre espace de travail</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+                <p className="text-gray-600 mt-1">{t('dashboard.welcome')}</p>
             </div>
 
             {/* Statistiques */}
@@ -28,8 +31,8 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
                         </div>
                         <span className="text-2xl font-bold text-gray-900">{stats.totalProjects}</span>
                     </div>
-                    <h3 className="text-sm font-medium text-gray-600">Projets totaux</h3>
-                    <p className="text-xs text-gray-500 mt-1">{stats.publishedProjects} publiés</p>
+                    <h3 className="text-sm font-medium text-gray-600">{t('dashboard.stats.totalProjects')}</h3>
+                    <p className="text-xs text-gray-500 mt-1">{stats.publishedProjects} {t('dashboard.stats.publishedProjects')}</p>
                 </div>
 
                 {/* Devis */}
@@ -40,9 +43,9 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
                         </div>
                         <span className="text-2xl font-bold text-gray-900">{stats.totalQuotes}</span>
                     </div>
-                    <h3 className="text-sm font-medium text-gray-600">Demandes de devis</h3>
+                    <h3 className="text-sm font-medium text-gray-600">{t('dashboard.stats.quoteRequests')}</h3>
                     {stats.newQuotes > 0 && (
-                        <p className="text-xs text-red-600 mt-1 font-semibold">{stats.newQuotes} nouvelles</p>
+                        <p className="text-xs text-red-600 mt-1 font-semibold">{stats.newQuotes} {t('dashboard.stats.newQuotes')}</p>
                     )}
                 </div>
 
@@ -54,8 +57,8 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
                         </div>
                         <span className="text-2xl font-bold text-gray-900">{stats.portfolioViews}</span>
                     </div>
-                    <h3 className="text-sm font-medium text-gray-600">Vues portfolio</h3>
-                    <p className="text-xs text-gray-500 mt-1">30 derniers jours</p>
+                    <h3 className="text-sm font-medium text-gray-600">{t('dashboard.stats.portfolioViews')}</h3>
+                    <p className="text-xs text-gray-500 mt-1">{t('dashboard.stats.last30Days')}</p>
                 </div>
 
                 {/* Clics devis */}
@@ -66,8 +69,8 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
                         </div>
                         <span className="text-2xl font-bold text-gray-900">{stats.quoteClicks}</span>
                     </div>
-                    <h3 className="text-sm font-medium text-gray-600">Clics sur devis</h3>
-                    <p className="text-xs text-gray-500 mt-1">30 derniers jours</p>
+                    <h3 className="text-sm font-medium text-gray-600">{t('dashboard.stats.quoteClicks')}</h3>
+                    <p className="text-xs text-gray-500 mt-1">{t('dashboard.stats.last30Days')}</p>
                 </div>
             </div>
 
@@ -81,7 +84,7 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
 
                 {/* Actions rapides */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                    <h2 className="text-xl font-bold text-gray-900 mb-6">Actions rapides</h2>
+                    <h2 className="text-xl font-bold text-gray-900 mb-6">{t('dashboard.quickActions.title')}</h2>
                     <div className="space-y-4">
 
                         <Link
@@ -92,12 +95,12 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
                                 <MessageSquareQuote className="w-5 h-5 text-green-600" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-semibold text-gray-900">Voir les devis</h3>
+                                <h3 className="font-semibold text-gray-900">{t('dashboard.quickActions.viewQuotes')}</h3>
                                 <p className="text-sm text-gray-500">
                                     {stats.newQuotes > 0 ? (
-                                        <span className="text-red-600 font-semibold">{stats.newQuotes} nouvelles</span>
+                                        <span className="text-red-600 font-semibold">{stats.newQuotes} {t('dashboard.stats.newQuotes')}</span>
                                     ) : (
-                                        'Gérez vos demandes de devis'
+                                        t('dashboard.quickActions.manageQuotes')
                                     )}
                                 </p>
                             </div>
@@ -111,8 +114,8 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
                                 <TrendingUp className="w-5 h-5 text-purple-600" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="font-semibold text-gray-900">Personnaliser</h3>
-                                <p className="text-sm text-gray-500">Modifiez l'apparence de votre portfolio</p>
+                                <h3 className="font-semibold text-gray-900">{t('dashboard.quickActions.customize')}</h3>
+                                <p className="text-sm text-gray-500">{t('dashboard.quickActions.customizeDesc')}</p>
                             </div>
                         </Link>
                     </div>
@@ -122,12 +125,12 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
             {/* Projets récents */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-gray-900">Projets récents</h2>
+                    <h2 className="text-xl font-bold text-gray-900">{t('dashboard.recentProjects.title')}</h2>
                     <Link
                         href="/dashboard/projects"
                         className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                     >
-                        Voir tout →
+                        {t('dashboard.recentProjects.viewAll')}
                     </Link>
                 </div>
                 {projects.length > 0 ? (
@@ -139,17 +142,17 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
                                         <FolderKanban className="w-6 h-6 text-gray-400" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-gray-900">Projet #{project.id.slice(0, 8)}</h3>
+                                        <h3 className="font-semibold text-gray-900">{t('dashboard.recentProjects.project')}{project.id.slice(0, 8)}</h3>
                                         <div className="flex items-center gap-2 mt-1">
                                             {project.published ? (
                                                 <span className="flex items-center gap-1 text-xs text-green-600">
                                                     <CheckCircle2 className="w-3 h-3" />
-                                                    Publié
+                                                    {t('dashboard.projects.published')}
                                                 </span>
                                             ) : (
                                                 <span className="flex items-center gap-1 text-xs text-gray-500">
                                                     <Clock className="w-3 h-3" />
-                                                    Brouillon
+                                                    {t('dashboard.projects.draft')}
                                                 </span>
                                             )}
                                         </div>
@@ -159,7 +162,7 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
                                     href="/dashboard/projects"
                                     className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                                 >
-                                    Modifier →
+                                    {t('dashboard.recentProjects.edit')}
                                 </Link>
                             </div>
                         ))}
@@ -167,8 +170,8 @@ export function DashboardPageClient({ stats, projects, profile, username }: {
                 ) : (
                     <div className="text-center py-12">
                         <FolderKanban className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun projet</h3>
-                        <p className="text-gray-500 mb-6">Commencez par ajouter votre premier projet à votre portfolio en utilisant le bouton dans la sidebar</p>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('dashboard.recentProjects.noProjects')}</h3>
+                        <p className="text-gray-500 mb-6">{t('dashboard.recentProjects.noProjectsDesc')}</p>
                     </div>
                 )}
             </div>

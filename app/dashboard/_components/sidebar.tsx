@@ -6,17 +6,20 @@ import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, FolderKanban, MessageSquareQuote, Palette, CreditCard, LogOut, Plus, Settings, Globe, Star, BarChart3 } from "lucide-react";
 import clsx from "clsx";
 import { createClient } from "@/utils/supabase/client";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
 export function Sidebar() {
+    const { t } = useTranslation();
     const navItems = [
-        { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/dashboard/projects", label: "Projets", icon: FolderKanban },
-        { href: "/dashboard/quotes", label: "Devis", icon: MessageSquareQuote },
-        { href: "/dashboard/testimonials", label: "Témoignages", icon: Star },
-        { href: "/dashboard/portfolio", label: "Portfolio", icon: Globe },
-        { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-        { href: "/dashboard/appearance", label: "Apparence", icon: Palette },
-        { href: "/dashboard/billing", label: "Abonnement", icon: CreditCard },
-        { href: "/dashboard/settings", label: "Paramètres", icon: Settings },
+        { href: "/dashboard", label: t('dashboard.sidebar.dashboard'), icon: LayoutDashboard },
+        { href: "/dashboard/projects", label: t('dashboard.sidebar.projects'), icon: FolderKanban },
+        { href: "/dashboard/quotes", label: t('dashboard.sidebar.quotes'), icon: MessageSquareQuote },
+        { href: "/dashboard/testimonials", label: t('dashboard.sidebar.testimonials'), icon: Star },
+        { href: "/dashboard/portfolio", label: t('dashboard.sidebar.portfolio'), icon: Globe },
+        { href: "/dashboard/analytics", label: t('dashboard.sidebar.analytics'), icon: BarChart3 },
+        { href: "/dashboard/appearance", label: t('dashboard.sidebar.appearance'), icon: Palette },
+        { href: "/dashboard/billing", label: t('dashboard.sidebar.subscription'), icon: CreditCard },
+        { href: "/dashboard/settings", label: t('dashboard.sidebar.settings'), icon: Settings },
     ];
 
     const pathname = usePathname();
@@ -64,7 +67,7 @@ export function Sidebar() {
                         className="flex items-center gap-3 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 font-semibold text-sm"
                     >
                         <Plus className="w-5 h-5 text-white" />
-                        Ajouter un projet
+                        {t('dashboard.addProject')}
                     </Link>
                 </div>
             </nav>
@@ -75,7 +78,7 @@ export function Sidebar() {
                     className="flex items-center gap-3 px-4 py-3 w-full text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50 hover:text-red-600 transition-colors"
                 >
                     <LogOut className="w-5 h-5" />
-                    Déconnexion
+                    {t('dashboard.sidebar.logout')}
                 </button>
             </div>
         </aside>

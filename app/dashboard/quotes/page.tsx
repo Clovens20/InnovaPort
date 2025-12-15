@@ -14,26 +14,32 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import { Mail, Phone, Clock, MoreVertical, Loader2 } from 'lucide-react';
 import { Quote } from '@/types';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // Fonction pour formater la date relative
-function formatRelativeDate(date: string): string {
+function formatRelativeDate(date: string, t: (key: string) => string): string {
     const now = new Date();
     const quoteDate = new Date(date);
     const diffInSeconds = Math.floor((now.getTime() - quoteDate.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
-        return 'Il y a moins d\'une minute';
+        return t('dashboard.quotes.timeAgo.lessThanMinute');
     } else if (diffInSeconds < 3600) {
         const minutes = Math.floor(diffInSeconds / 60);
-        return `Il y a ${minutes} minute${minutes > 1 ? 's' : ''}`;
+        const minutesKey = minutes > 1 ? 'minutesPlural' : 'minutes';
+        return `${t('dashboard.quotes.timeAgo.ago')} ${minutes} ${t(`dashboard.quotes.timeAgo.${minutesKey}`)}`;
     } else if (diffInSeconds < 86400) {
         const hours = Math.floor(diffInSeconds / 3600);
-        return `Il y a ${hours} heure${hours > 1 ? 's' : ''}`;
+        const hoursKey = hours > 1 ? 'hoursPlural' : 'hours';
+        return `${t('dashboard.quotes.timeAgo.ago')} ${hours} ${t(`dashboard.quotes.timeAgo.${hoursKey}`)}`;
     } else if (diffInSeconds < 604800) {
         const days = Math.floor(diffInSeconds / 86400);
-        return `Il y a ${days} jour${days > 1 ? 's' : ''}`;
+        const daysKey = days > 1 ? 'daysPlural' : 'days';
+        return `${t('dashboard.quotes.timeAgo.ago')} ${days} ${t(`dashboard.quotes.timeAgo.${daysKey}`)}`;
     } else {
-        return quoteDate.toLocaleDateString('fr-FR', {
+        // Utiliser la locale selon la langue
+        const locale = typeof window !== 'undefined' && document.documentElement.lang === 'en' ? 'en-US' : 'fr-FR';
+        return quoteDate.toLocaleDateString(locale, {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -42,6 +48,7 @@ function formatRelativeDate(date: string): string {
 }
 
 export default function QuotesPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
@@ -87,12 +94,12 @@ export default function QuotesPage() {
     };
 
     const tabs = [
-        { id: 'all' as const, label: 'Toutes', count: counts.all },
-        { id: 'new' as const, label: 'Nouvelles', count: counts.new, dot: counts.new > 0 },
-        { id: 'discussing' as const, label: 'En discussion', count: counts.discussing },
-        { id: 'quoted' as const, label: 'Devis envoyé', count: counts.quoted },
-        { id: 'accepted' as const, label: 'Acceptées', count: counts.accepted },
-        { id: 'rejected' as const, label: 'Refusées', count: counts.rejected },
+        { id: 'all' as const, label: t('dashboard.quotes.tabs.all'), count: counts.all },
+        { id: 'new' as const, label: t('dashboard.quotes.tabs.new'), count: counts.new, dot: counts.new > 0 },
+        { id: 'discussing' as const, label: t('dashboard.quotes.tabs.discussing'), count: counts.discussing },
+        { id: 'quoted' as const, label: t('dashboard.quotes.tabs.quoted'), count: counts.quoted },
+        { id: 'accepted' as const, label: t('dashboard.quotes.tabs.accepted'), count: counts.accepted },
+        { id: 'rejected' as const, label: t('dashboard.quotes.tabs.rejected'), count: counts.rejected },
     ];
 
     const filteredQuotes =
@@ -105,7 +112,7 @@ export default function QuotesPage() {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Chargement des devis...</p>
+                    <p className="text-gray-600">{t('dashboard.quotes.loading')}</p>
                 </div>
             </div>
         );
@@ -114,7 +121,7 @@ export default function QuotesPage() {
     return (
         <div className="space-y-6 max-w-full overflow-x-hidden">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-gray-900">Demandes de cotation</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.quotes.title')}</h1>
             </div>
 
             {/* Tabs */}
@@ -154,13 +161,13 @@ export default function QuotesPage() {
                             <div className="flex-1 min-w-0">
                                 {quote.status === 'new' && (
                                     <span className="inline-block px-3 py-1 bg-primary text-white text-xs font-bold rounded-full mb-3 uppercase tracking-wide">
-                                        NOUVELLE
+                                        {t('dashboard.quotes.newBadge')}
                                     </span>
                                 )}
 
                                 <h3 className="text-lg font-bold text-gray-900 mb-1">{quote.name}</h3>
                                 <p className="text-gray-600 font-medium mb-2">
-                                    {quote.project_type} · Budget:{' '}
+                                    {quote.project_type} · {t('dashboard.quotes.budget')}{' '}
                                     <span className="text-gray-900">{quote.budget}</span>
                                 </p>
 
@@ -181,7 +188,7 @@ export default function QuotesPage() {
                                     )}
                                     <span className="flex items-center gap-2">
                                         <Clock className="w-4 h-4 flex-shrink-0" /> 
-                                        <span>{formatRelativeDate(quote.created_at)}</span>
+                                        <span>{formatRelativeDate(quote.created_at, t)}</span>
                                     </span>
                                 </div>
                             </div>
@@ -191,7 +198,7 @@ export default function QuotesPage() {
                                     href={`/dashboard/quotes/${quote.id}`}
                                     className="px-5 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 text-sm font-semibold transition-all whitespace-nowrap flex items-center justify-center shadow-sm hover:shadow-md min-w-[120px]"
                                 >
-                                    Voir détails
+                                    {t('dashboard.quotes.viewDetails')}
                                 </Link>
                                 <button 
                                     className="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
@@ -199,7 +206,7 @@ export default function QuotesPage() {
                                         e.preventDefault();
                                         e.stopPropagation();
                                     }}
-                                    title="Plus d'options"
+                                    title={t('dashboard.quotes.moreOptions')}
                                 >
                                     <MoreVertical className="w-5 h-5" />
                                 </button>
@@ -212,8 +219,8 @@ export default function QuotesPage() {
                     <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
                         <p className="text-gray-500">
                             {quotes.length === 0
-                                ? 'Aucune demande de devis pour le moment.'
-                                : 'Aucune demande trouvée pour ce filtre.'}
+                                ? t('dashboard.quotes.noQuotes')
+                                : t('dashboard.quotes.noQuotesFilter')}
                         </p>
                     </div>
                 )}

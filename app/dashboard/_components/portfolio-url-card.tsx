@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Eye, Copy, Check, ExternalLink } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { USERNAME_REFRESH_INTERVAL, COPY_FEEDBACK_DURATION, APP_URL } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 interface PortfolioUrlCardProps {
     username: string;
@@ -12,6 +13,7 @@ interface PortfolioUrlCardProps {
 }
 
 export function PortfolioUrlCard({ username, subscriptionTier = 'free' }: PortfolioUrlCardProps) {
+    const { t } = useTranslation();
     const [copied, setCopied] = useState(false);
     const [currentUsername, setCurrentUsername] = useState(username);
     const [currentTier, setCurrentTier] = useState(subscriptionTier);
@@ -170,20 +172,20 @@ export function PortfolioUrlCard({ username, subscriptionTier = 'free' }: Portfo
 
     return (
         <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg p-8 text-white">
-            <h2 className="text-2xl font-bold mb-2">Votre portfolio</h2>
-            <p className="text-blue-100 mb-6">Partagez votre portfolio avec vos clients</p>
+            <h2 className="text-2xl font-bold mb-2">{t('dashboard.portfolioCard.title')}</h2>
+            <p className="text-blue-100 mb-6">{t('dashboard.portfolioCard.subtitle')}</p>
             
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs text-blue-200 mb-1">URL de votre portfolio</p>
+                        <p className="text-xs text-blue-200 mb-1">{t('dashboard.portfolioCard.urlLabel')}</p>
                         <p className="font-mono text-sm text-white break-all">{portfolioUrl}</p>
                     </div>
                     <button
                         onClick={handleCopy}
                         disabled={!currentUsername || !portfolioUrl}
                         className="flex-shrink-0 p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title={currentUsername ? "Copier l'URL" : "Username non défini"}
+                        title={currentUsername ? t('dashboard.portfolioCard.copyUrl') : t('dashboard.portfolioCard.usernameNotSet')}
                     >
                         {copied ? (
                             <Check className="w-5 h-5 text-green-300" />
@@ -202,7 +204,7 @@ export function PortfolioUrlCard({ username, subscriptionTier = 'free' }: Portfo
                     className="px-6 py-3 bg-white text-blue-600 rounded-lg hover:bg-gray-50 transition-colors font-semibold flex items-center gap-2"
                 >
                     <Eye className="w-5 h-5" />
-                    Voir mon portfolio
+                    {t('dashboard.portfolioCard.viewPortfolio')}
                     <ExternalLink className="w-4 h-4" />
                 </Link>
                 
@@ -211,14 +213,14 @@ export function PortfolioUrlCard({ username, subscriptionTier = 'free' }: Portfo
                         href="/dashboard/settings"
                         className="px-4 py-3 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
                     >
-                        Personnaliser l'URL
+                        {t('dashboard.portfolioCard.customizeUrl')}
                     </Link>
                 )}
             </div>
 
             {currentTier === 'free' && (
                 <p className="text-xs text-blue-200 mt-4">
-                    💡 Passez à un plan payant pour personnaliser votre URL
+                    💡 {t('dashboard.portfolioCard.upgradeHint')}
                 </p>
             )}
         </div>

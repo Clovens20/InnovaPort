@@ -12,8 +12,10 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Save, Plus, Trash2, Check, X } from 'lucide-react';
 import { Service, WorkProcessStep } from '@/types';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function PortfolioEditorPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
@@ -96,7 +98,7 @@ export default function PortfolioEditorPage() {
             }
         } catch (error) {
             console.error('Error loading profile:', error);
-            setMessage({ type: 'error', text: 'Erreur lors du chargement des données' });
+            setMessage({ type: 'error', text: t('dashboard.portfolio.errorLoading') });
         } finally {
             setLoading(false);
         }
@@ -136,11 +138,11 @@ export default function PortfolioEditorPage() {
 
             if (error) throw error;
 
-            setMessage({ type: 'success', text: 'Portfolio mis à jour avec succès !' });
+            setMessage({ type: 'success', text: t('dashboard.portfolio.success') });
             setTimeout(() => setMessage(null), 3000);
         } catch (error) {
             console.error('Error saving profile:', error);
-            setMessage({ type: 'error', text: 'Erreur lors de la sauvegarde' });
+            setMessage({ type: 'error', text: t('dashboard.portfolio.error') });
         } finally {
             setSaving(false);
         }
@@ -262,7 +264,7 @@ export default function PortfolioEditorPage() {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Chargement...</p>
+                    <p className="text-gray-600">{t('common.loading')}</p>
                 </div>
             </div>
         );
@@ -272,8 +274,8 @@ export default function PortfolioEditorPage() {
         <div className="max-w-6xl mx-auto p-6 space-y-8">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Personnaliser mon Portfolio</h1>
-                    <p className="text-gray-600 mt-2">Modifiez tous les éléments de votre portfolio public</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.portfolio.title')}</h1>
+                    <p className="text-gray-600 mt-2">{t('dashboard.portfolio.subtitle')}</p>
                 </div>
                 <button
                     onClick={handleSave}
@@ -281,7 +283,7 @@ export default function PortfolioEditorPage() {
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                     <Save className="w-5 h-5" />
-                    {saving ? 'Enregistrement...' : 'Enregistrer'}
+                    {saving ? t('dashboard.portfolio.saving') : t('dashboard.portfolio.save')}
                 </button>
             </div>
 
@@ -297,7 +299,7 @@ export default function PortfolioEditorPage() {
 
             {/* Hero Section */}
             <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-bold mb-6">Section Hero</h2>
+                <h2 className="text-2xl font-bold mb-6">{t('dashboard.portfolio.hero.title')}</h2>
                 <div className="space-y-4">
                     <div>
                         <label className="flex items-center gap-2 mb-2">
@@ -307,35 +309,35 @@ export default function PortfolioEditorPage() {
                                 onChange={(e) => setAvailableForWork(e.target.checked)}
                                 className="rounded"
                             />
-                            <span className="font-medium">Disponible pour de nouveaux projets</span>
+                            <span className="font-medium">{t('dashboard.portfolio.hero.availableForWork')}</span>
                         </label>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Titre principal</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.mainTitle')}</label>
                         <input
                             type="text"
                             value={heroTitle}
                             onChange={(e) => setHeroTitle(e.target.value)}
-                            placeholder="Je transforme vos idées en applications web performantes"
+                            placeholder={t('dashboard.portfolio.hero.mainTitlePlaceholder')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Sous-titre</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.subtitle')}</label>
                         <input
                             type="text"
                             value={heroSubtitle}
                             onChange={(e) => setHeroSubtitle(e.target.value)}
-                            placeholder="Développeur Full-Stack"
+                            placeholder={t('dashboard.portfolio.hero.subtitlePlaceholder')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.description')}</label>
                         <textarea
                             value={heroDescription}
                             onChange={(e) => setHeroDescription(e.target.value)}
-                            placeholder="Développeur Full-Stack spécialisé en React, Next.js et Node.js..."
+                            placeholder={t('dashboard.portfolio.hero.descriptionPlaceholder')}
                             rows={3}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
@@ -345,10 +347,10 @@ export default function PortfolioEditorPage() {
 
             {/* Stats Section */}
             <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-bold mb-6">Statistiques</h2>
+                <h2 className="text-2xl font-bold mb-6">{t('dashboard.portfolio.stats.title')}</h2>
                 <div className="grid md:grid-cols-4 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Années d'expérience</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.stats.yearsExperience')}</label>
                         <input
                             type="number"
                             value={statsYears}
@@ -357,7 +359,7 @@ export default function PortfolioEditorPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Projets livrés</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.stats.projectsDelivered')}</label>
                         <input
                             type="number"
                             value={statsProjects}
@@ -366,7 +368,7 @@ export default function PortfolioEditorPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Clients satisfaits</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.stats.clientsSatisfied')}</label>
                         <input
                             type="number"
                             value={statsClients}
@@ -375,12 +377,12 @@ export default function PortfolioEditorPage() {
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Temps de réponse</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.stats.responseTime')}</label>
                         <input
                             type="text"
                             value={statsResponseTime}
                             onChange={(e) => setStatsResponseTime(e.target.value)}
-                            placeholder="48h"
+                            placeholder={t('dashboard.portfolio.stats.responseTimePlaceholder')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
@@ -390,20 +392,20 @@ export default function PortfolioEditorPage() {
             {/* Services Section */}
             <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold">Services</h2>
+                    <h2 className="text-2xl font-bold">{t('dashboard.portfolio.services.title')}</h2>
                     <button
                         onClick={addService}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
-                        Ajouter un service
+                        {t('dashboard.portfolio.services.addService')}
                     </button>
                 </div>
                 <div className="space-y-6">
                     {services.map((service, index) => (
                         <div key={index} className="border border-gray-200 rounded-lg p-4">
                             <div className="flex justify-between items-start mb-4">
-                                <h3 className="font-semibold">Service {index + 1}</h3>
+                                <h3 className="font-semibold">{t('dashboard.portfolio.services.serviceNumber', { number: index + 1 })}</h3>
                                 <button
                                     onClick={() => removeService(index)}
                                     className="text-red-600 hover:text-red-700"
@@ -413,44 +415,44 @@ export default function PortfolioEditorPage() {
                             </div>
                             <div className="grid md:grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.services.name')}</label>
                                     <input
                                         type="text"
                                         value={service.name}
                                         onChange={(e) => updateService(index, 'name', e.target.value)}
-                                        placeholder="Site Web Vitrine"
+                                        placeholder={t('dashboard.portfolio.services.namePlaceholder')}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Prix</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.services.price')}</label>
                                     <input
                                         type="text"
                                         value={service.price}
                                         onChange={(e) => updateService(index, 'price', e.target.value)}
-                                        placeholder="À partir de 2000$"
+                                        placeholder={t('dashboard.portfolio.services.pricePlaceholder')}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                                     />
                                 </div>
                             </div>
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.services.description')}</label>
                                 <textarea
                                     value={service.description}
                                     onChange={(e) => updateService(index, 'description', e.target.value)}
-                                    placeholder="Site professionnel responsive..."
+                                    placeholder={t('dashboard.portfolio.services.descriptionPlaceholder')}
                                     rows={2}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                                 />
                             </div>
                             <div className="mb-4">
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="block text-sm font-medium text-gray-700">Fonctionnalités</label>
+                                    <label className="block text-sm font-medium text-gray-700">{t('dashboard.portfolio.services.features')}</label>
                                     <button
                                         onClick={() => addServiceFeature(index)}
                                         className="text-sm text-blue-600 hover:text-blue-700"
                                     >
-                                        <Plus className="w-4 h-4 inline" /> Ajouter
+                                        <Plus className="w-4 h-4 inline" /> {t('dashboard.portfolio.services.addFeature')}
                                     </button>
                                 </div>
                                 <div className="space-y-2">
@@ -460,7 +462,7 @@ export default function PortfolioEditorPage() {
                                                 type="text"
                                                 value={feature}
                                                 onChange={(e) => updateServiceFeature(index, fIndex, e.target.value)}
-                                                placeholder="Design sur-mesure"
+                                                placeholder={t('dashboard.portfolio.services.featurePlaceholder')}
                                                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                                             />
                                             <button
@@ -477,12 +479,12 @@ export default function PortfolioEditorPage() {
                             {/* Catégories cibles */}
                             <div className="mb-4">
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="block text-sm font-medium text-gray-700">Catégories cibles (Parfait pour)</label>
+                                    <label className="block text-sm font-medium text-gray-700">{t('dashboard.portfolio.services.targetCategories')}</label>
                                     <button
                                         onClick={() => addServiceCategory(index)}
                                         className="text-sm text-blue-600 hover:text-blue-700"
                                     >
-                                        <Plus className="w-4 h-4 inline" /> Ajouter
+                                        <Plus className="w-4 h-4 inline" /> {t('dashboard.portfolio.services.addFeature')}
                                     </button>
                                 </div>
                                 <div className="space-y-2">
@@ -492,7 +494,7 @@ export default function PortfolioEditorPage() {
                                                 type="text"
                                                 value={category.emoji}
                                                 onChange={(e) => updateServiceCategory(index, cIndex, 'emoji', e.target.value)}
-                                                placeholder="🍽️"
+                                                placeholder={t('dashboard.portfolio.services.categoryEmojiPlaceholder')}
                                                 className="w-16 px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-center"
                                                 maxLength={2}
                                             />
@@ -500,7 +502,7 @@ export default function PortfolioEditorPage() {
                                                 type="text"
                                                 value={category.label}
                                                 onChange={(e) => updateServiceCategory(index, cIndex, 'label', e.target.value)}
-                                                placeholder="Restaurants"
+                                                placeholder={t('dashboard.portfolio.services.categoryLabelPlaceholder')}
                                                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                                             />
                                             <button
@@ -516,11 +518,11 @@ export default function PortfolioEditorPage() {
 
                             {/* Exemple de projet */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Exemple de projet</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.services.exampleProject')}</label>
                                 <textarea
                                     value={service.exampleProject || ''}
                                     onChange={(e) => updateService(index, 'exampleProject', e.target.value)}
-                                    placeholder="Site vitrine avec menu, réservations en ligne, galerie photos"
+                                    placeholder={t('dashboard.portfolio.services.exampleProjectPlaceholder')}
                                     rows={2}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                                 />
@@ -533,13 +535,13 @@ export default function PortfolioEditorPage() {
             {/* Work Process Section */}
             <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold">Processus de Travail</h2>
+                    <h2 className="text-2xl font-bold">{t('dashboard.portfolio.workProcess.title')}</h2>
                     <button
                         onClick={addWorkProcessStep}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
                     >
                         <Plus className="w-4 h-4" />
-                        Ajouter une étape
+                        {t('dashboard.portfolio.workProcess.addStep')}
                     </button>
                 </div>
                 <div className="space-y-4">
@@ -555,13 +557,13 @@ export default function PortfolioEditorPage() {
                                             type="text"
                                             value={step.title}
                                             onChange={(e) => updateWorkProcessStep(index, 'title', e.target.value)}
-                                            placeholder="Titre de l'étape"
+                                            placeholder={t('dashboard.portfolio.workProcess.stepTitle')}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
                                         />
                                         <textarea
                                             value={step.description}
                                             onChange={(e) => updateWorkProcessStep(index, 'description', e.target.value)}
-                                            placeholder="Description de l'étape"
+                                            placeholder={t('dashboard.portfolio.workProcess.stepDescription')}
                                             rows={2}
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                                         />
@@ -581,14 +583,14 @@ export default function PortfolioEditorPage() {
 
             {/* Technologies Section */}
             <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-bold mb-6">Technologies</h2>
+                <h2 className="text-2xl font-bold mb-6">{t('dashboard.portfolio.technologies.title')}</h2>
                 <div className="flex gap-2 mb-4">
                     <input
                         type="text"
                         value={newTech}
                         onChange={(e) => setNewTech(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && addTechnology()}
-                        placeholder="Ajouter une technologie (ex: React)"
+                        placeholder={t('dashboard.portfolio.technologies.addTechnology')}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                     />
                     <button
@@ -618,45 +620,45 @@ export default function PortfolioEditorPage() {
 
             {/* CTA Section */}
             <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-bold mb-6">Call-to-Action Final</h2>
+                <h2 className="text-2xl font-bold mb-6">{t('dashboard.portfolio.cta.title')}</h2>
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Titre</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.ctaTitle')}</label>
                         <input
                             type="text"
                             value={ctaTitle}
                             onChange={(e) => setCtaTitle(e.target.value)}
-                            placeholder="Prêt à démarrer votre projet ?"
+                            placeholder={t('dashboard.portfolio.cta.ctaTitlePlaceholder')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Sous-titre</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.ctaSubtitle')}</label>
                         <input
                             type="text"
                             value={ctaSubtitle}
                             onChange={(e) => setCtaSubtitle(e.target.value)}
-                            placeholder="Obtenez un devis gratuit en moins de 48h"
+                            placeholder={t('dashboard.portfolio.cta.ctaSubtitlePlaceholder')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Texte du bouton</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.buttonText')}</label>
                         <input
                             type="text"
                             value={ctaButtonText}
                             onChange={(e) => setCtaButtonText(e.target.value)}
-                            placeholder="Demander un devis gratuit"
+                            placeholder={t('dashboard.portfolio.cta.buttonTextPlaceholder')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Texte du footer</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.cta.footerText')}</label>
                         <input
                             type="text"
                             value={ctaFooterText}
                             onChange={(e) => setCtaFooterText(e.target.value)}
-                            placeholder="Sans engagement • Réponse rapide • Conseils inclus"
+                            placeholder={t('dashboard.portfolio.cta.footerTextPlaceholder')}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                         />
                     </div>
@@ -665,54 +667,54 @@ export default function PortfolioEditorPage() {
 
             {/* À propos Section */}
             <section className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <h2 className="text-2xl font-bold mb-6">Page "À propos"</h2>
+                <h2 className="text-2xl font-bold mb-6">{t('dashboard.portfolio.about.title')}</h2>
                 <p className="text-gray-600 mb-6 text-sm">
-                    Remplissez ces sections pour personnaliser votre page "À propos" publique. Ces informations aideront vos clients à mieux vous connaître.
+                    {t('dashboard.portfolio.about.description')}
                 </p>
                 <div className="space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Votre parcours <span className="text-gray-500">(optionnel)</span>
+                            {t('dashboard.portfolio.about.journey')} <span className="text-gray-500">{t('dashboard.portfolio.about.optional')}</span>
                         </label>
                         <textarea
                             value={aboutJourney}
                             onChange={(e) => setAboutJourney(e.target.value)}
-                            placeholder="Décrivez votre parcours professionnel, vos expériences, votre formation..."
+                            placeholder={t('dashboard.portfolio.about.journeyPlaceholder')}
                             rows={6}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                            Cette section apparaîtra dans la page "À propos" de votre portfolio public.
+                            {t('dashboard.portfolio.about.journeyHint')}
                         </p>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Votre approche <span className="text-gray-500">(optionnel)</span>
+                            {t('dashboard.portfolio.about.approach')} <span className="text-gray-500">{t('dashboard.portfolio.about.optional')}</span>
                         </label>
                         <textarea
                             value={aboutApproach}
                             onChange={(e) => setAboutApproach(e.target.value)}
-                            placeholder="Expliquez votre méthode de travail, votre processus, votre façon d'aborder les projets..."
+                            placeholder={t('dashboard.portfolio.about.approachPlaceholder')}
                             rows={6}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                            Décrivez comment vous travaillez et votre approche pour mener à bien les projets.
+                            {t('dashboard.portfolio.about.approachHint')}
                         </p>
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Pourquoi vous choisir <span className="text-gray-500">(optionnel)</span>
+                            {t('dashboard.portfolio.about.whyChoose')} <span className="text-gray-500">{t('dashboard.portfolio.about.optional')}</span>
                         </label>
                         <textarea
                             value={aboutWhyChoose}
                             onChange={(e) => setAboutWhyChoose(e.target.value)}
-                            placeholder="Mettez en avant vos points forts, vos différences, ce qui vous rend unique..."
+                            placeholder={t('dashboard.portfolio.about.whyChoosePlaceholder')}
                             rows={6}
                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                            Convainquez vos clients potentiels en expliquant pourquoi ils devraient vous choisir.
+                            {t('dashboard.portfolio.about.whyChooseHint')}
                         </p>
                     </div>
                 </div>

@@ -15,6 +15,8 @@ import { ArrowRight, Twitter, Linkedin, Mail, Music2, Facebook, Check, Star, Glo
 import { getDicebearAvatarUrl } from '@/lib/constants';
 import { motion } from 'framer-motion';
 import { Testimonial, Service, WorkProcessStep } from '@/types';
+import { useTranslation } from '@/lib/i18n/useTranslation';
+import { LanguageSwitcher } from '@/app/_components/language-switcher';
 
 interface Profile {
     id: string;
@@ -83,6 +85,7 @@ export function PortfolioClient({
         path: string;
     };
 }) {
+    const { t, language } = useTranslation();
     const [showFloatingButton, setShowFloatingButton] = useState(false);
 
     // Track analytics au chargement
@@ -140,13 +143,13 @@ export function PortfolioClient({
 
     const avatarUrl = profile.avatar_url || getDicebearAvatarUrl(profile.username);
     const displayName = profile.full_name || profile.username;
-    const displayTitle = profile.title || 'Développeur Freelance';
-    const displayBio = profile.bio || 'Créateur de solutions web sur-mesure';
+    const displayTitle = profile.title || t('portfolio.defaults.title');
+    const displayBio = profile.bio || t('portfolio.defaults.bio');
 
     // Valeurs par défaut pour les sections personnalisables
-    const heroTitle = profile.hero_title || 'Je transforme vos idées en applications web performantes';
-    const heroSubtitle = profile.hero_subtitle || 'Solutions adaptées à vos besoins et votre budget';
-    const heroDescription = profile.hero_description || 'Développeur Full-Stack spécialisé en React, Next.js et Node.js avec 5+ ans d\'expérience dans la création d\'applications web modernes et performantes.';
+    const heroTitle = profile.hero_title || t('portfolio.defaults.heroTitle');
+    const heroSubtitle = profile.hero_subtitle || t('portfolio.defaults.heroSubtitle');
+    const heroDescription = profile.hero_description || t('portfolio.defaults.heroDescription');
     const availableForWork = profile.available_for_work ?? true;
 
     const stats = {
@@ -156,80 +159,160 @@ export function PortfolioClient({
         responseTime: profile.stats_response_time || '48h',
     };
 
-    // Services par défaut si non définis
-    const defaultServices: Service[] = [
-        {
-            name: 'Site Web Vitrine',
-            description: 'Site professionnel responsive, optimisé SEO et ultra-rapide',
-            price: '1000$',
-            features: [
-                'Design sur-mesure et moderne',
-                'Responsive mobile & tablette',
-                'Optimisé SEO (Google)',
-                'Formulaire de contact',
-                'Hébergement 1 an inclus'
-            ],
-            icon: 'globe',
-            targetCategories: [
-                { emoji: '🍽️', label: 'Restaurants' },
-                { emoji: '🔨', label: 'Artisans' },
-                { emoji: '💼', label: 'Professionnels' },
-                { emoji: '🏢', label: 'PME' }
-            ],
-            exampleProject: 'Site vitrine avec menu, réservations en ligne, galerie photos'
-        },
-        {
-            name: 'Application Web',
-            description: 'Application complète avec backend et base de données',
-            price: '2000$',
-            features: [
-                'Stack moderne (React/Node.js)',
-                'Base de données sécurisée',
-                'Authentification utilisateurs',
-                'API REST complète',
-                'Architecture scalable'
-            ],
-            icon: 'code',
-            targetCategories: [
-                { emoji: '📊', label: 'SaaS' },
-                { emoji: '🎓', label: 'Plateformes' },
-                { emoji: '🏢', label: 'Gestion interne' },
-                { emoji: '🤝', label: 'B2B' }
-            ],
-            exampleProject: 'Plateforme de gestion d\'étudiants avec dashboard, notes, présences'
-        },
-        {
-            name: 'E-commerce',
-            description: 'Boutique en ligne complète avec paiement et gestion',
-            price: '2000$',
-            features: [
-                'Paiement sécurisé (Stripe)',
-                'Gestion catalogue produits',
-                'Dashboard administrateur',
-                'Gestion commandes & stock',
-                'Emails automatiques'
-            ],
-            icon: 'shopping',
-            targetCategories: [
-                { emoji: '👗', label: 'Mode' },
-                { emoji: '🎨', label: 'Artisanat' },
-                { emoji: '📦', label: 'Produits' },
-                { emoji: '💍', label: 'Luxe' }
-            ],
-            exampleProject: 'Boutique de vêtements avec 200+ produits, panier, paiement, livraison'
-        },
-    ];
+    // Services par défaut si non définis (traduits selon la langue)
+    const getDefaultServices = (): Service[] => {
+        if (language === 'en') {
+            return [
+                {
+                    name: 'Website Showcase',
+                    description: 'Responsive professional website, SEO optimized and ultra-fast',
+                    price: '$1000',
+                    features: [
+                        'Custom and modern design',
+                        'Mobile & tablet responsive',
+                        'SEO optimized (Google)',
+                        'Contact form',
+                        '1 year hosting included'
+                    ],
+                    icon: 'globe',
+                    targetCategories: [
+                        { emoji: '🍽️', label: 'Restaurants' },
+                        { emoji: '🔨', label: 'Craftsmen' },
+                        { emoji: '💼', label: 'Professionals' },
+                        { emoji: '🏢', label: 'SMEs' }
+                    ],
+                    exampleProject: 'Showcase website with menu, online reservations, photo gallery'
+                },
+                {
+                    name: 'Web Application',
+                    description: 'Complete application with backend and database',
+                    price: '$2000',
+                    features: [
+                        'Modern stack (React/Node.js)',
+                        'Secure database',
+                        'User authentication',
+                        'Complete REST API',
+                        'Scalable architecture'
+                    ],
+                    icon: 'code',
+                    targetCategories: [
+                        { emoji: '📊', label: 'SaaS' },
+                        { emoji: '🎓', label: 'Platforms' },
+                        { emoji: '🏢', label: 'Internal management' },
+                        { emoji: '🤝', label: 'B2B' }
+                    ],
+                    exampleProject: 'Student management platform with dashboard, grades, attendance'
+                },
+                {
+                    name: 'E-commerce',
+                    description: 'Complete online store with payment and management',
+                    price: '$2000',
+                    features: [
+                        'Secure payment (Stripe)',
+                        'Product catalog management',
+                        'Admin dashboard',
+                        'Order & inventory management',
+                        'Automatic emails'
+                    ],
+                    icon: 'shopping',
+                    targetCategories: [
+                        { emoji: '👗', label: 'Fashion' },
+                        { emoji: '🎨', label: 'Crafts' },
+                        { emoji: '📦', label: 'Products' },
+                        { emoji: '💍', label: 'Luxury' }
+                    ],
+                    exampleProject: 'Clothing store with 200+ products, cart, payment, delivery'
+                },
+            ];
+        }
+        // Français (par défaut)
+        return [
+            {
+                name: 'Site Web Vitrine',
+                description: 'Site professionnel responsive, optimisé SEO et ultra-rapide',
+                price: '1000$',
+                features: [
+                    'Design sur-mesure et moderne',
+                    'Responsive mobile & tablette',
+                    'Optimisé SEO (Google)',
+                    'Formulaire de contact',
+                    'Hébergement 1 an inclus'
+                ],
+                icon: 'globe',
+                targetCategories: [
+                    { emoji: '🍽️', label: 'Restaurants' },
+                    { emoji: '🔨', label: 'Artisans' },
+                    { emoji: '💼', label: 'Professionnels' },
+                    { emoji: '🏢', label: 'PME' }
+                ],
+                exampleProject: 'Site vitrine avec menu, réservations en ligne, galerie photos'
+            },
+            {
+                name: 'Application Web',
+                description: 'Application complète avec backend et base de données',
+                price: '2000$',
+                features: [
+                    'Stack moderne (React/Node.js)',
+                    'Base de données sécurisée',
+                    'Authentification utilisateurs',
+                    'API REST complète',
+                    'Architecture scalable'
+                ],
+                icon: 'code',
+                targetCategories: [
+                    { emoji: '📊', label: 'SaaS' },
+                    { emoji: '🎓', label: 'Plateformes' },
+                    { emoji: '🏢', label: 'Gestion interne' },
+                    { emoji: '🤝', label: 'B2B' }
+                ],
+                exampleProject: 'Plateforme de gestion d\'étudiants avec dashboard, notes, présences'
+            },
+            {
+                name: 'E-commerce',
+                description: 'Boutique en ligne complète avec paiement et gestion',
+                price: '2000$',
+                features: [
+                    'Paiement sécurisé (Stripe)',
+                    'Gestion catalogue produits',
+                    'Dashboard administrateur',
+                    'Gestion commandes & stock',
+                    'Emails automatiques'
+                ],
+                icon: 'shopping',
+                targetCategories: [
+                    { emoji: '👗', label: 'Mode' },
+                    { emoji: '🎨', label: 'Artisanat' },
+                    { emoji: '📦', label: 'Produits' },
+                    { emoji: '💍', label: 'Luxe' }
+                ],
+                exampleProject: 'Boutique de vêtements avec 200+ produits, panier, paiement, livraison'
+            },
+        ];
+    };
+    const defaultServices = getDefaultServices();
     const services: Service[] = profile.services && profile.services.length > 0 
         ? profile.services 
         : defaultServices;
 
-    // Process de travail par défaut
-    const defaultWorkProcess: WorkProcessStep[] = [
-        { num: 1, title: 'Discovery', description: 'Analyse de vos besoins et définition du cahier des charges' },
-        { num: 2, title: 'Design', description: 'Maquettes et prototype interactif pour valider l\'expérience' },
-        { num: 3, title: 'Développement', description: 'Code propre, testé et documenté selon les meilleures pratiques' },
-        { num: 4, title: 'Livraison', description: 'Déploiement, formation et support pour garantir votre succès' },
-    ];
+    // Process de travail par défaut (traduit selon la langue)
+    const getDefaultWorkProcess = (): WorkProcessStep[] => {
+        if (language === 'en') {
+            return [
+                { num: 1, title: 'Discovery', description: 'Analysis of your needs and definition of the specifications' },
+                { num: 2, title: 'Design', description: 'Mockups and interactive prototype to validate the experience' },
+                { num: 3, title: 'Development', description: 'Clean, tested and documented code following best practices' },
+                { num: 4, title: 'Delivery', description: 'Deployment, training and support to ensure your success' },
+            ];
+        }
+        // Français (par défaut)
+        return [
+            { num: 1, title: 'Discovery', description: 'Analyse de vos besoins et définition du cahier des charges' },
+            { num: 2, title: 'Design', description: 'Maquettes et prototype interactif pour valider l\'expérience' },
+            { num: 3, title: 'Développement', description: 'Code propre, testé et documenté selon les meilleures pratiques' },
+            { num: 4, title: 'Livraison', description: 'Déploiement, formation et support pour garantir votre succès' },
+        ];
+    };
+    const defaultWorkProcess = getDefaultWorkProcess();
     const workProcess: WorkProcessStep[] = profile.work_process && profile.work_process.length > 0
         ? profile.work_process
         : defaultWorkProcess;
@@ -241,15 +324,22 @@ export function PortfolioClient({
         : defaultTechnologies;
 
     // CTA
-    const ctaTitle = profile.cta_title || 'Prêt à démarrer votre projet ?';
-    const ctaSubtitle = profile.cta_subtitle || 'Obtenez un devis gratuit en moins de 48h';
-    const ctaButtonText = profile.cta_button_text || 'Demander un devis gratuit';
-    const ctaFooterText = profile.cta_footer_text || 'Sans engagement • Réponse rapide • Conseils inclus';
+    const ctaTitle = profile.cta_title || t('portfolio.defaults.ctaTitle');
+    const ctaSubtitle = profile.cta_subtitle || t('portfolio.defaults.ctaSubtitle');
+    const ctaButtonText = profile.cta_button_text || t('portfolio.defaults.ctaButtonText');
+    const ctaFooterText = profile.cta_footer_text || t('portfolio.defaults.ctaFooterText');
 
     // Template Minimal (simplifié)
     if (template === 'minimal') {
         return (
             <div className="min-h-screen bg-white text-gray-900 font-sans" style={style}>
+                {/* Header avec Language Switcher */}
+                <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+                    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-end">
+                        <LanguageSwitcher />
+                    </div>
+                </header>
+
                 {/* Hero Section */}
                 <section className="min-h-screen flex items-center bg-gradient-to-br from-slate-50 to-blue-50">
                     <div className="container mx-auto px-6">
@@ -258,7 +348,7 @@ export function PortfolioClient({
                                 {availableForWork && (
                                     <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
                                         <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                        Disponible pour de nouveaux projets
+                                        {t('portfolio.availableForWork')}
                                     </div>
                                 )}
                                 <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
@@ -279,7 +369,7 @@ export function PortfolioClient({
                                         href="#projects"
                                         className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition-all"
                                     >
-                                        Voir mes projets
+                                        {t('portfolio.viewProjects')}
                                     </a>
                                 </div>
                             </div>
@@ -292,11 +382,11 @@ export function PortfolioClient({
                                     />
                                     <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-lg">
                                         <div className="text-3xl font-bold text-blue-600">{stats.projects}+</div>
-                                        <div className="text-sm text-gray-600">Projets livrés</div>
+                                        <div className="text-sm text-gray-600">{t('portfolio.stats.projectsDelivered')}</div>
                                     </div>
                                     <div className="absolute -top-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
                                         <div className="text-3xl font-bold text-green-600">100%</div>
-                                        <div className="text-sm text-gray-600">Clients satisfaits</div>
+                                        <div className="text-sm text-gray-600">{t('portfolio.stats.clientsSatisfied')}</div>
                                     </div>
                                 </div>
                             </div>
@@ -308,7 +398,7 @@ export function PortfolioClient({
                 {projects.length > 0 && (
                     <section id="projects" className="py-24 px-6 bg-white">
                         <div className="max-w-6xl mx-auto">
-                            <h2 className="text-4xl font-bold text-center mb-12">Mes Projets</h2>
+                            <h2 className="text-4xl font-bold text-center mb-12">{t('portfolio.projects.title')}</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                                 {projects.map((project) => (
                                     <div key={project.id} className={`bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all ${project.project_url ? 'cursor-pointer' : ''}`}>
@@ -328,7 +418,7 @@ export function PortfolioClient({
                                                     <h3 className="text-xl font-bold mb-2 hover:text-blue-600 transition-colors">{project.title}</h3>
                                                     <p className="text-gray-600 text-sm mb-4">{project.short_description}</p>
                                                     <span className="text-blue-600 font-semibold text-sm hover:underline inline-flex items-center gap-1">
-                                                        Visiter le projet <ArrowRight className="w-4 h-4" />
+                                                        {t('portfolio.projects.visitProject')} <ArrowRight className="w-4 h-4" />
                                                     </span>
                                                 </div>
                                             </a>
@@ -352,7 +442,7 @@ export function PortfolioClient({
                                                         className="text-blue-600 font-semibold text-sm hover:underline"
                                                         onClick={handleQuoteClick}
                                                     >
-                                                        Demander un devis
+                                                        {t('portfolio.requestQuote')}
                                                     </Link>
                                                 </div>
                                             </>
@@ -367,7 +457,7 @@ export function PortfolioClient({
                 {/* Footer */}
                 <footer className="bg-gray-900 text-white py-12 px-6">
                     <div className="max-w-6xl mx-auto text-center">
-                        <p className="text-gray-400">© {new Date().getFullYear()} {displayName}. Tous droits réservés.</p>
+                        <p className="text-gray-400">© {new Date().getFullYear()} {displayName}. {t('portfolio.footer.rights')}</p>
                     </div>
                 </footer>
             </div>
@@ -377,6 +467,13 @@ export function PortfolioClient({
     // Template Modern (complet avec toutes les sections)
     return (
         <div className="min-h-screen bg-white font-sans" style={style}>
+            {/* Header avec Language Switcher */}
+            <header className="border-b border-gray-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-end">
+                    <LanguageSwitcher />
+                </div>
+            </header>
+
             {/* Styles CSS pour animations */}
             <style jsx>{`
                 @keyframes float {
@@ -437,7 +534,7 @@ export function PortfolioClient({
                                 className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 px-4 py-2 rounded-full text-sm font-semibold mb-8 pulse-glow-animation"
                             >
                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                <span className="text-green-400">Disponible pour de nouveaux projets</span>
+                                <span className="text-green-400">{t('portfolio.availableForWork')}</span>
                             </motion.div>
                         )}
 
@@ -463,8 +560,8 @@ export function PortfolioClient({
                             transition={{ duration: 0.6, delay: 0.4 }}
                             className="text-xl md:text-2xl text-slate-300 mb-10 space-y-2"
                         >
-                            <p>{heroSubtitle || 'Solutions adaptées à vos besoins et votre budget'}</p>
-                            <p>{heroDescription || 'Développeur Full-Stack spécialisé en React, Next.js et Node.js avec 5+ ans d\'expérience dans la création d\'applications web modernes et performantes.'}</p>
+                            <p>{heroSubtitle || t('portfolio.defaults.heroSubtitle')}</p>
+                            <p>{heroDescription || t('portfolio.defaults.heroDescription')}</p>
                         </motion.div>
 
                         {/* CTA Buttons */}
@@ -485,7 +582,7 @@ export function PortfolioClient({
                                 href="#projects"
                                 className="px-8 py-4 bg-slate-800/50 backdrop-blur-sm border border-slate-700 text-white rounded-lg font-semibold hover:bg-slate-800/70 transition-all"
                             >
-                                Voir mes projets
+                                {t('portfolio.viewProjects')}
                             </a>
                         </motion.div>
 
@@ -499,25 +596,25 @@ export function PortfolioClient({
                             {/* Années d'expérience */}
                             <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
                                 <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">{stats.years}+</div>
-                                <div className="text-sm text-slate-400">Années d'expérience</div>
+                                <div className="text-sm text-slate-400">{t('portfolio.stats.yearsExperience')}</div>
                             </div>
 
                             {/* Projets livrés */}
                             <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
                                 <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">{stats.projects}+</div>
-                                <div className="text-sm text-slate-400">Projets livrés</div>
+                                <div className="text-sm text-slate-400">{t('portfolio.stats.projectsDelivered')}</div>
                             </div>
 
                             {/* Clients satisfaits */}
                             <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
                                 <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">{stats.clients}+</div>
-                                <div className="text-sm text-slate-400">Clients satisfaits</div>
+                                <div className="text-sm text-slate-400">{t('portfolio.stats.clientsSatisfied')}</div>
                             </div>
 
                             {/* Délai de réponse */}
                             <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
                                 <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">{stats.responseTime}</div>
-                                <div className="text-sm text-slate-400">Temps de réponse</div>
+                                <div className="text-sm text-slate-400">{t('portfolio.stats.responseTime')}</div>
                             </div>
                         </motion.div>
 
@@ -530,15 +627,15 @@ export function PortfolioClient({
                         >
                             <div className="bg-slate-900/50 border border-slate-800 rounded-lg px-6 py-3 flex items-center gap-2">
                                 <span className="text-2xl">💻</span>
-                                <span className="text-slate-300 font-medium">Full-Stack Developer</span>
+                                <span className="text-slate-300 font-medium">{t('portfolio.badges.fullStack')}</span>
                             </div>
                             <div className="bg-slate-900/50 border border-slate-800 rounded-lg px-6 py-3 flex items-center gap-2">
                                 <span className="text-2xl">🚀</span>
-                                <span className="text-slate-300 font-medium">Expert en Performance</span>
+                                <span className="text-slate-300 font-medium">{t('portfolio.badges.performance')}</span>
                             </div>
                             <div className="bg-slate-900/50 border border-slate-800 rounded-lg px-6 py-3 flex items-center gap-2">
                                 <span className="text-2xl">⚡</span>
-                                <span className="text-slate-300 font-medium">Code Propre & Scalable</span>
+                                <span className="text-slate-300 font-medium">{t('portfolio.badges.cleanCode')}</span>
                             </div>
                         </motion.div>
                     </div>
@@ -552,10 +649,10 @@ export function PortfolioClient({
                 <div className="container mx-auto px-6">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                            Services
+                            {t('portfolio.services.title')}
                         </h2>
                         <p className="text-xl text-gray-600">
-                            Solutions adaptées à vos besoins et votre budget
+                            {t('portfolio.services.subtitle')}
                         </p>
                     </div>
 
@@ -586,7 +683,7 @@ export function PortfolioClient({
                                         {service.targetCategories && service.targetCategories.length > 0 && (
                                         <div className="mb-6">
                                             <p className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                                <span className="text-lg">✨</span> Parfait pour :
+                                                <span className="text-lg">✨</span> {t('portfolio.services.perfectFor')} :
                                             </p>
                                             <div className="flex flex-wrap gap-2">
                                                 {service.targetCategories.map((category, i) => (
@@ -628,7 +725,7 @@ export function PortfolioClient({
                                     {/* Prix */}
                                     <div className="mb-6 pt-6 border-t border-gray-200">
                                         <div className="text-center">
-                                            <p className="text-sm text-gray-500 mb-1">À partir de</p>
+                                            <p className="text-sm text-gray-500 mb-1">{t('portfolio.services.startingFrom')}</p>
                                             <div className="text-3xl font-bold text-blue-600">
                                                 {service.price}
                                             </div>
@@ -641,7 +738,7 @@ export function PortfolioClient({
                                         className="w-full py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-all text-center block"
                                         onClick={handleQuoteClick}
                                     >
-                                        Demander un devis
+                                        {t('portfolio.requestQuote')}
                                     </Link>
                                 </motion.div>
                             );
@@ -658,8 +755,8 @@ export function PortfolioClient({
                     <div className="max-w-6xl mx-auto">
                         <div className="flex justify-between items-end mb-12">
                             <div>
-                                <h2 className="text-4xl font-bold text-gray-900 mb-2">Projets Réalisés</h2>
-                                <p className="text-gray-600">Découvrez mes dernières réalisations</p>
+                                <h2 className="text-4xl font-bold text-gray-900 mb-2">{t('portfolio.projects.completed')}</h2>
+                                <p className="text-gray-600">{t('portfolio.projects.discover')}</p>
                             </div>
                         </div>
 
@@ -708,10 +805,10 @@ export function PortfolioClient({
                                                     {project.title}
                                                 </h3>
                                                 <p className="text-gray-500 text-sm mb-4">
-                                                    {project.short_description || 'Projet réalisé avec soin et attention aux détails'}
+                                                    {project.short_description || t('portfolio.projects.defaultDescription')}
                                                 </p>
                                                 <span className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all">
-                                                    Visiter le projet
+                                                    {t('portfolio.projects.visitProject')}
                                                     <ArrowRight className="w-4 h-4" />
                                                 </span>
                                             </div>
@@ -751,14 +848,14 @@ export function PortfolioClient({
                                                     {project.title}
                                                 </h3>
                                                 <p className="text-gray-500 text-sm mb-4">
-                                                    {project.short_description || 'Projet réalisé avec soin et attention aux détails'}
+                                                    {project.short_description || t('portfolio.projects.defaultDescription')}
                                                 </p>
                                                 <Link
                                                     href={`/${profile.username}/contact`}
                                                     className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all"
                                                     onClick={handleQuoteClick}
                                                 >
-                                                    Demander un devis
+                                                    {t('portfolio.requestQuote')}
                                                     <ArrowRight className="w-4 h-4" />
                                                 </Link>
                                             </div>
@@ -777,7 +874,7 @@ export function PortfolioClient({
             <section className="py-20 bg-white">
                 <div className="container mx-auto px-6">
                     <h2 className="text-4xl font-bold text-center mb-16">
-                        Comment je travaille
+                        {t('portfolio.workProcess.title')}
                     </h2>
 
                     <div className="max-w-4xl mx-auto">
@@ -809,7 +906,7 @@ export function PortfolioClient({
             <section className="py-20 bg-slate-50">
                 <div className="container mx-auto px-6">
                     <h2 className="text-4xl font-bold text-center mb-16">
-                        Témoignages clients
+                        {t('portfolio.testimonials.title')}
                     </h2>
                     {testimonials.length > 0 ? (
                         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
@@ -864,7 +961,7 @@ export function PortfolioClient({
                         </div>
                     ) : (
                         <div className="text-center mb-12">
-                            <p className="text-gray-600 text-lg">Aucun témoignage pour le moment</p>
+                            <p className="text-gray-600 text-lg">{t('portfolio.testimonials.noTestimonials')}</p>
                         </div>
                     )}
                     {/* Bouton pour laisser un témoignage */}
@@ -874,7 +971,7 @@ export function PortfolioClient({
                             className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
                         >
                             <MessageCircle className="w-5 h-5" />
-                            Laisser un témoignage
+                            {t('portfolio.testimonials.leaveTestimonial')}
                         </Link>
                     </div>
                 </div>
@@ -886,7 +983,7 @@ export function PortfolioClient({
             <section className="py-20 bg-white">
                 <div className="container mx-auto px-6">
                     <h2 className="text-4xl font-bold text-center mb-16">
-                        Technologies
+                        {t('portfolio.technologies.title')}
                     </h2>
                     <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
                         {technologies.map((tech, index) => (
@@ -969,17 +1066,17 @@ export function PortfolioClient({
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-6 border-t border-gray-800">
                         <div className="flex flex-wrap gap-4 text-sm text-gray-400">
                             <Link href={`/${profile.username}`} className="hover:text-white transition-colors">
-                                Accueil
+                                {t('portfolio.footer.home')}
                             </Link>
                             <Link href={`/${profile.username}/about`} className="hover:text-white transition-colors">
-                                À propos
+                                {t('portfolio.footer.about')}
                             </Link>
                         </div>
                         <div className="flex items-center gap-4">
-                            <p className="text-sm text-gray-500">© {new Date().getFullYear()} {displayName}. Tous droits réservés.</p>
+                            <p className="text-sm text-gray-500">© {new Date().getFullYear()} {displayName}. {t('portfolio.footer.rights')}</p>
                             {profile.subscription_tier === 'free' && (
                                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                                    <span>Propulsé par</span>
+                                    <span>{t('portfolio.footer.poweredBy')}</span>
                                     <Link href="/" className="flex items-center gap-1 hover:text-white transition-colors">
                                         <Image
                                             src="/innovaport-logo.png"
@@ -997,7 +1094,7 @@ export function PortfolioClient({
                             className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
                             onClick={handleQuoteClick}
                         >
-                            Demander un devis
+                            {t('portfolio.requestQuote')}
                             <ArrowRight className="w-4 h-4" />
                         </Link>
                     </div>
@@ -1019,7 +1116,7 @@ export function PortfolioClient({
                         onClick={handleQuoteClick}
                     >
                         <MessageCircle className="w-5 h-5" />
-                        <span>Devis gratuit</span>
+                        <span>{t('portfolio.floatingButton.freeQuote')}</span>
                     </Link>
                 </motion.div>
             )}

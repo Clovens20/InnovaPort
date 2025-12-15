@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2, CheckCircle2, X, ExternalLink, Copy, Check } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n/useTranslation";
 
 export default function SettingsPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
@@ -91,33 +93,33 @@ export default function SettingsPage() {
             setLoading(false);
         } catch (err) {
             console.error("Error loading profile:", err);
-            setError("Erreur lors du chargement du profil");
+            setError(t('dashboard.settings.errorLoading'));
             setLoading(false);
         }
     };
 
     const validateUsername = (value: string): string | null => {
         if (value.length < 3) {
-            return "Le username doit contenir au moins 3 caractères";
+            return t('dashboard.settings.usernameValidation.minLength');
         }
         if (value.length > 30) {
-            return "Le username ne peut pas dépasser 30 caractères";
+            return t('dashboard.settings.usernameValidation.maxLength');
         }
         if (!/^[a-z0-9-]+$/.test(value)) {
-            return "Le username ne peut contenir que des lettres minuscules, chiffres et tirets";
+            return t('dashboard.settings.usernameValidation.invalidChars');
         }
         if (value.startsWith("-") || value.endsWith("-")) {
-            return "Le username ne peut pas commencer ou se terminer par un tiret";
+            return t('dashboard.settings.usernameValidation.startsWithDash');
         }
         if (value.includes("--")) {
-            return "Le username ne peut pas contenir de tirets consécutifs";
+            return t('dashboard.settings.usernameValidation.consecutiveDashes');
         }
         return null;
     };
 
     const handleSave = async () => {
         if (profile?.subscription_tier === "free") {
-            setError("La personnalisation de l'URL est disponible uniquement pour les plans payants");
+            setError(t('dashboard.settings.urlCustomizationOnlyPaid'));
             return;
         }
 
@@ -145,7 +147,7 @@ export default function SettingsPage() {
                     .maybeSingle();
 
                 if (existing) {
-                    setError("Ce username est déjà pris. Veuillez en choisir un autre.");
+                    setError(t('dashboard.settings.usernameTaken'));
                     setSaving(false);
                     return;
                 }
@@ -158,7 +160,7 @@ export default function SettingsPage() {
 
                 if (updateError) throw updateError;
 
-                setSuccess("URL personnalisée mise à jour avec succès !");
+                setSuccess(t('dashboard.settings.urlUpdated'));
                 setProfile({ ...profile, username });
                 setInitialUsername(username);
                 
@@ -172,7 +174,7 @@ export default function SettingsPage() {
                 }, 1500);
             }
         } catch (err: any) {
-            setError(err.message || "Erreur lors de la mise à jour");
+            setError(err.message || t('dashboard.settings.errorUpdating'));
         } finally {
             setSaving(false);
         }
@@ -195,7 +197,7 @@ export default function SettingsPage() {
         if (!file) return;
 
         if (file.size > 5 * 1024 * 1024) {
-            setError("L'image est trop lourde (max 5MB)");
+            setError(t('common.imageTooLarge'));
             return;
         }
 
@@ -232,7 +234,7 @@ export default function SettingsPage() {
             setAvatarPreview(publicUrl);
             setIsDirty(true);
         } catch (err: any) {
-            setError(err.message || "Erreur lors de l'upload de la photo");
+            setError(err.message || t('common.errorUploading'));
             // Restaurer l'avatar précédent en cas d'erreur
             setAvatarPreview(initialAvatarUrl || null);
         } finally {
@@ -266,7 +268,7 @@ export default function SettingsPage() {
 
             if (updateError) throw updateError;
 
-            setSuccess("Profil mis à jour avec succès !");
+            setSuccess(t('dashboard.settings.successUpdating'));
             setProfile({ 
                 ...profile, 
                 full_name: fullName,
@@ -295,7 +297,7 @@ export default function SettingsPage() {
             // Rafraîchir pour mettre à jour les autres composants
             router.refresh();
         } catch (err: any) {
-            setError(err.message || "Erreur lors de la mise à jour du profil");
+            setError(err.message || t('dashboard.settings.errorUpdating'));
         } finally {
             setSavingProfile(false);
         }
@@ -340,8 +342,8 @@ export default function SettingsPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Paramètres</h1>
-                <p className="text-gray-600 mt-1">Gérez les paramètres de votre compte et portfolio</p>
+                <h1 className="text-3xl font-bold text-gray-900">{t('dashboard.settings.title')}</h1>
+                <p className="text-gray-600 mt-1">{t('dashboard.settings.subtitle')}</p>
             </div>
 
             {/* Messages de notification globaux */}
@@ -363,9 +365,9 @@ export default function SettingsPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-900">Profil public</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">{t('dashboard.settings.publicProfile')}</h2>
                         <p className="text-sm text-gray-500 mt-1">
-                            Ajoutez votre photo et une courte description qui apparaîtront sur votre portfolio.
+                            {t('dashboard.settings.publicProfileDesc')}
                         </p>
                     </div>
                     <button
@@ -376,12 +378,12 @@ export default function SettingsPage() {
                         {savingProfile ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                Enregistrement...
+                                {t('dashboard.settings.saving')}
                             </>
                         ) : (
                             <>
                                 <CheckCircle2 className="w-5 h-5" />
-                                Sauvegarder les modifications
+                                {t('dashboard.settings.saveChanges')}
                             </>
                         )}
                     </button>
@@ -391,7 +393,7 @@ export default function SettingsPage() {
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <label className="block text-sm font-medium text-gray-700">
-                                Nom complet
+                                {t('dashboard.settings.fullName')}
                             </label>
                             <input
                                 type="text"
@@ -400,14 +402,14 @@ export default function SettingsPage() {
                                     setFullName(e.target.value);
                                     setIsDirty(true);
                                 }}
-                                placeholder="Votre nom complet"
+                                placeholder={t('dashboard.settings.fullNamePlaceholder')}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                             />
                         </div>
 
                         <div className="space-y-2">
                             <label className="block text-sm font-medium text-gray-700">
-                                Titre / Profession
+                                {t('dashboard.settings.professionTitle')}
                             </label>
                             <input
                                 type="text"
@@ -416,14 +418,14 @@ export default function SettingsPage() {
                                     setTitle(e.target.value);
                                     setIsDirty(true);
                                 }}
-                                placeholder="Ex: Développeur Full Stack, Designer UX/UI..."
+                                placeholder={t('dashboard.settings.professionTitlePlaceholder')}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                             />
                         </div>
 
                         <div className="space-y-2">
                             <label className="block text-sm font-medium text-gray-700">
-                                Email public
+                                {t('dashboard.settings.publicEmail')}
                             </label>
                             <input
                                 type="email"
@@ -432,17 +434,17 @@ export default function SettingsPage() {
                                     setEmail(e.target.value);
                                     setIsDirty(true);
                                 }}
-                                placeholder="votre@email.com"
+                                placeholder={t('dashboard.settings.publicEmailPlaceholder')}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                             />
                             <p className="text-xs text-gray-500">
-                                Cet email sera visible sur votre portfolio public
+                                {t('dashboard.settings.publicEmailHint')}
                             </p>
                         </div>
 
                         <div className="space-y-2">
                             <label className="block text-sm font-medium text-gray-700">
-                                Photo de profil
+                                {t('dashboard.settings.profilePhoto')}
                             </label>
                             <input
                                 type="file"
@@ -452,13 +454,13 @@ export default function SettingsPage() {
                                 className="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                             <p className="text-xs text-gray-500">
-                                PNG, JPG, WebP. Max 5MB. L'image sera stockée dans le bucket Supabase "avatars".
+                                {t('dashboard.settings.profilePhotoHint')}
                             </p>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Description courte (Bio)
+                                {t('dashboard.settings.bio')}
                             </label>
                             <textarea
                                 value={bio}
@@ -467,11 +469,11 @@ export default function SettingsPage() {
                                     setIsDirty(true);
                                 }}
                                 rows={4}
-                                placeholder="Décrivez-vous en quelques lignes..."
+                                placeholder={t('dashboard.settings.bioPlaceholder')}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                             />
                             <p className="text-xs text-gray-500 mt-2">
-                                Cette description sera affichée en haut de votre portfolio.
+                                {t('dashboard.settings.bioHint')}
                             </p>
                         </div>
                     </div>
@@ -490,7 +492,7 @@ export default function SettingsPage() {
                                 <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
                                     <div className="text-center">
                                         <div className="text-2xl mb-1">📷</div>
-                                        <div className="text-xs">Aucune photo</div>
+                                        <div className="text-xs">{t('dashboard.settings.noPhoto')}</div>
                                     </div>
                                 </div>
                             )}
@@ -501,20 +503,20 @@ export default function SettingsPage() {
                             )}
                         </div>
                         <p className="text-sm text-gray-600 mb-2">
-                            La photo et la description seront visibles sur votre page portfolio.
+                            {t('dashboard.settings.photoPreview')}
                         </p>
                         {avatarUploading && (
-                            <p className="text-xs text-blue-600 font-medium">Téléversement en cours...</p>
+                            <p className="text-xs text-blue-600 font-medium">{t('dashboard.settings.uploading')}</p>
                         )}
                         {avatarPreview && !avatarUploading && (
-                            <p className="text-xs text-green-600 font-medium">✓ Photo prête</p>
+                            <p className="text-xs text-green-600 font-medium">{t('dashboard.settings.photoReady')}</p>
                         )}
                         </div>
 
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    TikTok <span className="text-gray-400 font-normal">(optionnel)</span>
+                                    {t('dashboard.settings.tiktok')} <span className="text-gray-400 font-normal">{t('dashboard.settings.optional')}</span>
                                 </label>
                                 <input
                                     type="url"
@@ -523,14 +525,14 @@ export default function SettingsPage() {
                                         setTiktokUrl(e.target.value);
                                         setIsDirty(true);
                                     }}
-                                    placeholder="https://tiktok.com/@votre-username"
+                                    placeholder="https://tiktok.com/@your-username"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Facebook <span className="text-gray-400 font-normal">(optionnel)</span>
+                                    {t('dashboard.settings.facebook')} <span className="text-gray-400 font-normal">{t('dashboard.settings.optional')}</span>
                                 </label>
                                 <input
                                     type="url"
@@ -539,14 +541,14 @@ export default function SettingsPage() {
                                         setFacebookUrl(e.target.value);
                                         setIsDirty(true);
                                     }}
-                                    placeholder="https://facebook.com/votre-username"
+                                    placeholder="https://facebook.com/your-username"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Twitter / X <span className="text-gray-400 font-normal">(optionnel)</span>
+                                    {t('dashboard.settings.twitter')} <span className="text-gray-400 font-normal">{t('dashboard.settings.optional')}</span>
                                 </label>
                                 <input
                                     type="url"
@@ -555,14 +557,14 @@ export default function SettingsPage() {
                                         setTwitterUrl(e.target.value);
                                         setIsDirty(true);
                                     }}
-                                    placeholder="https://twitter.com/votre-username"
+                                    placeholder="https://twitter.com/your-username"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    LinkedIn <span className="text-gray-400 font-normal">(optionnel)</span>
+                                    {t('dashboard.settings.linkedin')} <span className="text-gray-400 font-normal">{t('dashboard.settings.optional')}</span>
                                 </label>
                                 <input
                                     type="url"
@@ -571,7 +573,7 @@ export default function SettingsPage() {
                                         setLinkedinUrl(e.target.value);
                                         setIsDirty(true);
                                     }}
-                                    placeholder="https://linkedin.com/in/votre-username"
+                                    placeholder="https://linkedin.com/in/your-username"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                                 />
                             </div>
@@ -584,9 +586,9 @@ export default function SettingsPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-900">URL de votre portfolio</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">{t('dashboard.settings.portfolioUrl')}</h2>
                         <p className="text-sm text-gray-500 mt-1">
-                            Personnalisez l'URL de votre portfolio pour un partage plus professionnel
+                            {t('dashboard.settings.portfolioUrlDesc')}
                         </p>
                     </div>
                 </div>
@@ -595,14 +597,14 @@ export default function SettingsPage() {
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs text-gray-500 mb-1">URL actuelle</p>
+                            <p className="text-xs text-gray-500 mb-1">{t('dashboard.settings.currentUrl')}</p>
                             <p className="font-mono text-sm text-gray-900 break-all">{portfolioUrl}</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={handleCopy}
                                 className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                                title="Copier l'URL"
+                                title={t('dashboard.settings.copyUrl')}
                             >
                                 {copied ? (
                                     <Check className="w-5 h-5 text-green-600" />
@@ -615,7 +617,7 @@ export default function SettingsPage() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-                                title="Ouvrir le portfolio"
+                                title={t('dashboard.settings.openPortfolio')}
                             >
                                 <ExternalLink className="w-5 h-5 text-gray-600" />
                             </Link>
@@ -628,7 +630,7 @@ export default function SettingsPage() {
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Personnaliser votre username
+                                {t('dashboard.settings.customizeUsername')}
                             </label>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-gray-500 bg-gray-50 px-3 py-2 border border-r-0 border-gray-300 rounded-l-lg">
@@ -646,12 +648,12 @@ export default function SettingsPage() {
                                     }}
                                     disabled={!canCustomize}
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
-                                    placeholder="votre-username"
+                                    placeholder="your-username"
                                     readOnly={!canCustomize}
                                 />
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
-                                3-30 caractères, lettres minuscules, chiffres et tirets uniquement
+                                {t('dashboard.settings.usernameRules')}
                             </p>
                         </div>
 
@@ -663,10 +665,10 @@ export default function SettingsPage() {
                             {saving ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    Enregistrement...
+                                    {t('dashboard.settings.savingUrl')}
                                 </>
                             ) : (
-                                "Enregistrer"
+                                t('dashboard.settings.save')
                             )}
                         </button>
                     </div>
@@ -675,17 +677,16 @@ export default function SettingsPage() {
                         <div className="flex items-start gap-4">
                             <div className="flex-1">
                                 <h3 className="font-semibold text-gray-900 mb-1">
-                                    Personnalisez votre URL avec le plan Pro
+                                    {t('dashboard.settings.upgradeToPro')}
                                 </h3>
                                 <p className="text-sm text-gray-600 mb-4">
-                                    Le plan Pro vous permet de personnaliser l'URL de votre portfolio
-                                    pour un partage plus professionnel.
+                                    {t('dashboard.settings.upgradeToProDesc')}
                                 </p>
                                 <Link
                                     href="/dashboard/billing"
                                     className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-semibold"
                                 >
-                                    Voir les plans
+                                    {t('dashboard.settings.viewPlans')}
                                 </Link>
                             </div>
                         </div>

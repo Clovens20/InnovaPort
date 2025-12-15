@@ -6,8 +6,10 @@ import { useRouter } from 'next/navigation';
 import { BarChart3, TrendingUp, Eye, MousePointerClick, Users, Calendar, Download } from 'lucide-react';
 import { hasFeature } from '@/lib/subscription-limits';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function AnalyticsPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
@@ -91,7 +93,7 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Chargement des analytics...</p>
+                    <p className="text-gray-600">{t('dashboard.analytics.loading')}</p>
                 </div>
             </div>
         );
@@ -102,15 +104,15 @@ export default function AnalyticsPage() {
             <div className="max-w-4xl mx-auto py-12 px-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-8 text-center">
                     <BarChart3 className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Analytics et Rapports</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('dashboard.analytics.title')}</h2>
                     <p className="text-gray-600 mb-6">
-                        Cette fonctionnalité est disponible uniquement pour les plans Pro et Premium.
+                        {t('dashboard.analytics.proOnly')}
                     </p>
                     <Link
                         href="/dashboard/billing"
                         className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
                     >
-                        Passer au plan Pro
+                        {t('dashboard.analytics.upgradeToPro')}
                     </Link>
                 </div>
             </div>
@@ -121,12 +123,12 @@ export default function AnalyticsPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Analytics et Rapports</h1>
-                    <p className="text-gray-600 mt-1">Suivez les performances de votre portfolio</p>
+                    <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.analytics.title')}</h1>
+                    <p className="text-gray-600 mt-1">{t('dashboard.analytics.subtitle')}</p>
                 </div>
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
                     <Download className="w-4 h-4" />
-                    Exporter
+                    {t('dashboard.analytics.export')}
                 </button>
             </div>
 
@@ -135,35 +137,35 @@ export default function AnalyticsPage() {
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center gap-3 mb-2">
                         <Eye className="w-5 h-5 text-blue-600" />
-                        <span className="text-sm text-gray-600">Vues totales</span>
+                        <span className="text-sm text-gray-600">{t('dashboard.analytics.totalViews')}</span>
                     </div>
                     <div className="text-3xl font-bold text-gray-900">{stats.totalViews}</div>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center gap-3 mb-2">
                         <MousePointerClick className="w-5 h-5 text-green-600" />
-                        <span className="text-sm text-gray-600">Clics devis</span>
+                        <span className="text-sm text-gray-600">{t('dashboard.analytics.quoteClicks')}</span>
                     </div>
                     <div className="text-3xl font-bold text-gray-900">{stats.quoteClicks}</div>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center gap-3 mb-2">
                         <BarChart3 className="w-5 h-5 text-purple-600" />
-                        <span className="text-sm text-gray-600">Vues projets</span>
+                        <span className="text-sm text-gray-600">{t('dashboard.analytics.projectViews')}</span>
                     </div>
                     <div className="text-3xl font-bold text-gray-900">{stats.projectViews}</div>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center gap-3 mb-2">
                         <Users className="w-5 h-5 text-orange-600" />
-                        <span className="text-sm text-gray-600">Visiteurs uniques</span>
+                        <span className="text-sm text-gray-600">{t('dashboard.analytics.uniqueVisitors')}</span>
                     </div>
                     <div className="text-3xl font-bold text-gray-900">{stats.uniqueVisitors}</div>
                 </div>
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                     <div className="flex items-center gap-3 mb-2">
                         <TrendingUp className="w-5 h-5 text-red-600" />
-                        <span className="text-sm text-gray-600">Clics contact</span>
+                        <span className="text-sm text-gray-600">{t('dashboard.analytics.contactClicks')}</span>
                     </div>
                     <div className="text-3xl font-bold text-gray-900">{stats.contactClicks}</div>
                 </div>
@@ -171,7 +173,7 @@ export default function AnalyticsPage() {
 
             {/* Recent Events */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Événements récents</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('dashboard.analytics.recentEvents')}</h2>
                 <div className="space-y-2">
                     {recentEvents.length > 0 ? (
                         recentEvents.map((event, index) => (
@@ -184,19 +186,19 @@ export default function AnalyticsPage() {
                                         'bg-orange-500'
                                     }`} />
                                     <span className="text-sm text-gray-700">
-                                        {event.event_type === 'portfolio_view' ? 'Vue du portfolio' :
-                                         event.event_type === 'quote_click' ? 'Clic sur devis' :
-                                         event.event_type === 'project_view' ? 'Vue de projet' :
-                                         'Clic sur contact'}
+                                        {event.event_type === 'portfolio_view' ? t('dashboard.analytics.portfolioView') :
+                                         event.event_type === 'quote_click' ? t('dashboard.analytics.quoteClick') :
+                                         event.event_type === 'project_view' ? t('dashboard.analytics.projectView') :
+                                         t('dashboard.analytics.contactClick')}
                                     </span>
                                 </div>
                                 <span className="text-xs text-gray-500">
-                                    {new Date(event.created_at).toLocaleDateString('fr-FR')}
+                                    {new Date(event.created_at).toLocaleDateString(t('common.locale'))}
                                 </span>
                             </div>
                         ))
                     ) : (
-                        <p className="text-gray-500 text-center py-8">Aucun événement enregistré</p>
+                        <p className="text-gray-500 text-center py-8">{t('dashboard.analytics.noEvents')}</p>
                     )}
                 </div>
             </div>

@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { useTranslation } from "@/lib/i18n/useTranslation";
+
 export default function RegisterPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -27,7 +30,7 @@ export default function RegisterPage() {
 
         // Validation du mot de passe
         if (password.length < 8) {
-            setError('Le mot de passe doit contenir au moins 8 caractères');
+            setError(t('register.passwordMin'));
             setIsLoading(false);
             return;
         }
@@ -51,7 +54,7 @@ export default function RegisterPage() {
             if (process.env.NODE_ENV === 'development') {
                 console.error('Registration error:', authError);
             }
-            setError(authError.message || 'Erreur lors de la création du compte. Vérifiez vos informations.');
+            setError(authError.message || t('register.createError'));
             setIsLoading(false);
             return;
         }
@@ -60,20 +63,20 @@ export default function RegisterPage() {
             // Si email confirmation est activé dans Supabase
             if (data.session) {
                 // Session créée immédiatement (auto-confirm activé)
-                setMessage('Compte créé avec succès ! Redirection...');
+                setMessage(t('register.createSuccess'));
                 setTimeout(() => {
                     router.push("/dashboard");
                     router.refresh();
                 }, 1000);
             } else {
                 // Email confirmation requise
-                setMessage('Compte créé ! Vérifiez votre email pour confirmer votre compte. Vous serez redirigé vers la page de connexion.');
+                setMessage(t('register.createSuccessEmail'));
                 setTimeout(() => {
                     router.push("/auth/login?registered=true&email=" + encodeURIComponent(email));
                 }, 3000);
             }
         } else {
-            setError('Erreur inattendue lors de la création du compte');
+            setError(t('register.unexpectedError'));
             setIsLoading(false);
         }
     };
@@ -81,8 +84,8 @@ export default function RegisterPage() {
     return (
         <>
             <div className="mb-6 text-center">
-                <h3 className="text-xl font-bold text-gray-900">Créer un compte</h3>
-                <p className="text-sm text-gray-600 mt-2">Commencez gratuitement avec InnovaPort</p>
+                <h3 className="text-xl font-bold text-gray-900">{t('auth.register.title')}</h3>
+                <p className="text-sm text-gray-600 mt-2">{t('register.subtitle')}</p>
             </div>
 
             {message && (
@@ -100,7 +103,7 @@ export default function RegisterPage() {
 
                 <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                        Nom complet
+                        {t('auth.register.name')}
                     </label>
                     <div className="mt-1">
                         <input
@@ -109,14 +112,14 @@ export default function RegisterPage() {
                             type="text"
                             required
                             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
-                            placeholder="Jean Dupont"
+                            placeholder={t('contact.placeholders.name')}
                         />
                     </div>
                 </div>
 
                 <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                        Email
+                        {t('auth.register.email')}
                     </label>
                     <div className="mt-1">
                         <input
@@ -126,14 +129,14 @@ export default function RegisterPage() {
                             autoComplete="email"
                             required
                             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
-                            placeholder="votre@email.com"
+                            placeholder={t('contact.placeholders.email')}
                         />
                     </div>
                 </div>
 
                 <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                        Mot de passe
+                        {t('auth.register.password')}
                     </label>
                     <div className="mt-1 relative">
                         <input
@@ -144,7 +147,7 @@ export default function RegisterPage() {
                             required
                             minLength={8}
                             className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
-                            placeholder="Min. 8 caractères"
+                            placeholder={t('register.passwordPlaceholder')}
                         />
                         <button
                             type="button"
@@ -159,7 +162,7 @@ export default function RegisterPage() {
                             )}
                         </button>
                     </div>
-                    <p className="mt-1 text-xs text-gray-500">Minimum 8 caractères</p>
+                    <p className="mt-1 text-xs text-gray-500">{t('register.passwordMinLabel')}</p>
                 </div>
 
                 <div>
@@ -169,9 +172,9 @@ export default function RegisterPage() {
                         className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#10B981] hover:bg-[#059669] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#10B981] disabled:opacity-70 disabled:cursor-not-allowed transition-all"
                     >
                         {isLoading ? (
-                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Création en cours...</>
+                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t('auth.register.submitting')}</>
                         ) : (
-                            'Commencer gratuitement'
+                            t('register.startFree')
                         )}
                     </button>
                 </div>
@@ -183,7 +186,7 @@ export default function RegisterPage() {
                         <div className="w-full border-t border-gray-300" />
                     </div>
                     <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-white text-gray-500">Déjà inscrit ?</span>
+                        <span className="px-2 bg-white text-gray-500">{t('register.alreadyRegistered')}</span>
                     </div>
                 </div>
 
@@ -192,7 +195,7 @@ export default function RegisterPage() {
                         href="/auth/login"
                         className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
                     >
-                        Se connecter
+                        {t('auth.register.login')}
                     </Link>
                 </div>
             </div>

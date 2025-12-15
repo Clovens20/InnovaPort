@@ -13,17 +13,32 @@ import { ArrowRight, Github, Twitter, Linkedin, Mail } from 'lucide-react';
 import { PortfolioClient } from './portfolio-client';
 import { hexToRgba } from '@/utils/color-utils';
 import { unstable_cache } from 'next/cache';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+/**
+ * OPTIMISATION: Créer un client Supabase anonyme pour le cache (sans cookies)
+ * Ce client est utilisé uniquement pour les données publiques (portfolios)
+ */
+const supabasePublic = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+        auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+        },
+    }
+);
 
 /**
  * OPTIMISATION: Fonction helper pour récupérer le profil avec cache
  * Cache de 60 secondes pour réduire les requêtes DB sur les portfolios populaires
- * Le cache est invalidé automatiquement après 60s pour garantir la fraîcheur des données
+ * Utilise un client public (sans cookies) pour éviter l'erreur avec unstable_cache
  */
 async function getCachedProfile(username: string) {
     return unstable_cache(
         async () => {
-            const supabase = await createClient();
-            const { data, error } = await supabase
+            const { data, error } = await supabasePublic
                 .from('profiles')
                 .select('*')
                 .eq('username', username)
@@ -45,8 +60,7 @@ async function getCachedProfile(username: string) {
 async function getCachedProjects(userId: string) {
     return unstable_cache(
         async () => {
-            const supabase = await createClient();
-            const { data, error } = await supabase
+            const { data, error } = await supabasePublic
                 .from('projects')
                 .select('*')
                 .eq('user_id', userId)
@@ -70,8 +84,7 @@ async function getCachedProjects(userId: string) {
 async function getCachedTestimonials(userId: string) {
     return unstable_cache(
         async () => {
-            const supabase = await createClient();
-            const { data, error } = await supabase
+            const { data, error } = await supabasePublic
                 .from('testimonials')
                 .select('*')
                 .eq('user_id', userId)
