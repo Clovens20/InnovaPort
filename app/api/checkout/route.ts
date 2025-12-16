@@ -272,7 +272,28 @@ export async function POST(request: NextRequest) {
         }
 
         // Préparer les données de la session
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        // Détecter automatiquement l'URL de base depuis les headers de la requête
+        // Cela fonctionne en développement (localhost) et en production (domaine officiel)
+        // Priorité: Variable d'environnement > Headers de la requête > Fallback localhost
+        let baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL;
+        
+        if (!baseUrl) {
+            // Détecter depuis les headers de la requête (fonctionne en production avec Vercel/autres plateformes)
+            // Vercel utilise x-forwarded-proto et x-forwarded-host
+            const protocol = request.headers.get('x-forwarded-proto') || 
+                            (request.url.startsWith('https://') ? 'https' : 'http');
+            const host = request.headers.get('x-forwarded-host') || 
+                        request.headers.get('host') || 
+                        'localhost:3000';
+            baseUrl = `${protocol}://${host}`;
+            
+            // Logger pour debug (peut être retiré en production)
+            console.log('Base URL détectée depuis headers:', baseUrl);
+        }
+        
+        // S'assurer que l'URL ne se termine pas par un slash
+        baseUrl = baseUrl.replace(/\/$/, '');
+        
         const planName = PLAN_NAMES[language as 'fr' | 'en'][plan as 'pro' | 'premium'];
         
         // Créer les URLs avec la langue
