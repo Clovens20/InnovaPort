@@ -174,6 +174,13 @@ export const translations: Record<Language, Translations> = {
                 remember: 'Se souvenir de moi',
                 forgotPassword: 'Mot de passe oublié ?',
                 captchaLabel: 'Vérification de sécurité',
+                captchaRequired: 'Veuillez compléter le CAPTCHA pour continuer',
+                captchaInvalid: 'CAPTCHA invalide. Veuillez réessayer.',
+                captchaError: 'Erreur lors de la vérification du CAPTCHA. Veuillez réessayer.',
+                submit: 'Se connecter',
+                submitting: 'Connexion en cours...',
+                noAccount: 'Pas encore de compte ?',
+                createAccount: 'Créer un compte',
             },
             forgotPassword: {
                 title: 'Mot de passe oublié ?',
@@ -1591,11 +1598,21 @@ function getNestedValue(obj: Translations, path: string): string {
         if (value && typeof value === 'object' && key in value) {
             value = value[key];
         } else {
+            // Debug: log missing keys in development
+            if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+                console.warn(`Translation key not found: "${path}" at "${key}"`);
+            }
             return path; // Return key if not found (fallback)
         }
     }
     
-    return typeof value === 'string' ? value : path;
+    // Si la valeur finale est une string, la retourner, sinon retourner le chemin
+    if (typeof value === 'string') {
+        return value;
+    }
+    
+    // Si c'est un objet vide ou null, retourner le chemin
+    return path;
 }
 
 /**

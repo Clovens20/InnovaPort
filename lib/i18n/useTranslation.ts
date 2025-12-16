@@ -23,7 +23,9 @@ export function useTranslation() {
      */
     const t = (key: string, options?: { [key: string]: any } | string): string => {
         try {
-            let translation = getTranslation(language, key);
+            // S'assurer que la langue est valide
+            const validLanguage = (language === 'fr' || language === 'en') ? language : 'fr';
+            let translation = getTranslation(validLanguage, key);
             
             // Si options est une string, c'est un fallback legacy
             if (typeof options === 'string') {
@@ -34,7 +36,14 @@ export function useTranslation() {
             }
             
             // Si la traduction retourne la clé elle-même, c'est qu'elle n'a pas été trouvée
+            // Dans ce cas, essayer avec la langue par défaut
+            if (translation === key && validLanguage !== 'fr') {
+                translation = getTranslation('fr', key);
+            }
+            
+            // Si toujours pas trouvé, retourner la clé (sera visible pour debug)
             if (translation === key) {
+                console.warn(`Translation not found for key: "${key}"`);
                 return key;
             }
             
