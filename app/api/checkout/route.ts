@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { SquareClient, SquareEnvironment } from 'square';
+import Stripe from 'stripe';
 
-const squareClient = new SquareClient({
-    token: process.env.SQUARE_ACCESS_TOKEN!,
-    environment: process.env.SQUARE_ENVIRONMENT === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-12-18.acacia',
 });
 
-// Plan Variation IDs créés dans Square Dashboard > Subscriptions
-const PLAN_VARIATION_IDS = {
-    pro: process.env.SQUARE_PLAN_VARIATION_ID_PRO || '',
-    premium: process.env.SQUARE_PLAN_VARIATION_ID_PREMIUM || '',
+// Prix des plans (en centimes USD)
+const PLAN_PRICES = {
+    pro: 1900, // $19.00
+    premium: 3900, // $39.00
 };
 
 export async function POST(request: NextRequest) {
@@ -22,6 +21,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 { error: 'Non authentifié' },
                 { status: 401 }
+            );
+        }
+
+        // Vérifier que Stripe est configuré
+        if (!process.env.STRIPE_SECRET_KEY) {
+            return NextResponse.json(
+                { 
+                    error: 'Configuration Stripe manquante',
+                    details: 'Les clés Stripe ne sont pas configurées. Veuillez contacter l\'administrateur.',
+                    hint: 'Vérifiez que STRIPE_SECRET_KEY est configuré dans les variables d\'environnement'
+                },
+                { status: 500 }
             );
         }
 
@@ -49,149 +60,159 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Vérifier si l'utilisateur a déjà un abonnement
+        // Vérifier si l'utilisateur a déjà un abonnement actif
         const { data: existingSubscription } = await supabase
             .from('subscriptions')
-            .select('square_customer_id, square_subscription_id, plan, status')
+            .select('stripe_subscription_id, plan, status')
             .eq('user_id', user.id)
             .eq('status', 'active')
             .maybeSingle();
 
-        // Si l'utilisateur a déjà un abonnement actif, on le met à jour
-        if (existingSubscription?.square_subscription_id) {
-            // Mettre à jour dans la base de données
-            await supabase
-                .from('subscriptions')
-                .update({
-                    plan: plan,
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('user_id', user.id);
+        // Si l'utilisateur a déjà un abonnement Stripe actif, mettre à jour le plan
+        if (existingSubscription?.stripe_subscription_id) {
+            try {
+                // Récupérer le price ID depuis les variables d'environnement
+                const priceId = plan === 'pro' 
+                    ? process.env.STRIPE_PRICE_ID_PRO 
+                    : process.env.STRIPE_PRICE_ID_PREMIUM;
 
-            // Mettre à jour le profil
-            await supabase
-                .from('profiles')
-                .update({
-                    subscription_tier: plan,
-                    updated_at: new Date().toISOString(),
-                })
-                .eq('id', user.id);
-
-            return NextResponse.json({
-                success: true,
-                message: 'Abonnement mis à jour avec succès',
-            });
-        }
-
-        const subscriptionsApi = squareClient.subscriptions;
-        const customersApi = squareClient.customers;
-
-        // Créer ou récupérer le customer Square
-        let customerId = existingSubscription?.square_customer_id;
-
-        if (!customerId) {
-            // Rechercher le customer par email
-            const searchResponse = await customersApi.search({
-                query: {
-                    filter: {
-                        emailAddress: {
-                            exact: profile.email || user.email || undefined,
+                if (!priceId) {
+                    return NextResponse.json(
+                        { 
+                            error: `Price ID non configuré pour ${plan}`,
+                            details: `Vérifiez que STRIPE_PRICE_ID_${plan.toUpperCase()} est configuré dans les variables d'environnement`
                         },
-                    },
-                },
-            });
-
-            if (searchResponse.customers && searchResponse.customers.length > 0) {
-                customerId = searchResponse.customers[0].id || undefined;
-            } else {
-                // Créer un nouveau customer
-                const customerResponse = await customersApi.create({
-                    givenName: profile.full_name?.split(' ')[0] || undefined,
-                    familyName: profile.full_name?.split(' ').slice(1).join(' ') || undefined,
-                    emailAddress: profile.email || user.email || undefined,
-                    note: `User ID: ${user.id}`,
-                });
-
-                if (!customerResponse.customer?.id) {
-                    throw new Error('Impossible de créer le customer');
+                        { status: 500 }
+                    );
                 }
 
-                customerId = customerResponse.customer.id;
+                // Mettre à jour l'abonnement Stripe
+                const subscription = await stripe.subscriptions.update(
+                    existingSubscription.stripe_subscription_id,
+                    {
+                        items: [{
+                            id: (await stripe.subscriptions.retrieve(existingSubscription.stripe_subscription_id)).items.data[0].id,
+                            price: priceId,
+                        }],
+                        proration_behavior: 'always_invoice',
+                    }
+                );
 
-                // Enregistrer le customer ID
+                // Mettre à jour dans la base de données
                 await supabase
                     .from('subscriptions')
-                    .upsert({
-                        user_id: user.id,
-                        square_customer_id: customerId,
-                        plan: 'free',
-                        status: 'active',
-                    });
+                    .update({
+                        plan: plan,
+                        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq('user_id', user.id);
+
+                // Mettre à jour le profil
+                await supabase
+                    .from('profiles')
+                    .update({
+                        subscription_tier: plan,
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq('id', user.id);
+
+                return NextResponse.json({
+                    success: true,
+                    message: 'Abonnement mis à jour avec succès',
+                });
+            } catch (stripeError: any) {
+                console.error('Stripe subscription update error:', stripeError);
+                return NextResponse.json(
+                    { 
+                        error: 'Erreur lors de la mise à jour de l\'abonnement',
+                        details: stripeError.message || 'Erreur Stripe inconnue',
+                    },
+                    { status: 500 }
+                );
             }
         }
 
-        if (!customerId) {
-            throw new Error('Impossible de créer ou récupérer le customer');
+        // Créer ou récupérer le customer Stripe
+        let customerId: string | null = null;
+
+        // Chercher un customer existant dans Stripe par email
+        const customers = await stripe.customers.list({
+            email: profile.email || user.email || undefined,
+            limit: 1,
+        });
+
+        if (customers.data.length > 0) {
+            customerId = customers.data[0].id;
+        } else {
+            // Créer un nouveau customer
+            const customer = await stripe.customers.create({
+                email: profile.email || user.email || undefined,
+                name: profile.full_name || undefined,
+                metadata: {
+                    user_id: user.id,
+                },
+            });
+            customerId = customer.id;
         }
 
-        const planVariationId = PLAN_VARIATION_IDS[plan as 'pro' | 'premium'];
-        if (!planVariationId) {
-            throw new Error(`Plan variation ID non configuré pour ${plan}`);
+        // Récupérer le price ID depuis les variables d'environnement
+        const priceId = plan === 'pro' 
+            ? process.env.STRIPE_PRICE_ID_PRO 
+            : process.env.STRIPE_PRICE_ID_PREMIUM;
+
+        if (!priceId) {
+            return NextResponse.json(
+                { 
+                    error: `Price ID non configuré pour ${plan}`,
+                    details: `Vérifiez que STRIPE_PRICE_ID_${plan.toUpperCase()} est configuré dans les variables d'environnement`
+                },
+                { status: 500 }
+            );
         }
 
-        // Créer l'abonnement Square
-        const subscriptionResponse = await subscriptionsApi.create({
-            idempotencyKey: `${user.id}-${plan}-${Date.now()}`,
-            locationId: process.env.SQUARE_LOCATION_ID!,
-            planVariationId: planVariationId,
-            customerId: customerId,
-            startDate: new Date().toISOString().split('T')[0], // Aujourd'hui
-            timezone: 'UTC',
-            source: {
-                name: 'InnovaPort',
+        // Créer une session Checkout Stripe
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        
+        const session = await stripe.checkout.sessions.create({
+            customer: customerId,
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price: priceId,
+                    quantity: 1,
+                },
+            ],
+            mode: 'subscription',
+            success_url: `${baseUrl}/dashboard/billing?success=true&plan=${plan}`,
+            cancel_url: `${baseUrl}/dashboard/billing?canceled=true`,
+            metadata: {
+                user_id: user.id,
+                plan: plan,
+            },
+            subscription_data: {
+                metadata: {
+                    user_id: user.id,
+                    plan: plan,
+                },
             },
         });
 
-        if (!subscriptionResponse.subscription?.id) {
-            throw new Error('Impossible de créer l\'abonnement');
-        }
-
-        const subscription = subscriptionResponse.subscription;
-
-        // Mettre à jour dans la base de données
-        await supabase
-            .from('subscriptions')
-            .upsert({
-                user_id: user.id,
-                square_customer_id: customerId,
-                square_subscription_id: subscription.id,
-                plan: plan,
-                status: 'active',
-                current_period_start: new Date().toISOString(),
-                current_period_end: subscription.chargedThroughDate
-                    ? new Date(subscription.chargedThroughDate).toISOString()
-                    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-            });
-
-        // Mettre à jour le profil
-        await supabase
-            .from('profiles')
-            .update({
-                subscription_tier: plan,
-                updated_at: new Date().toISOString(),
-            })
-            .eq('id', user.id);
-
         return NextResponse.json({
             success: true,
-            message: 'Abonnement créé avec succès',
-            subscriptionId: subscription.id,
+            sessionId: session.id,
+            url: session.url,
         });
     } catch (error: any) {
-        console.error('Error creating subscription:', error);
+        console.error('Error creating checkout session:', error);
+        
         return NextResponse.json(
-            { error: error.message || 'Erreur lors de la création de l\'abonnement' },
-            { status: 500 }
+            { 
+                error: error.message || 'Erreur lors de la création de la session de paiement',
+                details: error.details || undefined,
+            },
+            { status: error.status || 500 }
         );
     }
 }

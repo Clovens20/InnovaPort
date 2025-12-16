@@ -18,7 +18,6 @@ Plateforme tout-en-un pour les freelances et agences. Créez des portfolios épo
 - **TypeScript** : Typage statique strict
 - **Supabase** : Backend, authentification et base de données
 - **Tailwind CSS 4** : Styling moderne
-- **Square** : Paiements et abonnements
 - **Resend** : Envoi d'emails transactionnels
 - **Framer Motion** : Animations fluides
 - **Lucide React** : Icônes modernes
@@ -29,7 +28,6 @@ Plateforme tout-en-un pour les freelances et agences. Créez des portfolios épo
 - npm ou yarn
 - Compte Supabase
 - Compte Resend (pour les emails)
-- Compte Square (optionnel, pour les paiements)
 
 ## 📦 Installation
 
@@ -58,15 +56,6 @@ Puis éditez le fichier `.env` avec vos clés :
 
 ### Variables Resend (requises pour les emails)
 - `RESEND_API_KEY` : Clé API Resend
-
-### Variables Square (optionnelles)
-- `SQUARE_ACCESS_TOKEN` : Token d'accès Square
-- `SQUARE_APPLICATION_ID` : ID de l'application Square
-- `SQUARE_LOCATION_ID` : ID de la location Square
-- `SQUARE_ENVIRONMENT` : Environnement (sandbox ou production)
-- `SQUARE_WEBHOOK_SECRET` : Secret webhook Square
-- `SQUARE_PLAN_VARIATION_ID_PRO` : ID de la variation de plan Pro
-- `SQUARE_PLAN_VARIATION_ID_PREMIUM` : ID de la variation de plan Premium
 
 ### Variables Application
 - `NEXT_PUBLIC_APP_URL` : URL de l'application (http://localhost:3000 en développement)

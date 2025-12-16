@@ -185,6 +185,7 @@ export default function PortfolioEditorPage() {
             description: '', 
             price: '', 
             features: [],
+            icon: 'globe',
             targetCategories: [],
             exampleProject: ''
         }]);
@@ -467,7 +468,7 @@ export default function PortfolioEditorPage() {
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                             </div>
-                            <div className="grid md:grid-cols-2 gap-4 mb-4">
+                            <div className="grid md:grid-cols-3 gap-4 mb-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.services.name')}</label>
                                     <input
@@ -477,6 +478,18 @@ export default function PortfolioEditorPage() {
                                         placeholder={t('dashboard.portfolio.services.namePlaceholder')}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
                                     />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.services.icon')}</label>
+                                    <select
+                                        value={service.icon || 'globe'}
+                                        onChange={(e) => updateService(index, 'icon', e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                    >
+                                        <option value="globe">🌐 Site Web</option>
+                                        <option value="code">💻 Application</option>
+                                        <option value="shopping">🛒 E-commerce</option>
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.services.price')}</label>

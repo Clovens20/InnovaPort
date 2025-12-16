@@ -1,0 +1,231 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-12-18.acacia',
+});
+
+const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+        },
+    }
+);
+
+export async function POST(request: NextRequest) {
+    const body = await request.text();
+    const signature = request.headers.get('stripe-signature');
+
+    if (!signature) {
+        return NextResponse.json(
+            { error: 'Signature manquante' },
+            { status: 400 }
+        );
+    }
+
+    if (!process.env.STRIPE_WEBHOOK_SECRET) {
+        console.error('STRIPE_WEBHOOK_SECRET not configured');
+        return NextResponse.json(
+            { error: 'Webhook secret non configuré' },
+            { status: 500 }
+        );
+    }
+
+    let event: Stripe.Event;
+
+    try {
+        event = stripe.webhooks.constructEvent(
+            body,
+            signature,
+            process.env.STRIPE_WEBHOOK_SECRET
+        );
+    } catch (err: any) {
+        console.error('Webhook signature verification failed:', err.message);
+        return NextResponse.json(
+            { error: `Webhook Error: ${err.message}` },
+            { status: 400 }
+        );
+    }
+
+    try {
+        switch (event.type) {
+            case 'checkout.session.completed': {
+                const session = event.data.object as Stripe.Checkout.Session;
+                
+                if (session.mode === 'subscription' && session.subscription) {
+                    const subscription = await stripe.subscriptions.retrieve(
+                        session.subscription as string,
+                        { expand: ['default_payment_method'] }
+                    );
+
+                    const userId = session.metadata?.user_id || subscription.metadata?.user_id;
+                    const plan = session.metadata?.plan || subscription.metadata?.plan || 'pro';
+
+                    if (!userId) {
+                        console.error('User ID not found in session metadata');
+                        break;
+                    }
+
+                    // Créer ou mettre à jour l'abonnement dans la base de données
+                    await supabaseAdmin
+                        .from('subscriptions')
+                        .upsert({
+                            user_id: userId,
+                            stripe_customer_id: subscription.customer as string,
+                            stripe_subscription_id: subscription.id,
+                            plan: plan,
+                            status: subscription.status === 'active' ? 'active' : 'trialing',
+                            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                            cancel_at_period_end: subscription.cancel_at_period_end || false,
+                        });
+
+                    // Mettre à jour le profil
+                    await supabaseAdmin
+                        .from('profiles')
+                        .update({
+                            subscription_tier: plan,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('id', userId);
+
+                    console.log(`Subscription created for user ${userId}, plan: ${plan}`);
+                }
+                break;
+            }
+
+            case 'customer.subscription.updated': {
+                const subscription = event.data.object as Stripe.Subscription;
+                const userId = subscription.metadata?.user_id;
+
+                if (!userId) {
+                    console.error('User ID not found in subscription metadata');
+                    break;
+                }
+
+                // Mettre à jour l'abonnement dans la base de données
+                await supabaseAdmin
+                    .from('subscriptions')
+                    .update({
+                        status: subscription.status === 'active' ? 'active' : 
+                               subscription.status === 'trialing' ? 'trialing' :
+                               subscription.status === 'past_due' ? 'past_due' : 'canceled',
+                        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                        cancel_at_period_end: subscription.cancel_at_period_end || false,
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq('stripe_subscription_id', subscription.id);
+
+                // Si l'abonnement est annulé, remettre au plan gratuit
+                if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
+                    await supabaseAdmin
+                        .from('profiles')
+                        .update({
+                            subscription_tier: 'free',
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('id', userId);
+                }
+
+                console.log(`Subscription updated for user ${userId}, status: ${subscription.status}`);
+                break;
+            }
+
+            case 'customer.subscription.deleted': {
+                const subscription = event.data.object as Stripe.Subscription;
+                const userId = subscription.metadata?.user_id;
+
+                if (!userId) {
+                    console.error('User ID not found in subscription metadata');
+                    break;
+                }
+
+                // Mettre à jour l'abonnement dans la base de données
+                await supabaseAdmin
+                    .from('subscriptions')
+                    .update({
+                        status: 'canceled',
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq('stripe_subscription_id', subscription.id);
+
+                // Remettre au plan gratuit
+                await supabaseAdmin
+                    .from('profiles')
+                    .update({
+                        subscription_tier: 'free',
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq('id', userId);
+
+                console.log(`Subscription deleted for user ${userId}`);
+                break;
+            }
+
+            case 'invoice.payment_succeeded': {
+                const invoice = event.data.object as Stripe.Invoice;
+                
+                if (invoice.subscription) {
+                    const subscription = await stripe.subscriptions.retrieve(
+                        invoice.subscription as string
+                    );
+                    const userId = subscription.metadata?.user_id;
+
+                    if (userId) {
+                        // Mettre à jour les dates de période
+                        await supabaseAdmin
+                            .from('subscriptions')
+                            .update({
+                                current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+                                current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                                updated_at: new Date().toISOString(),
+                            })
+                            .eq('stripe_subscription_id', subscription.id);
+                    }
+                }
+                break;
+            }
+
+            case 'invoice.payment_failed': {
+                const invoice = event.data.object as Stripe.Invoice;
+                
+                if (invoice.subscription) {
+                    const subscription = await stripe.subscriptions.retrieve(
+                        invoice.subscription as string
+                    );
+                    const userId = subscription.metadata?.user_id;
+
+                    if (userId) {
+                        // Mettre à jour le statut en past_due
+                        await supabaseAdmin
+                            .from('subscriptions')
+                            .update({
+                                status: 'past_due',
+                                updated_at: new Date().toISOString(),
+                            })
+                            .eq('stripe_subscription_id', subscription.id);
+                    }
+                }
+                break;
+            }
+
+            default:
+                console.log(`Unhandled event type: ${event.type}`);
+        }
+
+        return NextResponse.json({ received: true });
+    } catch (error: any) {
+        console.error('Error processing webhook:', error);
+        return NextResponse.json(
+            { error: 'Erreur lors du traitement du webhook' },
+            { status: 500 }
+        );
+    }
+}
+

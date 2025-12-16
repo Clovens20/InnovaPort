@@ -74,19 +74,34 @@ export function BillingClient() {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.error || t('common.error'));
+                // Construire un message d'erreur détaillé
+                let errorMessage = data.error || t('common.error');
+                
+                if (data.details) {
+                    errorMessage += `\n\n${data.details}`;
+                }
+                
+                if (data.hint) {
+                    errorMessage += `\n\n💡 ${data.hint}`;
+                }
+                
+                throw new Error(errorMessage);
             }
 
-            // Rediriger vers Stripe Checkout
-            if (data.url) {
+            // Si une URL de checkout Stripe est retournée, rediriger vers Stripe
+            if (data.success && data.url) {
                 window.location.href = data.url;
+            } else if (data.success) {
+                // Si l'abonnement est créé directement (mise à jour), recharger la page
+                alert(data.message || t('dashboard.billing.subscriptionSuccess'));
+                window.location.reload();
             } else {
                 throw new Error(t('common.error'));
             }
         } catch (error) {
             console.error('Error subscribing:', error);
-            alert(error instanceof Error ? error.message : t('common.error'));
-        } finally {
+            const errorMessage = error instanceof Error ? error.message : t('common.error');
+            alert(errorMessage);
             setLoading(false);
         }
     };

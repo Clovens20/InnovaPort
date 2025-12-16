@@ -114,13 +114,13 @@ CREATE TABLE IF NOT EXISTS quotes (
 
 -- ============================================
 -- TABLE: subscriptions
--- Stocke les abonnements utilisateurs (Stripe)
+-- Stocke les abonnements utilisateurs
 -- ============================================
 CREATE TABLE IF NOT EXISTS subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-    square_customer_id TEXT,
-    square_subscription_id TEXT UNIQUE,
+    stripe_customer_id TEXT,
+    stripe_subscription_id TEXT UNIQUE,
     plan TEXT NOT NULL DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'premium')),
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'canceled', 'past_due', 'trialing')),
     current_period_start TIMESTAMPTZ,
