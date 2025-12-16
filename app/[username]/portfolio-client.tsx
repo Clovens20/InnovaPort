@@ -357,52 +357,59 @@ export function PortfolioClient({
                 </header>
 
                 {/* Hero Section */}
-                <section className="min-h-screen flex items-center bg-gradient-to-br from-slate-50 to-blue-50">
-                    <div className="container mx-auto px-6">
-                        <div className="grid md:grid-cols-2 gap-12 items-center">
-                            <div>
+                <section className="min-h-screen flex items-center bg-gradient-to-br from-slate-50 to-blue-50 py-12 sm:py-16 md:py-20">
+                    <div className="container mx-auto px-4 sm:px-6">
+                        <div className="grid md:grid-cols-2 gap-8 sm:gap-12 items-center">
+                            <div className="text-center md:text-left">
                                 {availableForWork && (
-                                    <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
-                                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                    <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
+                                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden="true"></span>
                                         {t('portfolio.availableForWork')}
                                     </div>
                                 )}
-                                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
                                     {heroTitle}
                                 </h1>
-                                <p className="text-xl text-gray-600 mb-8">
+                                <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8">
                                     {heroDescription}
                                 </p>
-                                <div className="flex gap-4">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center md:justify-start">
                                     <Link
                                         href={`/${profile.username}/contact`}
-                                        className="px-8 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl"
+                                        className="px-6 sm:px-8 py-3 sm:py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                                         onClick={handleQuoteClick}
+                                        aria-label="Request a quote"
                                     >
                                         {ctaButtonText}
                                     </Link>
                                     <a
                                         href="#projects"
-                                        className="px-8 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition-all"
+                                        className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-blue-600 hover:text-blue-600 transition-all text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
+                                        aria-label="View projects"
                                     >
                                         {t('portfolio.viewProjects')}
                                     </a>
                                 </div>
                             </div>
-                            <div>
-                                <div className="relative">
-                                    <img
-                                        src={avatarUrl}
-                                        alt={displayName}
-                                        className="w-80 h-80 rounded-3xl object-cover shadow-2xl mx-auto"
-                                    />
-                                    <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-lg">
-                                        <div className="text-3xl font-bold text-blue-600">{stats.projects}+</div>
-                                        <div className="text-sm text-gray-600">{t('portfolio.stats.projectsDelivered')}</div>
+                            <div className="mt-8 md:mt-0">
+                                <div className="relative max-w-sm mx-auto">
+                                    <div className="relative w-full aspect-square">
+                                        <Image
+                                            src={avatarUrl}
+                                            alt={`${displayName} profile picture`}
+                                            fill
+                                            className="rounded-3xl object-cover shadow-2xl"
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+                                            priority
+                                        />
                                     </div>
-                                    <div className="absolute -top-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
-                                        <div className="text-3xl font-bold text-green-600">100%</div>
-                                        <div className="text-sm text-gray-600">{t('portfolio.stats.clientsSatisfied')}</div>
+                                    <div className="absolute -bottom-4 sm:-bottom-6 -left-4 sm:-left-6 bg-white p-3 sm:p-4 rounded-xl shadow-lg">
+                                        <div className="text-2xl sm:text-3xl font-bold text-blue-600">{stats.projects}+</div>
+                                        <div className="text-xs sm:text-sm text-gray-600">{t('portfolio.stats.projectsDelivered')}</div>
+                                    </div>
+                                    <div className="absolute -top-4 sm:-top-6 -right-4 sm:-right-6 bg-white p-3 sm:p-4 rounded-xl shadow-lg">
+                                        <div className="text-2xl sm:text-3xl font-bold text-green-600">100%</div>
+                                        <div className="text-xs sm:text-sm text-gray-600">{t('portfolio.stats.clientsSatisfied')}</div>
                                     </div>
                                 </div>
                             </div>
@@ -412,10 +419,10 @@ export function PortfolioClient({
 
                 {/* Projects Section */}
                 {projects.length > 0 && (
-                    <section id="projects" className="py-24 px-6 bg-white">
+                    <section id="projects" className="py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 bg-white">
                         <div className="max-w-6xl mx-auto">
-                            <h2 className="text-4xl font-bold text-center mb-12">{t('portfolio.projects.title')}</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-12">{t('portfolio.projects.title')}</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                                 {projects.map((project) => {
                                     const projectTitle = getTranslatedTextWithFallback(language, project.title, project.title_en, project.title);
                                     const projectShortDesc = getTranslatedTextWithFallback(language, project.short_description, project.short_description_en, project.short_description || t('portfolio.projects.defaultDescription'));
@@ -423,44 +430,49 @@ export function PortfolioClient({
                                     return (
                                     <div key={project.id} className={`bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all ${project.project_url ? 'cursor-pointer' : ''}`}>
                                         {project.project_url ? (
-                                            <a href={project.project_url} target="_blank" rel="noopener noreferrer" className="block">
+                                            <a href={project.project_url} target="_blank" rel="noopener noreferrer" className="block focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded-xl">
                                                 {project.image_url && (
-                                                    <div className="aspect-video relative">
+                                                    <div className="aspect-video relative bg-gray-100">
                                                         <Image
                                                             src={project.image_url}
-                                                            alt={projectTitle}
+                                                            alt={`${projectTitle} project screenshot`}
                                                             fill
                                                             className="object-cover"
+                                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                                            loading="lazy"
                                                         />
                                                     </div>
                                                 )}
-                                                <div className="p-6">
-                                                    <h3 className="text-xl font-bold mb-2 hover:text-blue-600 transition-colors">{projectTitle}</h3>
-                                                    <p className="text-gray-600 text-sm mb-4">{projectShortDesc}</p>
-                                                    <span className="text-blue-600 font-semibold text-sm hover:underline inline-flex items-center gap-1">
-                                                        {t('portfolio.projects.visitProject')} <ArrowRight className="w-4 h-4" />
+                                                <div className="p-4 sm:p-6">
+                                                    <h3 className="text-lg sm:text-xl font-bold mb-2 hover:text-blue-600 transition-colors">{projectTitle}</h3>
+                                                    <p className="text-gray-600 text-xs sm:text-sm mb-4 line-clamp-2">{projectShortDesc}</p>
+                                                    <span className="text-blue-600 font-semibold text-xs sm:text-sm hover:underline inline-flex items-center gap-1">
+                                                        {t('portfolio.projects.visitProject')} <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden="true" />
                                                     </span>
                                                 </div>
                                             </a>
                                         ) : (
                                             <>
                                                 {project.image_url && (
-                                                    <div className="aspect-video relative">
+                                                    <div className="aspect-video relative bg-gray-100">
                                                         <Image
                                                             src={project.image_url}
-                                                            alt={projectTitle}
+                                                            alt={`${projectTitle} project screenshot`}
                                                             fill
                                                             className="object-cover"
+                                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                                            loading="lazy"
                                                         />
                                                     </div>
                                                 )}
-                                                <div className="p-6">
-                                                    <h3 className="text-xl font-bold mb-2">{projectTitle}</h3>
-                                                    <p className="text-gray-600 text-sm mb-4">{projectShortDesc}</p>
+                                                <div className="p-4 sm:p-6">
+                                                    <h3 className="text-lg sm:text-xl font-bold mb-2">{projectTitle}</h3>
+                                                    <p className="text-gray-600 text-xs sm:text-sm mb-4 line-clamp-2">{projectShortDesc}</p>
                                                     <Link
                                                         href={`/${profile.username}/contact`}
-                                                        className="text-blue-600 font-semibold text-sm hover:underline"
+                                                        className="text-blue-600 font-semibold text-xs sm:text-sm hover:underline focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded"
                                                         onClick={handleQuoteClick}
+                                                        aria-label={`Request quote for ${projectTitle}`}
                                                     >
                                                         {t('portfolio.requestQuote')}
                                                     </Link>
@@ -564,7 +576,7 @@ export function PortfolioClient({
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
-                            className="text-5xl md:text-7xl font-bold mb-6 leading-tight"
+                            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight px-4"
                         >
                             <span className="text-white glow-text">
                                 {heroTitle.split(' ').slice(0, -2).join(' ')}
@@ -579,7 +591,7 @@ export function PortfolioClient({
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.4 }}
-                            className="text-xl md:text-2xl text-slate-300 mb-10 space-y-2"
+                            className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-300 mb-6 sm:mb-8 md:mb-10 space-y-2 px-4"
                         >
                             <p>{heroSubtitle || t('portfolio.defaults.heroSubtitle')}</p>
                             <p>{heroDescription || t('portfolio.defaults.heroDescription')}</p>
@@ -590,18 +602,20 @@ export function PortfolioClient({
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.6 }}
-                            className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+                            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12 md:mb-16 px-4"
                         >
                             <Link
                                 href={`/${profile.username}/contact`}
                                 onClick={handleQuoteClick}
-                                className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-semibold hover:scale-105 transition-all shadow-lg shadow-cyan-500/50 hover:shadow-cyan-500/70"
+                                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-semibold hover:scale-105 transition-all shadow-lg shadow-cyan-500/50 hover:shadow-cyan-500/70 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+                                aria-label="Request a quote"
                             >
                                 {ctaButtonText}
                             </Link>
                             <a
                                 href="#projects"
-                                className="px-8 py-4 bg-slate-800/50 backdrop-blur-sm border border-slate-700 text-white rounded-lg font-semibold hover:bg-slate-800/70 transition-all"
+                                className="px-6 sm:px-8 py-3 sm:py-4 bg-slate-800/50 backdrop-blur-sm border border-slate-700 text-white rounded-lg font-semibold hover:bg-slate-800/70 transition-all text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-slate-600 focus:ring-offset-2 focus:ring-offset-slate-900"
+                                aria-label="View projects"
                             >
                                 {t('portfolio.viewProjects')}
                             </a>
@@ -612,30 +626,30 @@ export function PortfolioClient({
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.8 }}
-                            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12"
+                            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-12 px-4"
                         >
                             {/* Années d'expérience */}
-                            <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
-                                <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">{stats.years}+</div>
-                                <div className="text-sm text-slate-400">{t('portfolio.stats.yearsExperience')}</div>
+                            <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-4 sm:p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
+                                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-1 sm:mb-2">{stats.years}+</div>
+                                <div className="text-xs sm:text-sm text-slate-400">{t('portfolio.stats.yearsExperience')}</div>
                             </div>
 
                             {/* Projets livrés */}
-                            <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
-                                <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">{stats.projects}+</div>
-                                <div className="text-sm text-slate-400">{t('portfolio.stats.projectsDelivered')}</div>
+                            <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-4 sm:p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
+                                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-1 sm:mb-2">{stats.projects}+</div>
+                                <div className="text-xs sm:text-sm text-slate-400">{t('portfolio.stats.projectsDelivered')}</div>
                             </div>
 
                             {/* Clients satisfaits */}
-                            <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
-                                <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">{stats.clients}+</div>
-                                <div className="text-sm text-slate-400">{t('portfolio.stats.clientsSatisfied')}</div>
+                            <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-4 sm:p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
+                                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-1 sm:mb-2">{stats.clients}+</div>
+                                <div className="text-xs sm:text-sm text-slate-400">{t('portfolio.stats.clientsSatisfied')}</div>
                             </div>
 
                             {/* Délai de réponse */}
-                            <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
-                                <div className="text-4xl md:text-5xl font-bold text-gradient mb-2">{stats.responseTime}</div>
-                                <div className="text-sm text-slate-400">{t('portfolio.stats.responseTime')}</div>
+                            <div className="backdrop-blur-md bg-slate-800/50 border border-cyan-500/20 rounded-lg p-4 sm:p-6 hover:border-cyan-500/50 hover:-translate-y-1 transition-all cursor-pointer">
+                                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gradient mb-1 sm:mb-2">{stats.responseTime}</div>
+                                <div className="text-xs sm:text-sm text-slate-400">{t('portfolio.stats.responseTime')}</div>
                             </div>
                         </motion.div>
 
@@ -666,18 +680,18 @@ export function PortfolioClient({
             {/* ============================================
                 3. SERVICES OFFERTS
                 ============================================ */}
-            <section className="py-20 bg-slate-50">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <section className="py-12 sm:py-16 md:py-20 bg-slate-50">
+                <div className="container mx-auto px-4 sm:px-6">
+                    <div className="text-center mb-8 sm:mb-12 md:mb-16">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
                             {t('portfolio.services.title')}
                         </h2>
-                        <p className="text-xl text-gray-600">
+                        <p className="text-base sm:text-lg md:text-xl text-gray-600 px-4">
                             {t('portfolio.services.subtitle')}
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                         {services.map((service, index) => {
                             const IconComponent = service.icon === 'globe' ? Globe : service.icon === 'code' ? Code : ShoppingCart;
                             return (
@@ -772,16 +786,16 @@ export function PortfolioClient({
                 4. PROJETS PORTFOLIO
                 ============================================ */}
             {projects.length > 0 && (
-                <section id="projects" className="py-24 px-6 bg-white">
+                <section id="projects" className="py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 bg-white">
                     <div className="max-w-6xl mx-auto">
-                        <div className="flex justify-between items-end mb-12">
+                        <div className="flex justify-between items-end mb-8 sm:mb-12">
                             <div>
-                                <h2 className="text-4xl font-bold text-gray-900 mb-2">{t('portfolio.projects.completed')}</h2>
-                                <p className="text-gray-600">{t('portfolio.projects.discover')}</p>
+                                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">{t('portfolio.projects.completed')}</h2>
+                                <p className="text-sm sm:text-base text-gray-600">{t('portfolio.projects.discover')}</p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                                 {projects.map((project, index) => {
                                     const projectTitle = getTranslatedTextWithFallback(language, project.title, project.title_en, project.title);
                                     const projectShortDesc = getTranslatedTextWithFallback(language, project.short_description, project.short_description_en, project.short_description || t('portfolio.projects.defaultDescription'));
@@ -796,24 +810,24 @@ export function PortfolioClient({
                                     className={`group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 ${project.project_url ? 'cursor-pointer' : ''}`}
                                 >
                                     {project.project_url ? (
-                                        <a href={project.project_url} target="_blank" rel="noopener noreferrer" className="block">
+                                        <a href={project.project_url} target="_blank" rel="noopener noreferrer" className="block focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded-2xl">
                                             <div className="aspect-video bg-gray-200 overflow-hidden relative">
                                                 {project.image_url ? (
                                                     <Image
                                                         src={project.image_url}
-                                                        alt={projectTitle}
+                                                        alt={`${projectTitle} project screenshot`}
                                                         fill
                                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                                                         loading="lazy"
-                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                                     />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm sm:text-base">
                                                         {projectTitle}
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="p-6">
+                                            <div className="p-4 sm:p-6">
                                                 {project.technologies && project.technologies.length > 0 && (
                                                     <div className="flex gap-2 mb-3 flex-wrap">
                                                         {project.technologies.slice(0, 3).map((tech) => (
@@ -826,15 +840,15 @@ export function PortfolioClient({
                                                         ))}
                                                     </div>
                                                 )}
-                                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                                                     {projectTitle}
                                                 </h3>
-                                                <p className="text-gray-500 text-sm mb-4">
+                                                <p className="text-gray-500 text-xs sm:text-sm mb-4 line-clamp-2">
                                                     {projectShortDesc}
                                                 </p>
-                                                <span className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all">
+                                                <span className="inline-flex items-center gap-2 text-blue-600 font-semibold text-xs sm:text-sm hover:gap-3 transition-all">
                                                     {t('portfolio.projects.visitProject')}
-                                                    <ArrowRight className="w-4 h-4" />
+                                                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden="true" />
                                                 </span>
                                             </div>
                                         </a>
@@ -844,19 +858,19 @@ export function PortfolioClient({
                                                 {project.image_url ? (
                                                     <Image
                                                         src={project.image_url}
-                                                        alt={project.title}
+                                                        alt={`${projectTitle} project screenshot`}
                                                         fill
                                                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                                                         loading="lazy"
-                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                                                     />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                                        {project.title}
+                                                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm sm:text-base">
+                                                        {projectTitle}
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="p-6">
+                                            <div className="p-4 sm:p-6">
                                                 {project.technologies && project.technologies.length > 0 && (
                                                     <div className="flex gap-2 mb-3 flex-wrap">
                                                         {project.technologies.slice(0, 3).map((tech) => (
@@ -869,19 +883,20 @@ export function PortfolioClient({
                                                         ))}
                                                     </div>
                                                 )}
-                                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                                                    {project.title}
+                                                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                                                    {projectTitle}
                                                 </h3>
-                                                <p className="text-gray-500 text-sm mb-4">
-                                                    {project.short_description || t('portfolio.projects.defaultDescription')}
+                                                <p className="text-gray-500 text-xs sm:text-sm mb-4 line-clamp-2">
+                                                    {projectShortDesc}
                                                 </p>
                                                 <Link
                                                     href={`/${profile.username}/contact`}
-                                                    className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm hover:gap-3 transition-all"
+                                                    className="inline-flex items-center gap-2 text-blue-600 font-semibold text-xs sm:text-sm hover:gap-3 transition-all focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 rounded"
                                                     onClick={handleQuoteClick}
+                                                    aria-label={`Request quote for ${projectTitle}`}
                                                 >
                                                     {t('portfolio.requestQuote')}
-                                                    <ArrowRight className="w-4 h-4" />
+                                                    <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden="true" />
                                                 </Link>
                                             </div>
                                         </>
@@ -1134,15 +1149,17 @@ export function PortfolioClient({
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="fixed bottom-8 right-8 z-50"
+                    className="fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-50"
                 >
                     <Link
                         href={`/${profile.username}/contact`}
-                        className="flex items-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-full font-semibold shadow-2xl hover:bg-blue-700 transition-all hover:scale-105"
+                        className="flex items-center gap-2 px-4 sm:px-6 py-3 sm:py-4 bg-blue-600 text-white rounded-full font-semibold shadow-2xl hover:bg-blue-700 transition-all hover:scale-105 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                         onClick={handleQuoteClick}
+                        aria-label="Request a free quote"
                     >
-                        <MessageCircle className="w-5 h-5" />
-                        <span>{t('portfolio.floatingButton.freeQuote')}</span>
+                        <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
+                        <span className="hidden sm:inline">{t('portfolio.floatingButton.freeQuote')}</span>
+                        <span className="sm:hidden">{t('portfolio.requestQuote')}</span>
                     </Link>
                 </motion.div>
             )}
