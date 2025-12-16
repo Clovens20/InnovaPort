@@ -33,6 +33,7 @@ export default function ProjectForm() {
         projectUrl: "",
         tags: "",
         image: null as string | null,
+        screenshots: [] as string[],
         featured: false,
         published: false
     });
@@ -40,8 +41,10 @@ export default function ProjectForm() {
     const [techInput, setTechInput] = useState("");
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [screenshots, setScreenshots] = useState<Array<{ file: File | null; preview: string; id: string }>>([]);
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const screenshotsInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -139,6 +142,86 @@ export default function ProjectForm() {
         }
     };
 
+    const handleScreenshotsSelect = (files: FileList | null) => {
+        if (!files) return;
+
+        const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const maxScreenshots = 10; // Limite de 10 captures d'écran
+
+        Array.from(files).forEach(file => {
+            if (screenshots.length >= maxScreenshots) {
+                setError(`Limite de ${maxScreenshots} captures d'écran atteinte`);
+                return;
+            }
+
+            if (file.size > maxSize) {
+                setError(`L'image ${file.name} est trop grande. Taille maximale : 5MB`);
+                return;
+            }
+
+            if (!validTypes.includes(file.type)) {
+                setError(`Format non supporté pour ${file.name}. Utilisez PNG, JPG ou WebP`);
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const preview = reader.result as string;
+                const newScreenshot = {
+                    file,
+                    preview,
+                    id: Math.random().toString(36).substring(7),
+                };
+                setScreenshots(prev => [...prev, newScreenshot]);
+                setFormData(prev => ({
+                    ...prev,
+                    screenshots: [...prev.screenshots, preview],
+                }));
+            };
+            reader.readAsDataURL(file);
+        });
+
+        setError(null);
+        if (screenshotsInputRef.current) {
+            screenshotsInputRef.current.value = '';
+        }
+    };
+
+    const handleScreenshotsInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        handleScreenshotsSelect(e.target.files);
+    };
+
+    const handleScreenshotsDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleScreenshotsDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleScreenshotsDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        handleScreenshotsSelect(e.dataTransfer.files);
+    };
+
+    const removeScreenshot = (id: string) => {
+        setScreenshots(prev => {
+            const index = prev.findIndex(s => s.id === id);
+            if (index === -1) return prev;
+            
+            const newScreenshots = prev.filter(s => s.id !== id);
+            setFormData(formDataPrev => ({
+                ...formDataPrev,
+                screenshots: formDataPrev.screenshots.filter((_, i) => i !== index),
+            }));
+            return newScreenshots;
+        });
+    };
+
     // Générer le slug automatiquement depuis le titre
     useEffect(() => {
         if (formData.title) {
@@ -198,6 +281,7 @@ export default function ProjectForm() {
                 project_url: formData.projectUrl || null,
                 tags: formData.tags || null,
                 image_url: formData.image || null,
+                screenshots_url: formData.screenshots.length > 0 ? formData.screenshots : null,
                 featured: formData.featured,
                 published: published,
             };
@@ -511,7 +595,7 @@ export default function ProjectForm() {
                     {/* Section 3: Images */}
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                         <h2 className="text-xl font-semibold text-gray-900 mb-2">Image de présentation</h2>
-                        <p className="text-sm text-gray-500 mb-6">Ajoutez une image représentative du projet</p>
+                        <p className="text-sm text-gray-500 mb-6">Ajoutez une image principale représentative du projet</p>
 
                         <input
                             type="file"
@@ -569,6 +653,86 @@ export default function ProjectForm() {
                                 </div>
                             </div>
                         )}
+                    </div>
+
+                    {/* Section 3.5: Captures d'écran multiples */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Captures d'écran</h2>
+                        <p className="text-sm text-gray-500 mb-6">Ajoutez plusieurs captures d'écran pour présenter votre projet (jusqu'à 10 images)</p>
+
+                        <input
+                            type="file"
+                            ref={screenshotsInputRef}
+                            onChange={handleScreenshotsInputChange}
+                            accept="image/png,image/jpeg,image/jpg,image/webp"
+                            multiple
+                            className="hidden"
+                        />
+
+                        {/* Grille des captures d'écran */}
+                        {screenshots.length > 0 && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                                {screenshots.map((screenshot) => (
+                                    <div key={screenshot.id} className="relative group">
+                                        <div className="aspect-video rounded-lg overflow-hidden border-2 border-gray-200">
+                                            <img
+                                                src={screenshot.preview}
+                                                alt="Capture d'écran"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => removeScreenshot(screenshot.id)}
+                                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg opacity-0 group-hover:opacity-100"
+                                            type="button"
+                                            aria-label="Supprimer la capture d'écran"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                        <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-white p-1.5 text-xs truncate">
+                                            {screenshot.file?.name}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Zone de drop pour ajouter des captures d'écran */}
+                        <div
+                            onDragOver={handleScreenshotsDragOver}
+                            onDragLeave={handleScreenshotsDragLeave}
+                            onDrop={handleScreenshotsDrop}
+                            onClick={() => screenshotsInputRef.current?.click()}
+                            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer group ${
+                                isDragging
+                                    ? 'border-blue-500 bg-blue-50'
+                                    : 'border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                            }`}
+                        >
+                            <div className="space-y-4">
+                                <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Upload className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <p className="text-base font-medium text-gray-900">Glissez vos captures d'écran ici</p>
+                                    <p className="text-sm text-gray-500">ou</p>
+                                    <button
+                                        type="button"
+                                        className="mt-2 text-blue-600 hover:underline font-medium"
+                                    >
+                                        Parcourir les fichiers
+                                    </button>
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                    PNG, JPG, WebP jusqu'à 5MB chacune • Maximum 10 images
+                                </p>
+                                {screenshots.length > 0 && (
+                                    <p className="text-xs text-blue-600 font-medium">
+                                        {screenshots.length} capture{screenshots.length > 1 ? 's' : ''} d'écran ajoutée{screenshots.length > 1 ? 's' : ''}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Section 4: Paramètres */}

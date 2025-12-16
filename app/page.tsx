@@ -9,6 +9,7 @@ import { UserCountBadge } from "./_components/user-count-badge";
 import { TestimonialsSection } from "./_components/testimonials-section";
 import { DeveloperTestimonialsSection } from "./_components/developer-testimonials-section";
 import { LanguageSwitcher } from "./_components/language-switcher";
+import { Footer } from "./_components/footer";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import { useState } from "react";
 
@@ -304,21 +305,7 @@ export default function Home() {
       <DeveloperTestimonialsSection />
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-8 sm:py-12 px-4 sm:px-6" role="contentinfo">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/innovaport-logo.png"
-              alt="InnovaPort Logo"
-              width={280}
-              height={84}
-              className="h-20 sm:h-28 w-auto object-contain"
-              sizes="(max-width: 640px) 200px, 280px"
-            />
-          </div>
-          <p className="text-gray-500 text-xs sm:text-sm text-center md:text-left">{t('footer.copyright')}</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

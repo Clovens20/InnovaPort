@@ -329,6 +329,12 @@ export const createOrUpdateProjectSchema = z.object({
         .optional()
         .nullable(),
     
+    screenshots_url: z
+        .array(z.string().url('Format d\'URL invalide pour la capture d\'écran').max(500, 'L\'URL ne peut pas dépasser 500 caractères'))
+        .max(10, 'Maximum 10 captures d\'écran autorisées')
+        .optional()
+        .nullable(),
+    
     featured: z
         .boolean()
         .optional()

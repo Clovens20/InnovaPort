@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, UserPlus, Edit, Shield, User as UserIcon, Mail, Calendar, Plus, X, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, Edit, Shield, User as UserIcon, Mail, Calendar, Plus, X, Save, Loader2, Trash2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 
 interface User {
@@ -52,6 +52,9 @@ export function UsersAdminClient({
     const [users, setUsers] = useState<User[]>(initialUsers);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<User | null>(null);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -228,6 +231,60 @@ export function UsersAdminClient({
         }
     };
 
+    const handleOpenDelete = (user: User) => {
+        setUserToDelete(user);
+        setDeleteConfirmText('');
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteUser = async () => {
+        if (!userToDelete) return;
+
+        // Vérifier que l'utilisateur a bien tapé "SUPPRIMER"
+        if (deleteConfirmText !== 'SUPPRIMER') {
+            setMessage({ type: 'error', text: 'Veuillez taper "SUPPRIMER" pour confirmer la suppression' });
+            return;
+        }
+
+        const userName = userToDelete.full_name || userToDelete.username || userToDelete.email || 'cet utilisateur';
+        setLoading(true);
+        setMessage(null);
+
+        try {
+            // Appeler l'API pour supprimer l'utilisateur
+            const response = await fetch(`/api/admin/users/${userToDelete.id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de la suppression');
+            }
+
+            // Recharger la liste des utilisateurs
+            const supabase = createClient();
+            const { data: updatedUsers } = await supabase
+                .from('profiles')
+                .select('id, username, full_name, email, role, subscription_tier, created_at')
+                .order('created_at', { ascending: false });
+
+            setUsers((updatedUsers || []) as User[]);
+            setShowDeleteModal(false);
+            setUserToDelete(null);
+            setDeleteConfirmText('');
+            setMessage({ type: 'success', text: `Compte de ${userName} supprimé avec succès` });
+        } catch (error: any) {
+            console.error('Error deleting user:', error);
+            setMessage({ type: 'error', text: error.message || 'Erreur lors de la suppression du compte' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="max-w-7xl mx-auto py-8 px-6">
             <Link
@@ -374,6 +431,15 @@ export function UsersAdminClient({
                                     >
                                         <Edit className="w-4 h-4" />
                                         Modifier
+                                    </button>
+                                    <button
+                                        onClick={() => handleOpenDelete(user)}
+                                        disabled={loading}
+                                        className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Supprimer le compte utilisateur"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Supprimer
                                     </button>
                                 </div>
                             </div>
@@ -554,6 +620,92 @@ export function UsersAdminClient({
                                     <>
                                         <Save className="w-4 h-4" />
                                         Enregistrer
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de suppression */}
+            {showDeleteModal && userToDelete && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-red-600">Supprimer le compte</h2>
+                            <button
+                                onClick={() => {
+                                    setShowDeleteModal(false);
+                                    setUserToDelete(null);
+                                    setDeleteConfirmText('');
+                                }}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                disabled={loading}
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <p className="text-sm text-red-800 font-semibold mb-2">
+                                    ⚠️ Attention : Cette action est irréversible !
+                                </p>
+                                <p className="text-sm text-red-700">
+                                    La suppression du compte de <strong>{userToDelete.full_name || userToDelete.username || userToDelete.email}</strong> supprimera définitivement :
+                                </p>
+                                <ul className="list-disc list-inside text-sm text-red-700 mt-2 space-y-1">
+                                    <li>Le profil utilisateur</li>
+                                    <li>Tous les projets</li>
+                                    <li>Tous les devis</li>
+                                    <li>Les abonnements</li>
+                                    <li>Les analytics</li>
+                                    <li>Toutes les données associées</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Pour confirmer, tapez <strong className="text-red-600">SUPPRIMER</strong> :
+                                </label>
+                                <input
+                                    type="text"
+                                    value={deleteConfirmText}
+                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                    placeholder="SUPPRIMER"
+                                    disabled={loading}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => {
+                                    setShowDeleteModal(false);
+                                    setUserToDelete(null);
+                                    setDeleteConfirmText('');
+                                }}
+                                disabled={loading}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                onClick={handleDeleteUser}
+                                disabled={loading || deleteConfirmText !== 'SUPPRIMER'}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Suppression...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        Supprimer définitivement
                                     </>
                                 )}
                             </button>

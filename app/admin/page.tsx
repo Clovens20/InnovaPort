@@ -1,7 +1,7 @@
 // app/admin/page.tsx
 import React from "react";
 import Link from "next/link";
-import { Shield, Settings, DollarSign, FileText, Palette, Users, Globe, LogOut } from "lucide-react";
+import { Shield, Settings, DollarSign, FileText, Palette, Users, Globe, LogOut, MessageSquare } from "lucide-react";
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -142,6 +142,18 @@ export default async function AdminPage() {
                             title="Avis Développeurs"
                             description="Gérer les témoignages des développeurs sur la plateforme."
                             href="/admin/testimonials"
+                        />
+                        <AdminCard
+                            icon={<FileText className="w-5 h-5 text-blue-600" />}
+                            title="Pages Légales"
+                            description="Gérer et modifier le contenu des pages légales (Mentions, Confidentialité, Cookies, etc.)."
+                            href="/admin/legal-pages"
+                        />
+                        <AdminCard
+                            icon={<MessageSquare className="w-5 h-5 text-emerald-600" />}
+                            title="Messages & Newsletter"
+                            description="Consulter les messages de contact et gérer les inscriptions à la newsletter."
+                            href="/admin/messages"
                         />
                     </div>
 

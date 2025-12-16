@@ -68,20 +68,20 @@ export default function ContactPage() {
     const handleSubmit = async () => {
             // Validation des champs requis
             if (!formData.name || !formData.email || !formData.projectType || !formData.budget || !formData.description) {
-                setSubmitError(t('common.error') + ': ' + t('contact.form.description') + ' ' + t('common.required'));
+                setSubmitError(t('common.error') + ': ' + t('contactForm.form.description') + ' ' + t('common.required'));
                 return;
             }
 
             // Validation du consentement à la politique de confidentialité (requis)
             if (!formData.consentPrivacy) {
-                setSubmitError(t('contact.form.consentPrivacy') + ' ' + t('common.required'));
+                setSubmitError(t('contactForm.form.consentPrivacy') + ' ' + t('common.required'));
                 return;
             }
 
             // Vérification du CAPTCHA (seulement si configuré)
             if (process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
                 if (!captchaToken) {
-                    setSubmitError(t('contact.form.captchaRequired') || 'Veuillez compléter le CAPTCHA');
+                    setSubmitError(t('contactForm.form.captchaRequired') || 'Veuillez compléter le CAPTCHA');
                     return;
                 }
 
@@ -98,14 +98,14 @@ export default function ContactPage() {
                     const captchaData = await captchaResponse.json();
 
                     if (!captchaData.success) {
-                        setSubmitError(t('contact.form.captchaInvalid') || 'CAPTCHA invalide. Veuillez réessayer.');
+                        setSubmitError(t('contactForm.form.captchaInvalid') || 'CAPTCHA invalide. Veuillez réessayer.');
                         recaptchaRef.current?.reset();
                         setCaptchaToken(null);
                         return;
                     }
                 } catch (captchaError) {
                     console.error('CAPTCHA verification error:', captchaError);
-                    setSubmitError(t('contact.form.captchaError') || 'Erreur lors de la vérification du CAPTCHA. Veuillez réessayer.');
+                    setSubmitError(t('contactForm.form.captchaError') || 'Erreur lors de la vérification du CAPTCHA. Veuillez réessayer.');
                     return;
                 }
             }
@@ -117,12 +117,12 @@ export default function ContactPage() {
             // Préparer les fonctionnalités : combiner les checkboxes et le texte "autre"
             const allFeatures: string[] = Array.isArray(formData.features) ? [...formData.features] : [];
             if (showOtherFeatures && otherFeaturesText.trim()) {
-                const otherFeature = `${t('contact.form.otherFeaturePrefix')}: ${otherFeaturesText.trim()}`;
+                const otherFeature = `${t('contactForm.form.otherFeaturePrefix')}: ${otherFeaturesText.trim()}`;
                 // Limiter à 200 caractères pour la validation Zod
                 if (otherFeature.length <= 200) {
                     allFeatures.push(otherFeature);
                 } else {
-                    setSubmitError(t('contact.form.featuresTooLong'));
+                    setSubmitError(t('contactForm.form.featuresTooLong'));
                     setIsSubmitting(false);
                     return;
                 }
@@ -183,11 +183,11 @@ export default function ContactPage() {
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Check className="w-8 h-8 text-green-600" />
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('contact.success.title')}</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('contactForm.success.title')}</h2>
                     <p className="text-gray-600 mb-6">
-                        {t('contact.success.message')}
+                        {t('contactForm.success.message')}
                     </p>
-                    <p className="text-sm text-gray-500">{t('contact.success.redirecting')}</p>
+                    <p className="text-sm text-gray-500">{t('contactForm.success.redirecting')}</p>
                 </div>
             </div>
         );
@@ -197,8 +197,8 @@ export default function ContactPage() {
         <div className="min-h-screen bg-gray-50 py-12 px-4 font-sans">
             <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-12">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('contact.title')}</h1>
-                    <p className="text-xl text-gray-600">{t('contact.subtitle')}</p>
+                    <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('contactForm.title')}</h1>
+                    <p className="text-xl text-gray-600">{t('contactForm.subtitle')}</p>
                 </div>
 
                 {/* Progress Bar */}
@@ -226,10 +226,10 @@ export default function ContactPage() {
                         ))}
                     </div>
                     <div className="flex justify-between text-sm text-gray-600 px-2">
-                        <span>{t('contact.steps.yourInfo')}</span>
-                        <span>{t('contact.steps.projectType')}</span>
-                        <span>{t('contact.steps.details')}</span>
-                        <span>{t('contact.steps.finalization')}</span>
+                        <span>{t('contactForm.steps.yourInfo')}</span>
+                        <span>{t('contactForm.steps.projectType')}</span>
+                        <span>{t('contactForm.steps.details')}</span>
+                        <span>{t('contactForm.steps.finalization')}</span>
                     </div>
                 </div>
 
@@ -250,28 +250,28 @@ export default function ContactPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.form.yourInfo')}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contactForm.form.yourInfo')}</h2>
                                 <div className="space-y-6">
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                {t('contact.form.name')} *
+                                                {t('contactForm.form.name')} *
                                             </label>
                                             <input
                                                 type="text"
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                                placeholder={t('contact.placeholders.name')}
+                                                placeholder={t('contactForm.placeholders.name')}
                                                 value={formData.name}
                                                 onChange={(e) => updateFormData('name', e.target.value)}
                                                 required
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('contact.form.email')} *</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('contactForm.form.email')} *</label>
                                             <input
                                                 type="email"
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                                placeholder={t('contact.placeholders.email')}
+                                                placeholder={t('contactForm.placeholders.email')}
                                                 value={formData.email}
                                                 onChange={(e) => updateFormData('email', e.target.value)}
                                                 required
@@ -280,32 +280,32 @@ export default function ContactPage() {
                                     </div>
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('contact.form.phone')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('contactForm.form.phone')}</label>
                                             <input
                                                 type="tel"
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                                placeholder={t('contact.placeholders.phone')}
+                                                placeholder={t('contactForm.placeholders.phone')}
                                                 value={formData.phone}
                                                 onChange={(e) => updateFormData('phone', e.target.value)}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('contact.form.company')}</label>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">{t('contactForm.form.company')}</label>
                                             <input
                                                 type="text"
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                                placeholder={t('contact.placeholders.company')}
+                                                placeholder={t('contactForm.placeholders.company')}
                                                 value={formData.company}
                                                 onChange={(e) => updateFormData('company', e.target.value)}
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('contact.form.location')}</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('contactForm.form.location')}</label>
                                         <input
                                             type="text"
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                            placeholder={t('contact.placeholders.location')}
+                                            placeholder={t('contactForm.placeholders.location')}
                                             value={formData.location}
                                             onChange={(e) => updateFormData('location', e.target.value)}
                                         />
@@ -323,7 +323,7 @@ export default function ContactPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.form.projectTypeTitle')}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contactForm.form.projectTypeTitle')}</h2>
                                 <div className="grid md:grid-cols-2 gap-4 mb-8">
                                     {projectTypes.map((type) => (
                                         <button
@@ -354,10 +354,10 @@ export default function ContactPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.form.projectDetails')}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contactForm.form.projectDetails')}</h2>
 
                                 <div className="mb-8">
-                                    <label className="block text-sm font-medium text-gray-700 mb-3">{t('contact.form.budget')} *</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">{t('contactForm.form.budget')} *</label>
                                     <div className="grid md:grid-cols-2 gap-3">
                                         {budgetRanges.map((range) => (
                                             <label
@@ -385,7 +385,7 @@ export default function ContactPage() {
 
                                 <div className="mb-8">
                                     <label className="block text-sm font-medium text-gray-700 mb-3">
-                                        {t('contact.form.features')}
+                                        {t('contactForm.form.features')}
                                     </label>
                                     <div className="grid md:grid-cols-2 gap-3 mb-4">
                                         {featuresList.map((feature) => (
@@ -416,20 +416,20 @@ export default function ContactPage() {
                                                 }}
                                                 className="mr-3 rounded text-blue-900 focus:ring-blue-900"
                                             />
-                                            <span className="text-sm">{t('contact.form.other')}</span>
+                                            <span className="text-sm">{t('contactForm.form.other')}</span>
                                         </label>
                                     </div>
                                     
                                     {showOtherFeatures && (
                                         <div className="mt-4">
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                {t('contact.form.otherPlaceholder')}
+                                                {t('contactForm.form.otherPlaceholder')}
                                             </label>
                                             <textarea
                                                 rows={3}
                                                 value={otherFeaturesText}
                                                 onChange={(e) => setOtherFeaturesText(e.target.value)}
-                                                placeholder={t('contact.form.otherPlaceholder')}
+                                                placeholder={t('contactForm.form.otherPlaceholder')}
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
                                             />
                                         </div>
@@ -447,17 +447,17 @@ export default function ContactPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.3 }}
                             >
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contact.steps.finalization')}</h2>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('contactForm.steps.finalization')}</h2>
 
                                 <div className="space-y-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            {t('contact.form.description')} *
+                                            {t('contactForm.form.description')} *
                                         </label>
                                         <textarea
                                             rows={6}
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
-                                            placeholder={t('contact.form.descriptionPlaceholder')}
+                                            placeholder={t('contactForm.form.descriptionPlaceholder')}
                                             value={formData.description}
                                             onChange={(e) => updateFormData('description', e.target.value)}
                                             required
@@ -473,9 +473,9 @@ export default function ContactPage() {
                                                 onChange={(e) => updateFormData('hasVagueIdea', e.target.checked)}
                                             />
                                             <div>
-                                                <span className="font-semibold text-gray-900">{t('contact.form.vagueIdea')}</span>
+                                                <span className="font-semibold text-gray-900">{t('contactForm.form.vagueIdea')}</span>
                                                 <p className="text-sm text-gray-600 mt-1">
-                                                    {t('contact.form.vagueIdeaHelp')}
+                                                    {t('contactForm.form.vagueIdeaHelp')}
                                                 </p>
                                             </div>
                                         </label>
@@ -489,7 +489,7 @@ export default function ContactPage() {
                                                 checked={formData.consentContact}
                                                 onChange={(e) => updateFormData('consentContact', e.target.checked)}
                                             />
-                                            <span className="text-sm">{t('contact.form.consentContact')}</span>
+                                            <span className="text-sm">{t('contactForm.form.consentContact')}</span>
                                         </label>
                                         <label className="flex items-center">
                                             <input
@@ -499,7 +499,7 @@ export default function ContactPage() {
                                                 onChange={(e) => updateFormData('consentPrivacy', e.target.checked)}
                                                 required
                                             />
-                                            <span className="text-sm">{t('contact.form.consentPrivacy')} *</span>
+                                            <span className="text-sm">{t('contactForm.form.consentPrivacy')} *</span>
                                         </label>
                                     </div>
 
@@ -507,7 +507,7 @@ export default function ContactPage() {
                                     {typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
                                         <div className="pt-6 border-t border-gray-200">
                                             <label className="block text-sm font-medium text-gray-700 mb-3">
-                                                {t('contact.form.captchaLabel') || 'Vérification de sécurité'} *
+                                                {t('contactForm.form.captchaLabel') || 'Vérification de sécurité'} *
                                             </label>
                                             <ReCAPTCHA
                                                 ref={recaptchaRef}
@@ -516,7 +516,7 @@ export default function ContactPage() {
                                                 onExpired={() => setCaptchaToken(null)}
                                                 onError={() => {
                                                     setCaptchaToken(null);
-                                                    setSubmitError(t('contact.form.captchaError') || 'Erreur lors du chargement du CAPTCHA');
+                                                    setSubmitError(t('contactForm.form.captchaError') || 'Erreur lors du chargement du CAPTCHA');
                                                 }}
                                             />
                                         </div>
@@ -534,7 +534,7 @@ export default function ContactPage() {
                                 className="px-6 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-medium transition-colors"
                                 disabled={isSubmitting}
                             >
-                                ← {t('contact.form.previous')}
+                                ← {t('contactForm.form.previous')}
                             </button>
                         )}
 
@@ -544,7 +544,7 @@ export default function ContactPage() {
                                     onClick={() => setCurrentStep((c) => c + 1)}
                                     className="px-8 py-3 bg-[#10B981] text-white rounded-lg font-semibold hover:bg-[#059669] transition-colors"
                                 >
-                                    {t('contact.form.next')} →
+                                    {t('contactForm.form.next')} →
                                 </button>
                             ) : (
                                 <button
@@ -555,11 +555,11 @@ export default function ContactPage() {
                                     {isSubmitting ? (
                                         <>
                                             <Loader2 className="w-5 h-5 animate-spin" />
-                                            {t('contact.form.submitting')}
+                                            {t('contactForm.form.submitting')}
                                         </>
                                     ) : (
                                         <>
-                                            {t('contact.form.submit')}
+                                            {t('contactForm.form.submit')}
                                             <Check className="w-5 h-5" />
                                         </>
                                     )}

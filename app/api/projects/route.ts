@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
             project_url,
             tags,
             image_url,
+            screenshots_url,
             featured,
             published,
         } = validatedData;
@@ -86,6 +87,7 @@ export async function POST(request: NextRequest) {
             project_url: project_url || null,
             tags: tags || null,
             image_url: image_url || null,
+            screenshots_url: screenshots_url && screenshots_url.length > 0 ? screenshots_url : null,
             featured: featured || false,
             published: published || false,
         };
