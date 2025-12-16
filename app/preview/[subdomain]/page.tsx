@@ -163,7 +163,7 @@ export default function PortfolioPreview() {
                         <Linkedin className="w-5 h-5 hover:text-blue-700 cursor-pointer" />
                         <Mail className="w-5 h-5 hover:text-[var(--primary)] cursor-pointer" />
                     </div>
-                    <p className="text-sm text-gray-500">© 2024 All rights reserved.</p>
+                    <p className="text-sm text-gray-500">© 2025 All rights reserved.</p>
                 </div>
             </footer>
         </div>

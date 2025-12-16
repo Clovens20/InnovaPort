@@ -184,9 +184,9 @@ function LoginForm() {
                     </div>
 
                     <div className="text-sm">
-                        <a href="#" className="font-medium text-[#1E3A8A] hover:text-[#1E40AF]">
+                        <Link href="/auth/forgot-password" className="font-medium text-[#1E3A8A] hover:text-[#1E40AF]">
                             {t('auth.login.forgotPassword')}
-                        </a>
+                        </Link>
                     </div>
                 </div>
 
