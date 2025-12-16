@@ -324,13 +324,34 @@ export const createOrUpdateProjectSchema = z.object({
     
     image_url: z
         .string()
-        .url('Format d\'URL invalide pour l\'image')
-        .max(500, 'L\'URL de l\'image ne peut pas dépasser 500 caractères')
+        .refine(
+            (val) => {
+                if (!val) return true; // null/undefined est accepté
+                // Accepter les URLs HTTP/HTTPS ou les data URLs (base64)
+                return val.startsWith('http://') || 
+                       val.startsWith('https://') || 
+                       val.startsWith('data:image/');
+            },
+            { message: 'Format d\'URL invalide pour l\'image. Utilisez une URL HTTP/HTTPS ou une image base64.' }
+        )
+        .max(5000000, 'L\'URL de l\'image ne peut pas dépasser 5MB (pour base64)') // Augmenter la limite pour base64
         .optional()
         .nullable(),
     
     screenshots_url: z
-        .array(z.string().url('Format d\'URL invalide pour la capture d\'écran').max(500, 'L\'URL ne peut pas dépasser 500 caractères'))
+        .array(
+            z.string()
+                .refine(
+                    (val) => {
+                        // Accepter les URLs HTTP/HTTPS ou les data URLs (base64)
+                        return val.startsWith('http://') || 
+                               val.startsWith('https://') || 
+                               val.startsWith('data:image/');
+                    },
+                    { message: 'Format d\'URL invalide pour la capture d\'écran. Utilisez une URL HTTP/HTTPS ou une image base64.' }
+                )
+                .max(5000000, 'L\'URL ne peut pas dépasser 5MB (pour base64)')
+        )
         .max(10, 'Maximum 10 captures d\'écran autorisées')
         .optional()
         .nullable(),
