@@ -30,6 +30,8 @@ CREATE TRIGGER update_promo_codes_updated_at BEFORE UPDATE ON promo_codes
 ALTER TABLE promo_codes ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Tout le monde peut lire les codes promo actifs
+-- Supprimer la policy si elle existe déjà avant de la créer
+DROP POLICY IF EXISTS "Public can view active promo codes" ON promo_codes;
 CREATE POLICY "Public can view active promo codes"
     ON promo_codes FOR SELECT
     USING (is_active = TRUE AND valid_from <= NOW() AND valid_until >= NOW());

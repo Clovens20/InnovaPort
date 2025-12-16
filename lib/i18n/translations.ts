@@ -346,6 +346,12 @@ export const translations: Record<Language, Translations> = {
                 alreadySubscribed: 'Vous êtes déjà abonné à ce plan.',
                 paymentCanceled: 'Paiement annulé',
                 subscriptionActivated: 'Abonnement {plan} activé avec succès !',
+                promoCode: 'Code promo',
+                promoCodePlaceholder: 'Entrez votre code promo',
+                promoCodeApply: 'Appliquer',
+                promoCodeApplied: 'Code promo appliqué',
+                promoCodeInvalid: 'Code promo invalide',
+                promoCodeError: 'Erreur lors de la validation du code promo',
                 features: {
                     free: {
                         activeProjects: '5 projets actifs',
@@ -678,6 +684,30 @@ export const translations: Record<Language, Translations> = {
             },
             floatingButton: {
                 freeQuote: 'Devis gratuit',
+            },
+            checkout: {
+                success: {
+                    title: 'Paiement réussi !',
+                    message: 'Merci pour votre abonnement au plan {planName}',
+                    details: 'Détails de l\'abonnement',
+                    plan: 'Plan',
+                    amount: 'Montant',
+                    email: 'Email',
+                    activeMessage: 'Votre abonnement est maintenant actif ! Vous pouvez commencer à utiliser toutes les fonctionnalités de votre plan.',
+                    goToDashboard: 'Accéder au tableau de bord',
+                    viewSubscription: 'Voir mon abonnement',
+                },
+                cancel: {
+                    title: 'Paiement annulé',
+                    message: 'Votre paiement a été annulé. Aucun montant n\'a été débité.',
+                    whyCancelled: 'Pourquoi le paiement a-t-il été annulé ?',
+                    reason1: 'Vous avez fermé la fenêtre de paiement',
+                    reason2: 'Vous avez cliqué sur le bouton d\'annulation',
+                    reason3: 'Une erreur s\'est produite lors du processus',
+                    helpMessage: 'Vous pouvez réessayer à tout moment. Si vous avez des questions ou besoin d\'aide, n\'hésitez pas à nous contacter.',
+                    tryAgain: 'Réessayer',
+                    backToDashboard: 'Retour au tableau de bord',
+                },
             },
             about: {
                 about: 'À propos de',
@@ -1077,6 +1107,12 @@ export const translations: Record<Language, Translations> = {
                 alreadySubscribed: 'You are already subscribed to this plan.',
                 paymentCanceled: 'Payment Canceled',
                 subscriptionActivated: '{plan} subscription activated successfully!',
+                promoCode: 'Promo Code',
+                promoCodePlaceholder: 'Enter promo code',
+                promoCodeApply: 'Apply',
+                promoCodeApplied: 'Promo code applied',
+                promoCodeInvalid: 'Invalid promo code',
+                promoCodeError: 'Error validating promo code',
                 features: {
                     free: {
                         activeProjects: '5 active projects',
@@ -1409,6 +1445,30 @@ export const translations: Record<Language, Translations> = {
             },
             floatingButton: {
                 freeQuote: 'Free Quote',
+            },
+            checkout: {
+                success: {
+                    title: 'Payment Successful!',
+                    message: 'Thank you for subscribing to the {planName} plan',
+                    details: 'Subscription Details',
+                    plan: 'Plan',
+                    amount: 'Amount',
+                    email: 'Email',
+                    activeMessage: 'Your subscription is now active! You can start using all the features of your plan.',
+                    goToDashboard: 'Go to Dashboard',
+                    viewSubscription: 'View Subscription',
+                },
+                cancel: {
+                    title: 'Payment Cancelled',
+                    message: 'Your payment was cancelled. No charges were made.',
+                    whyCancelled: 'Why was the payment cancelled?',
+                    reason1: 'You closed the payment window',
+                    reason2: 'You clicked the cancel button',
+                    reason3: 'An error occurred during the process',
+                    helpMessage: 'You can try again anytime. If you have any questions or need help, feel free to contact us.',
+                    tryAgain: 'Try Again',
+                    backToDashboard: 'Back to Dashboard',
+                },
             },
             about: {
                 about: 'About',

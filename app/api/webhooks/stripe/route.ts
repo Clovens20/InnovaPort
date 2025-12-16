@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-12-18.acacia',
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,13 +63,40 @@ export async function POST(request: NextRequest) {
 
                     const userId = session.metadata?.user_id || subscription.metadata?.user_id;
                     const plan = session.metadata?.plan || subscription.metadata?.plan || 'pro';
+                    const innovaPortPromoCode = session.metadata?.innovaport_promo_code || subscription.metadata?.innovaport_promo_code;
 
                     if (!userId) {
                         console.error('User ID not found in session metadata');
                         break;
                     }
 
+                    // Si un code promo InnovaPort a été utilisé, incrémenter le compteur
+                    if (innovaPortPromoCode) {
+                        try {
+                            const { data: promoData } = await supabaseAdmin
+                                .from('promo_codes')
+                                .select('current_uses')
+                                .eq('code', innovaPortPromoCode)
+                                .single();
+                            
+                            if (promoData) {
+                                await supabaseAdmin
+                                    .from('promo_codes')
+                                    .update({ 
+                                        current_uses: (promoData.current_uses || 0) + 1,
+                                    })
+                                    .eq('code', innovaPortPromoCode);
+                                console.log(`Incremented usage for InnovaPort promo code: ${innovaPortPromoCode}`);
+                            }
+                        } catch (error) {
+                            console.error('Error incrementing promo code usage:', error);
+                            // On continue même si l'incrémentation échoue
+                        }
+                    }
+
                     // Créer ou mettre à jour l'abonnement dans la base de données
+                    // TypeScript peut avoir des problèmes avec les types Stripe, donc on utilise l'accès direct
+                    const subscriptionData: any = subscription;
                     await supabaseAdmin
                         .from('subscriptions')
                         .upsert({
@@ -80,8 +105,8 @@ export async function POST(request: NextRequest) {
                             stripe_subscription_id: subscription.id,
                             plan: plan,
                             status: subscription.status === 'active' ? 'active' : 'trialing',
-                            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-                            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                            current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
+                            current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
                             cancel_at_period_end: subscription.cancel_at_period_end || false,
                         });
 
@@ -109,14 +134,16 @@ export async function POST(request: NextRequest) {
                 }
 
                 // Mettre à jour l'abonnement dans la base de données
+                // TypeScript peut avoir des problèmes avec les types Stripe, donc on utilise l'accès direct
+                const subscriptionData: any = subscription;
                 await supabaseAdmin
                     .from('subscriptions')
                     .update({
                         status: subscription.status === 'active' ? 'active' : 
                                subscription.status === 'trialing' ? 'trialing' :
                                subscription.status === 'past_due' ? 'past_due' : 'canceled',
-                        current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-                        current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+                        current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
+                        current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
                         cancel_at_period_end: subscription.cancel_at_period_end || false,
                         updated_at: new Date().toISOString(),
                     })
@@ -170,10 +197,11 @@ export async function POST(request: NextRequest) {
 
             case 'invoice.payment_succeeded': {
                 const invoice = event.data.object as Stripe.Invoice;
+                const invoiceData: any = invoice;
                 
-                if (invoice.subscription) {
-                    const subscription = await stripe.subscriptions.retrieve(
-                        invoice.subscription as string
+                if (invoiceData.subscription) {
+                    const subscription: any = await stripe.subscriptions.retrieve(
+                        invoiceData.subscription as string
                     );
                     const userId = subscription.metadata?.user_id;
 
@@ -194,10 +222,11 @@ export async function POST(request: NextRequest) {
 
             case 'invoice.payment_failed': {
                 const invoice = event.data.object as Stripe.Invoice;
+                const invoiceData: any = invoice;
                 
-                if (invoice.subscription) {
-                    const subscription = await stripe.subscriptions.retrieve(
-                        invoice.subscription as string
+                if (invoiceData.subscription) {
+                    const subscription: any = await stripe.subscriptions.retrieve(
+                        invoiceData.subscription as string
                     );
                     const userId = subscription.metadata?.user_id;
 
