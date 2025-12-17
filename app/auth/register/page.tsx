@@ -340,7 +340,7 @@ export default function RegisterPage() {
                             type="text"
                             required
                             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 focus:text-gray-900 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
-                            placeholder={t('contact.placeholders.name')}
+                            placeholder={t('contact.placeholders.name') || 'Votre nom complet'}
                         />
                     </div>
                 </div>
@@ -357,7 +357,7 @@ export default function RegisterPage() {
                             autoComplete="email"
                             required
                             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 focus:text-gray-900 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
-                            placeholder={t('contact.placeholders.email')}
+                            placeholder={t('contact.placeholders.email') || 'votre@email.com'}
                         />
                     </div>
                 </div>

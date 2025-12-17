@@ -6,10 +6,10 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Home } from 'lucide-react';
+import { ArrowLeft, Home, Loader2 } from 'lucide-react';
 import { PortfolioClient } from '@/app/[username]/portfolio-client';
 import { hexToRgba } from '@/utils/color-utils';
 
@@ -245,7 +245,7 @@ const getFontFamily = (fontName: string): string => {
     return fontFamilyMap[fontName.toLowerCase()] || 'Inter, sans-serif';
 };
 
-export default function DemoPage() {
+function DemoPageContent() {
     const searchParams = useSearchParams();
     
     // Récupérer les paramètres de l'URL
@@ -362,6 +362,21 @@ export default function DemoPage() {
                 />
             </div>
         </div>
+    );
+}
+
+export default function DemoPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+                    <p className="text-gray-600">Chargement de la démo...</p>
+                </div>
+            </div>
+        }>
+            <DemoPageContent />
+        </Suspense>
     );
 }
 
