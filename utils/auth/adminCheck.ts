@@ -31,7 +31,7 @@ export async function checkIsAdmin(): Promise<boolean> {
       return false
     }
 
-    return profile?.role === 'admin' ?? false
+    return profile?.role === 'admin'
   } catch (error) {
     console.error('Error checking admin status:', error)
     return false
