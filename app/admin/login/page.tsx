@@ -47,6 +47,7 @@ export default function AdminLoginPage() {
             if (profile?.role === 'admin') {
                 // Si admin, rediriger vers /admin
                 router.push("/admin");
+                // OPTIMISATION: Ne pas appeler router.refresh() car router.push() déclenche déjà une navigation
             } else {
                 // Si pas admin, rediriger vers dashboard
                 setError("Accès refusé. Seuls les administrateurs peuvent accéder à cette interface.");
@@ -55,7 +56,6 @@ export default function AdminLoginPage() {
                 await supabase.auth.signOut();
                 router.push("/auth/login");
             }
-            router.refresh();
         }
     };
 

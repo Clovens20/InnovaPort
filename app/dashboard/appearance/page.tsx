@@ -1,11 +1,75 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Editor from "@monaco-editor/react";
 import { Monitor, Smartphone, Check, X, Lock } from "lucide-react";
 import clsx from "clsx";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+
+// Fonction pour convertir les noms de polices en noms Google Fonts
+const getGoogleFontName = (fontName: string): string => {
+    const fontMap: Record<string, string> = {
+        'inter': 'Inter',
+        'poppins': 'Poppins',
+        'playfair': 'Playfair+Display',
+        'roboto': 'Roboto',
+        'montserrat': 'Montserrat',
+        'raleway': 'Raleway',
+        'oswald': 'Oswald',
+        'lora': 'Lora',
+        'merriweather': 'Merriweather',
+        'nunito': 'Nunito',
+        'ubuntu': 'Ubuntu',
+        'source-sans-pro': 'Source+Sans+Pro',
+        'work-sans': 'Work+Sans',
+        'crimson-text': 'Crimson+Text',
+        'libre-baskerville': 'Libre+Baskerville',
+        'dancing-script': 'Dancing+Script',
+        'caveat': 'Caveat',
+        'bebas-neue': 'Bebas+Neue',
+        'anton': 'Anton',
+        'lato': 'Lato',
+        'opensans': 'Open+Sans',
+        'pt-sans': 'PT+Sans',
+        'noto-sans': 'Noto+Sans',
+        'rubik': 'Rubik',
+        'quicksand': 'Quicksand',
+    };
+    return fontMap[fontName.toLowerCase()] || 'Inter';
+};
+
+// Fonction pour obtenir le nom CSS de la police
+const getFontFamilyForPreview = (fontName: string): string => {
+    const fontFamilyMap: Record<string, string> = {
+        'inter': 'Inter, sans-serif',
+        'poppins': 'Poppins, sans-serif',
+        'playfair': '"Playfair Display", serif',
+        'roboto': 'Roboto, sans-serif',
+        'montserrat': 'Montserrat, sans-serif',
+        'raleway': 'Raleway, sans-serif',
+        'oswald': 'Oswald, sans-serif',
+        'lora': 'Lora, serif',
+        'merriweather': 'Merriweather, serif',
+        'nunito': 'Nunito, sans-serif',
+        'ubuntu': 'Ubuntu, sans-serif',
+        'source-sans-pro': '"Source Sans Pro", sans-serif',
+        'work-sans': '"Work Sans", sans-serif',
+        'crimson-text': '"Crimson Text", serif',
+        'libre-baskerville': '"Libre Baskerville", serif',
+        'dancing-script': '"Dancing Script", cursive',
+        'caveat': 'Caveat, cursive',
+        'bebas-neue': '"Bebas Neue", sans-serif',
+        'anton': 'Anton, sans-serif',
+        'lato': 'Lato, sans-serif',
+        'opensans': '"Open Sans", sans-serif',
+        'pt-sans': '"PT Sans", sans-serif',
+        'noto-sans': '"Noto Sans", sans-serif',
+        'rubik': 'Rubik, sans-serif',
+        'quicksand': 'Quicksand, sans-serif',
+    };
+    return fontFamilyMap[fontName.toLowerCase()] || 'Inter, sans-serif';
+};
 
 const templates = [
     {
@@ -81,6 +145,24 @@ export default function AppearancePage() {
         setPrimaryColor(palette.primary);
         setSecondaryColor(palette.secondary);
     };
+
+    // Charger les polices Google Fonts pour l'aperçu
+    useEffect(() => {
+        const headingFontName = getGoogleFontName(headingFont);
+        const bodyFontName = getGoogleFontName(bodyFont);
+        
+        const fontsToLoad = new Set([headingFontName, bodyFontName]);
+        
+        fontsToLoad.forEach(font => {
+            const existingLink = document.querySelector(`link[href*="${font}"]`);
+            if (!existingLink) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = `https://fonts.googleapis.com/css2?family=${font}:wght@400;500;600;700&display=swap`;
+                document.head.appendChild(link);
+            }
+        });
+    }, [headingFont, bodyFont]);
 
     return (
         <div className="flex gap-6 h-[calc(100vh-100px)]">
@@ -175,12 +257,28 @@ export default function AppearancePage() {
                         <select
                             value={headingFont}
                             onChange={(e) => setHeadingFont(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary text-gray-900"
+                            style={{ fontFamily: getFontFamilyForPreview(headingFont) }}
                         >
                             <option value="inter">Inter</option>
                             <option value="poppins">Poppins</option>
                             <option value="playfair">Playfair Display</option>
                             <option value="roboto">Roboto</option>
+                            <option value="montserrat">Montserrat</option>
+                            <option value="raleway">Raleway</option>
+                            <option value="oswald">Oswald</option>
+                            <option value="lora">Lora</option>
+                            <option value="merriweather">Merriweather</option>
+                            <option value="nunito">Nunito</option>
+                            <option value="ubuntu">Ubuntu</option>
+                            <option value="source-sans-pro">Source Sans Pro</option>
+                            <option value="work-sans">Work Sans</option>
+                            <option value="crimson-text">Crimson Text</option>
+                            <option value="libre-baskerville">Libre Baskerville</option>
+                            <option value="dancing-script">Dancing Script</option>
+                            <option value="caveat">Caveat</option>
+                            <option value="bebas-neue">Bebas Neue</option>
+                            <option value="anton">Anton</option>
                         </select>
                     </div>
 
@@ -189,12 +287,28 @@ export default function AppearancePage() {
                         <select
                             value={bodyFont}
                             onChange={(e) => setBodyFont(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary text-gray-900"
+                            style={{ fontFamily: getFontFamilyForPreview(bodyFont) }}
                         >
                             <option value="inter">Inter</option>
                             <option value="lato">Lato</option>
                             <option value="roboto">Roboto</option>
                             <option value="opensans">Open Sans</option>
+                            <option value="montserrat">Montserrat</option>
+                            <option value="raleway">Raleway</option>
+                            <option value="nunito">Nunito</option>
+                            <option value="ubuntu">Ubuntu</option>
+                            <option value="source-sans-pro">Source Sans Pro</option>
+                            <option value="work-sans">Work Sans</option>
+                            <option value="poppins">Poppins</option>
+                            <option value="merriweather">Merriweather</option>
+                            <option value="lora">Lora</option>
+                            <option value="crimson-text">Crimson Text</option>
+                            <option value="libre-baskerville">Libre Baskerville</option>
+                            <option value="pt-sans">PT Sans</option>
+                            <option value="noto-sans">Noto Sans</option>
+                            <option value="rubik">Rubik</option>
+                            <option value="quicksand">Quicksand</option>
                         </select>
                     </div>
                 </div>
@@ -271,7 +385,7 @@ export default function AppearancePage() {
                    For now, we can Mock the iframe content or actually point to a route 
                 */}
                             <iframe
-                                src={`/preview/demo?template=${currentTemplateId}&primary=${encodeURIComponent(primaryColor)}&secondary=${encodeURIComponent(secondaryColor)}`}
+                                src={`/preview/demo?template=${currentTemplateId}&primary=${encodeURIComponent(primaryColor)}&secondary=${encodeURIComponent(secondaryColor)}&headingFont=${encodeURIComponent(headingFont)}&bodyFont=${encodeURIComponent(bodyFont)}`}
                                 className="w-full h-full border-0"
                                 title="Preview"
                             />

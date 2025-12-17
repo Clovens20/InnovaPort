@@ -24,3 +24,116 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ============================================
+   Styles Innovaport pour les formulaires
+   Charte graphique : Bleu #3B82F6 (blue-500)
+   ============================================ */
+
+/* Texte saisi - Gris très foncé pour excellente lisibilité (WCAG AAA: 16.1:1) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+textarea,
+select {
+  color: #1F2937; /* gray-900 - Texte saisi visible */
+  font-weight: 400; /* Regular */
+}
+
+/* État focus - Couleur Innovaport bleue */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="number"]:focus,
+input[type="tel"]:focus,
+input[type="url"]:focus,
+input[type="search"]:focus,
+input[type="date"]:focus,
+input[type="time"]:focus,
+input[type="datetime-local"]:focus,
+textarea:focus,
+select:focus {
+  color: #1F2937; /* Texte reste foncé en focus */
+  border-color: #3B82F6; /* blue-500 - Bordure bleue Innovaport */
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Ring bleu pour accessibilité */
+}
+
+/* État disabled */
+input[type="text"]:disabled,
+input[type="email"]:disabled,
+input[type="password"]:disabled,
+input[type="number"]:disabled,
+input[type="tel"]:disabled,
+input[type="url"]:disabled,
+input[type="search"]:disabled,
+input[type="date"]:disabled,
+input[type="time"]:disabled,
+input[type="datetime-local"]:disabled,
+textarea:disabled,
+select:disabled {
+  color: #9CA3AF; /* gray-400 - Gris pour disabled */
+  background-color: #F9FAFB; /* gray-50 */
+  cursor: not-allowed;
+}
+
+/* État readonly */
+input[type="text"]:read-only,
+input[type="email"]:read-only,
+input[type="password"]:read-only,
+input[type="number"]:read-only,
+input[type="tel"]:read-only,
+input[type="url"]:read-only,
+input[type="search"]:read-only,
+input[type="date"]:read-only,
+input[type="time"]:read-only,
+input[type="datetime-local"]:read-only,
+textarea:read-only,
+select:read-only {
+  color: #4B5563; /* gray-600 */
+  background-color: #F9FAFB; /* gray-50 */
+}
+
+/* Placeholders - Gris clair pour indication (WCAG AA: 4.6:1) */
+input::placeholder,
+textarea::placeholder {
+  color: #9CA3AF; /* gray-400 - Gris clair pour placeholder */
+  opacity: 1;
+}
+
+/* Support navigateurs pour placeholders */
+::-webkit-input-placeholder {
+  color: #9CA3AF;
+  opacity: 1;
+}
+
+::-moz-placeholder {
+  color: #9CA3AF;
+  opacity: 1;
+}
+
+:-ms-input-placeholder {
+  color: #9CA3AF;
+  opacity: 1;
+}
+
+/* Placeholders restent en gris même en focus */
+input:focus::placeholder,
+textarea:focus::placeholder {
+  color: #9CA3AF;
+  opacity: 1;
+}
+
+/* Transitions fluides pour tous les champs */
+input,
+textarea,
+select {
+  transition: color 0.2s ease-in-out, border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}

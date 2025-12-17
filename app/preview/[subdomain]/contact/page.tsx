@@ -125,26 +125,26 @@ export default function PublicQuoteForm() {
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Nom complet *</label>
-                                            <input type="text" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none" placeholder="Jean Dupont" value={formData.name} onChange={e => updateFormData('name', e.target.value)} />
+                                            <input type="text" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400" placeholder="Jean Dupont" value={formData.name} onChange={e => updateFormData('name', e.target.value)} />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                                            <input type="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none" placeholder="jean@email.com" value={formData.email} onChange={e => updateFormData('email', e.target.value)} />
+                                            <input type="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400" placeholder="jean@email.com" value={formData.email} onChange={e => updateFormData('email', e.target.value)} />
                                         </div>
                                     </div>
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Téléphone</label>
-                                            <input type="tel" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none" placeholder="+33 6..." value={formData.phone} onChange={e => updateFormData('phone', e.target.value)} />
+                                            <input type="tel" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400" placeholder="+33 6..." value={formData.phone} onChange={e => updateFormData('phone', e.target.value)} />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Entreprise</label>
-                                            <input type="text" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none" placeholder="Votre société" value={formData.company} onChange={e => updateFormData('company', e.target.value)} />
+                                            <input type="text" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400" placeholder="Votre société" value={formData.company} onChange={e => updateFormData('company', e.target.value)} />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">Localisation</label>
-                                        <input type="text" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none" placeholder="Paris, France" value={formData.location} onChange={e => updateFormData('location', e.target.value)} />
+                                        <input type="text" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400" placeholder="Paris, France" value={formData.location} onChange={e => updateFormData('location', e.target.value)} />
                                     </div>
                                 </div>
                             </motion.div>

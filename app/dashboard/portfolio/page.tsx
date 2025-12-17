@@ -357,7 +357,7 @@ export default function PortfolioEditorPage() {
                             value={heroTitle}
                             onChange={(e) => setHeroTitle(e.target.value)}
                             placeholder={t('dashboard.portfolio.hero.mainTitlePlaceholder')}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2 text-gray-900 placeholder:text-gray-400"
                         />
                         <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.mainTitle')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
                         <input
@@ -365,7 +365,7 @@ export default function PortfolioEditorPage() {
                             value={heroTitleEn}
                             onChange={(e) => setHeroTitleEn(e.target.value)}
                             placeholder="I transform your ideas into high-performance web applications"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder:text-gray-400"
                         />
                     </div>
                     <div>
@@ -375,7 +375,7 @@ export default function PortfolioEditorPage() {
                             value={heroSubtitle}
                             onChange={(e) => setHeroSubtitle(e.target.value)}
                             placeholder={t('dashboard.portfolio.hero.subtitlePlaceholder')}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2 text-gray-900 placeholder:text-gray-400"
                         />
                         <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.subtitle')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
                         <input
@@ -383,7 +383,7 @@ export default function PortfolioEditorPage() {
                             value={heroSubtitleEn}
                             onChange={(e) => setHeroSubtitleEn(e.target.value)}
                             placeholder="Solutions tailored to your needs and budget"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder:text-gray-400"
                         />
                     </div>
                     <div>
@@ -393,7 +393,7 @@ export default function PortfolioEditorPage() {
                             onChange={(e) => setHeroDescription(e.target.value)}
                             placeholder={t('dashboard.portfolio.hero.descriptionPlaceholder')}
                             rows={3}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2 text-gray-900 placeholder:text-gray-400"
                         />
                         <label className="block text-sm font-medium text-gray-700 mb-2">{t('dashboard.portfolio.hero.description')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span></label>
                         <textarea
@@ -401,7 +401,7 @@ export default function PortfolioEditorPage() {
                             onChange={(e) => setHeroDescriptionEn(e.target.value)}
                             placeholder="Full-Stack Developer specialized in React, Next.js and Node.js..."
                             rows={3}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder:text-gray-400"
                         />
                     </div>
                 </div>
@@ -417,7 +417,7 @@ export default function PortfolioEditorPage() {
                             type="number"
                             value={statsYears}
                             onChange={(e) => setStatsYears(parseInt(e.target.value) || 0)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder:text-gray-400"
                         />
                     </div>
                     <div>
@@ -426,7 +426,7 @@ export default function PortfolioEditorPage() {
                             type="number"
                             value={statsProjects}
                             onChange={(e) => setStatsProjects(parseInt(e.target.value) || 0)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder:text-gray-400"
                         />
                     </div>
                     <div>
@@ -435,7 +435,7 @@ export default function PortfolioEditorPage() {
                             type="number"
                             value={statsClients}
                             onChange={(e) => setStatsClients(parseInt(e.target.value) || 0)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder:text-gray-400"
                         />
                     </div>
                     <div>
@@ -445,7 +445,7 @@ export default function PortfolioEditorPage() {
                             value={statsResponseTime}
                             onChange={(e) => setStatsResponseTime(e.target.value)}
                             placeholder={t('dashboard.portfolio.stats.responseTimePlaceholder')}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder:text-gray-400"
                         />
                     </div>
                 </div>

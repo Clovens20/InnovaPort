@@ -1,9 +1,10 @@
 // app/admin/page.tsx
 import React from "react";
 import Link from "next/link";
-import { Shield, Settings, DollarSign, FileText, Palette, Users, Globe, LogOut, MessageSquare } from "lucide-react";
+import { Shield, Settings, DollarSign, FileText, Palette, Users, Globe, MessageSquare } from "lucide-react";
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
+import { LogoutButton } from './_components/logout-button';
 
 export const metadata = {
     title: "Admin | InnovaPort",
@@ -62,15 +63,7 @@ export default async function AdminPage() {
                                 <span className="hidden sm:inline">Voir le site</span>
                             </Link>
                             
-                            <form action="/auth/signout" method="post">
-                                <button
-                                    type="submit"
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
-                                >
-                                    <LogOut className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Déconnexion</span>
-                                </button>
-                            </form>
+                            <LogoutButton />
                         </div>
                     </div>
 

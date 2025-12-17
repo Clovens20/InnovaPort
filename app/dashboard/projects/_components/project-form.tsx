@@ -373,7 +373,7 @@ export default function ProjectForm() {
                                     name="title"
                                     value={formData.title}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all mb-2"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all mb-2 text-gray-900 placeholder-gray-400"
                                     placeholder="Ex: AMORA - Application de rencontres"
                                 />
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Project Name (EN) <span className="text-gray-400 font-normal">- Optionnel</span></label>
@@ -382,7 +382,7 @@ export default function ProjectForm() {
                                     name="titleEn"
                                     value={formData.titleEn}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-gray-900 placeholder-gray-400"
                                     placeholder="Ex: AMORA - Dating App"
                                 />
                                 <p className="mt-1 text-xs text-gray-500">Le nom du projet tel qu'il apparaîtra sur votre portfolio</p>
@@ -395,7 +395,7 @@ export default function ProjectForm() {
                                     name="projectUrl"
                                     value={formData.projectUrl}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none text-gray-900 placeholder-gray-400"
                                     placeholder="https://mon-projet.com"
                                 />
                                 <p className="mt-1 text-xs text-gray-500">Lien vers le projet en production ou sur GitHub</p>
@@ -412,7 +412,7 @@ export default function ProjectForm() {
                                         name="slug"
                                         value={formData.slug}
                                         onChange={handleChange}
-                                        className="flex-1 px-4 py-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none bg-gray-50"
+                                        className="flex-1 px-4 py-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none bg-gray-50 text-gray-900 placeholder-gray-400"
                                         placeholder="amora-application-rencontres"
                                         readOnly
                                     />
@@ -426,7 +426,7 @@ export default function ProjectForm() {
                                     name="category"
                                     value={formData.category}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900"
                                     required
                                 >
                                     <option value="">Sélectionner un type</option>
@@ -447,7 +447,7 @@ export default function ProjectForm() {
                                     onChange={handleChange}
                                     rows={2}
                                     maxLength={150}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none mb-2 text-gray-900 placeholder-gray-400"
                                     placeholder="Application de rencontres multiculturelles avec matching intelligent et chat temps réel"
                                     required
                                 />
@@ -458,7 +458,7 @@ export default function ProjectForm() {
                                     onChange={handleChange}
                                     rows={2}
                                     maxLength={150}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder-gray-400"
                                     placeholder="Multicultural dating app with intelligent matching and real-time chat"
                                 />
                                 <p className="mt-1 text-sm text-gray-500 text-right">{formData.shortDescription.length}/150 caractères</p>
@@ -471,7 +471,7 @@ export default function ProjectForm() {
                                     value={formData.fullDescription}
                                     onChange={handleChange}
                                     rows={8}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none mb-2"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none mb-2 text-gray-900 placeholder-gray-400"
                                     placeholder="Décrivez le projet en détail : contexte, fonctionnalités, technologies..."
                                     required
                                 />
@@ -481,7 +481,7 @@ export default function ProjectForm() {
                                     value={formData.fullDescriptionEn}
                                     onChange={handleChange}
                                     rows={8}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none resize-none text-gray-900 placeholder-gray-400"
                                     placeholder="Describe the project in detail: context, features, technologies..."
                                 />
                             </div>
@@ -493,7 +493,7 @@ export default function ProjectForm() {
                                     value={formData.problem}
                                     onChange={handleChange}
                                     rows={3}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder-gray-400"
                                     placeholder="Décrivez le contexte du projet et les défis rencontrés..."
                                 />
                             </div>
@@ -520,7 +520,7 @@ export default function ProjectForm() {
                                     value={techInput}
                                     onChange={(e) => setTechInput(e.target.value)}
                                     onKeyDown={handleTechKeyDown}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder-gray-400"
                                     placeholder="Ex: React, Node.js, MongoDB... (Entrée pour ajouter)"
                                 />
                             </div>
@@ -560,7 +560,7 @@ export default function ProjectForm() {
                                         name="clientName"
                                         value={formData.clientName}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder-gray-400"
                                         placeholder="Nom de l'entreprise ou du client"
                                         required={formData.clientType === 'professional'}
                                     />
@@ -575,14 +575,14 @@ export default function ProjectForm() {
                                         name="durationValue"
                                         value={formData.durationValue}
                                         onChange={handleChange}
-                                        className="w-24 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                        className="w-24 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900 placeholder-gray-400"
                                         placeholder="4"
                                     />
                                     <select
                                         name="durationUnit"
                                         value={formData.durationUnit}
                                         onChange={handleChange}
-                                        className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none"
+                                        className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none text-gray-900"
                                     >
                                         <option value="weeks">semaines</option>
                                         <option value="months">mois</option>

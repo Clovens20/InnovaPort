@@ -56,6 +56,8 @@ export const APP_NAME = 'InnovaPort';
 
 /**
  * URL de base de l'application
+ * Production: https://www.innovaport.dev
+ * Développement: http://localhost:3000
  */
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
@@ -68,7 +70,8 @@ export function getAppDomain(): string {
         return url.hostname;
     } catch {
         // Fallback si l'URL n'est pas valide
-        return 'innovaport.com';
+        // Production par défaut
+        return process.env.NODE_ENV === 'production' ? 'www.innovaport.dev' : 'localhost';
     }
 }
 

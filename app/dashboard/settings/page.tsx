@@ -419,7 +419,7 @@ export default function SettingsPage() {
                                     setIsDirty(true);
                                 }}
                                 placeholder={t('dashboard.settings.fullNamePlaceholder')}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                             />
                         </div>
 
@@ -435,7 +435,7 @@ export default function SettingsPage() {
                                     setIsDirty(true);
                                 }}
                                 placeholder={t('dashboard.settings.professionTitlePlaceholder')}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none mb-2"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none mb-2 text-gray-900 placeholder:text-gray-400"
                             />
                             <label className="block text-sm font-medium text-gray-700">
                                 {t('dashboard.settings.professionTitle')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span>
@@ -448,7 +448,7 @@ export default function SettingsPage() {
                                     setIsDirty(true);
                                 }}
                                 placeholder="Freelance Developer"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                             />
                         </div>
 
@@ -464,7 +464,7 @@ export default function SettingsPage() {
                                     setIsDirty(true);
                                 }}
                                 placeholder={t('dashboard.settings.publicEmailPlaceholder')}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                             />
                             <p className="text-xs text-gray-500">
                                 {t('dashboard.settings.publicEmailHint')}
@@ -499,7 +499,7 @@ export default function SettingsPage() {
                                 }}
                                 rows={4}
                                 placeholder={t('dashboard.settings.bioPlaceholder')}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none mb-2"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none mb-2 text-gray-900 placeholder:text-gray-400"
                             />
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 {t('dashboard.settings.bio')} (EN) <span className="text-gray-400 font-normal">- {t('common.optional')}</span>
@@ -512,7 +512,7 @@ export default function SettingsPage() {
                                 }}
                                 rows={4}
                                 placeholder="Creator of custom web solutions"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                             />
                             <p className="text-xs text-gray-500 mt-2">
                                 {t('dashboard.settings.bioHint')}
@@ -568,7 +568,7 @@ export default function SettingsPage() {
                                         setIsDirty(true);
                                     }}
                                     placeholder="https://tiktok.com/@your-username"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                                 />
                             </div>
 
@@ -584,7 +584,7 @@ export default function SettingsPage() {
                                         setIsDirty(true);
                                     }}
                                     placeholder="https://facebook.com/your-username"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                                 />
                             </div>
 
@@ -600,7 +600,7 @@ export default function SettingsPage() {
                                         setIsDirty(true);
                                     }}
                                     placeholder="https://twitter.com/your-username"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                                 />
                             </div>
 
@@ -616,7 +616,7 @@ export default function SettingsPage() {
                                         setIsDirty(true);
                                     }}
                                     placeholder="https://linkedin.com/in/your-username"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                                 />
                             </div>
                         </div>
@@ -689,7 +689,7 @@ export default function SettingsPage() {
                                         }
                                     }}
                                     disabled={!canCustomize}
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
                                     placeholder="your-username"
                                     readOnly={!canCustomize}
                                 />

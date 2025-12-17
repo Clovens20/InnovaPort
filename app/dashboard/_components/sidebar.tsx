@@ -111,10 +111,10 @@ export function Sidebar() {
                         <Link
                             href="/dashboard/projects/new"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-3 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                            className="flex items-center gap-3 px-4 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/20 font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                         >
                             <Plus className="w-5 h-5 text-white flex-shrink-0" aria-hidden="true" />
-                            <span>{t('dashboard.addProject')}</span>
+                            <span className="text-white">{t('dashboard.addProject')}</span>
                         </Link>
                     </div>
                 </nav>

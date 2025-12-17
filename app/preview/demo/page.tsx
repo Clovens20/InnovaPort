@@ -4,6 +4,10 @@
  * Fonction: Page de démo montrant un vrai portfolio pour attirer les développeurs
  */
 
+'use client';
+
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Home } from 'lucide-react';
 import { PortfolioClient } from '@/app/[username]/portfolio-client';
@@ -177,18 +181,130 @@ const demoProjects = [
 
 const demoTestimonials: any[] = [];
 
-// Styles dynamiques
-const primary = demoProfile.primary_color || '#1E3A8A';
-const secondary = demoProfile.secondary_color || '#10B981';
-const style = {
-    '--primary': primary,
-    '--secondary': secondary,
-    '--primary-light': hexToRgba(primary, 0.1),
-} as React.CSSProperties;
+// Fonction pour convertir les noms de polices en noms Google Fonts
+const getGoogleFontName = (fontName: string): string => {
+    const fontMap: Record<string, string> = {
+        'inter': 'Inter',
+        'poppins': 'Poppins',
+        'playfair': 'Playfair+Display',
+        'roboto': 'Roboto',
+        'montserrat': 'Montserrat',
+        'raleway': 'Raleway',
+        'oswald': 'Oswald',
+        'lora': 'Lora',
+        'merriweather': 'Merriweather',
+        'nunito': 'Nunito',
+        'ubuntu': 'Ubuntu',
+        'source-sans-pro': 'Source+Sans+Pro',
+        'work-sans': 'Work+Sans',
+        'crimson-text': 'Crimson+Text',
+        'libre-baskerville': 'Libre+Baskerville',
+        'dancing-script': 'Dancing+Script',
+        'caveat': 'Caveat',
+        'bebas-neue': 'Bebas+Neue',
+        'anton': 'Anton',
+        'lato': 'Lato',
+        'opensans': 'Open+Sans',
+        'pt-sans': 'PT+Sans',
+        'noto-sans': 'Noto+Sans',
+        'rubik': 'Rubik',
+        'quicksand': 'Quicksand',
+    };
+    return fontMap[fontName.toLowerCase()] || 'Inter';
+};
+
+// Fonction pour obtenir le nom CSS de la police
+const getFontFamily = (fontName: string): string => {
+    const fontFamilyMap: Record<string, string> = {
+        'inter': 'Inter, sans-serif',
+        'poppins': 'Poppins, sans-serif',
+        'playfair': '"Playfair Display", serif',
+        'roboto': 'Roboto, sans-serif',
+        'montserrat': 'Montserrat, sans-serif',
+        'raleway': 'Raleway, sans-serif',
+        'oswald': 'Oswald, sans-serif',
+        'lora': 'Lora, serif',
+        'merriweather': 'Merriweather, serif',
+        'nunito': 'Nunito, sans-serif',
+        'ubuntu': 'Ubuntu, sans-serif',
+        'source-sans-pro': '"Source Sans Pro", sans-serif',
+        'work-sans': '"Work Sans", sans-serif',
+        'crimson-text': '"Crimson Text", serif',
+        'libre-baskerville': '"Libre Baskerville", serif',
+        'dancing-script': '"Dancing Script", cursive',
+        'caveat': 'Caveat, cursive',
+        'bebas-neue': '"Bebas Neue", sans-serif',
+        'anton': 'Anton, sans-serif',
+        'lato': 'Lato, sans-serif',
+        'opensans': '"Open Sans", sans-serif',
+        'pt-sans': '"PT Sans", sans-serif',
+        'noto-sans': '"Noto Sans", sans-serif',
+        'rubik': 'Rubik, sans-serif',
+        'quicksand': 'Quicksand, sans-serif',
+    };
+    return fontFamilyMap[fontName.toLowerCase()] || 'Inter, sans-serif';
+};
 
 export default function DemoPage() {
+    const searchParams = useSearchParams();
+    
+    // Récupérer les paramètres de l'URL
+    const headingFont = searchParams.get('headingFont') || 'inter';
+    const bodyFont = searchParams.get('bodyFont') || 'inter';
+    const primaryColor = searchParams.get('primary') || demoProfile.primary_color || '#1E3A8A';
+    const secondaryColor = searchParams.get('secondary') || demoProfile.secondary_color || '#10B981';
+    const template = searchParams.get('template') || demoProfile.template || 'modern';
+
+    // Charger les polices Google Fonts dynamiquement
+    useEffect(() => {
+        const headingFontName = getGoogleFontName(headingFont);
+        const bodyFontName = getGoogleFontName(bodyFont);
+        
+        // Créer les liens pour charger les polices
+        const fontsToLoad = new Set([headingFontName, bodyFontName]);
+        const fontLinks: HTMLLinkElement[] = [];
+
+        fontsToLoad.forEach(font => {
+            // Vérifier si la police n'est pas déjà chargée
+            const existingLink = document.querySelector(`link[href*="${font}"]`);
+            if (!existingLink) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = `https://fonts.googleapis.com/css2?family=${font}:wght@400;500;600;700&display=swap`;
+                document.head.appendChild(link);
+                fontLinks.push(link);
+            }
+        });
+
+        // Nettoyer les liens lors du démontage
+        return () => {
+            fontLinks.forEach(link => {
+                if (link.parentNode) {
+                    link.parentNode.removeChild(link);
+                }
+            });
+        };
+    }, [headingFont, bodyFont]);
+
+    // Styles dynamiques avec les polices
+    const style = {
+        '--primary': primaryColor,
+        '--secondary': secondaryColor,
+        '--primary-light': hexToRgba(primaryColor, 0.1),
+        '--heading-font': getFontFamily(headingFont),
+        '--body-font': getFontFamily(bodyFont),
+    } as React.CSSProperties;
+
+    // Mettre à jour le profil avec les couleurs de l'URL
+    const updatedProfile = {
+        ...demoProfile,
+        primary_color: primaryColor,
+        secondary_color: secondaryColor,
+        template: template,
+    };
+
     return (
-        <div className="relative">
+        <div className="relative" style={style}>
             {/* Bouton de retour en haut */}
             <div className="fixed top-4 left-4 z-50">
                 <Link
@@ -218,11 +334,25 @@ export default function DemoPage() {
 
             {/* Portfolio avec un décalage pour la bannière */}
             <div className="pt-12">
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                        :root {
+                            --heading-font: ${getFontFamily(headingFont)};
+                            --body-font: ${getFontFamily(bodyFont)};
+                        }
+                        h1, h2, h3, h4, h5, h6, .font-heading {
+                            font-family: var(--heading-font) !important;
+                        }
+                        body, p, span, div, a, button, input, textarea, select, .font-body {
+                            font-family: var(--body-font) !important;
+                        }
+                    `
+                }} />
                 <PortfolioClient
-                    profile={demoProfile as any}
+                    profile={updatedProfile as any}
                     projects={demoProjects as any}
                     testimonials={demoTestimonials}
-                    template={demoProfile.template}
+                    template={template}
                     style={style}
                     analyticsData={{
                         userId: 'demo',

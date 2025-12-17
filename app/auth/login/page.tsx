@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useRef } from "react";
+import React, { useState, Suspense, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Eye, EyeOff } from "lucide-react";
@@ -18,6 +18,21 @@ function LoginForm() {
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
     const recaptchaRef = useRef<ReCAPTCHA>(null);
 
+    // Vérifier s'il y a une erreur dans l'URL (par exemple depuis le callback)
+    useEffect(() => {
+        const errorParam = searchParams.get('error');
+        if (errorParam === 'invalid_confirmation_link') {
+            setError(t('auth.login.invalidConfirmationLink') || 'Lien de confirmation invalide ou expiré. Veuillez réessayer.');
+        }
+    }, [searchParams, t]);
+
+    // OPTIMISATION: Précharger le client Supabase et le recaptchaSiteKey
+    const supabase = useMemo(() => createClient(), []);
+    const recaptchaSiteKey = useMemo(
+        () => typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY : undefined,
+        []
+    );
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
@@ -27,8 +42,10 @@ function LoginForm() {
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
 
+        // OPTIMISATION: Vérifier le CAPTCHA en parallèle avec l'authentification pour gagner du temps
         // Vérification du CAPTCHA (seulement si configuré)
-        const recaptchaSiteKey = typeof window !== 'undefined' ? process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY : undefined;
+        let authResult: { error: any; data: any } | null = null;
+        
         if (recaptchaSiteKey) {
             if (!captchaToken) {
                 setError(t('auth.login.captchaRequired') || t('register.captchaRequired') || 'Veuillez compléter le CAPTCHA');
@@ -36,78 +53,90 @@ function LoginForm() {
                 return;
             }
 
-            // Vérifier le CAPTCHA côté serveur
-            try {
-                const captchaResponse = await fetch('/api/verify-captcha', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ token: captchaToken }),
-                });
+            // Démarrer la vérification CAPTCHA en parallèle avec l'authentification
+            const captchaPromise = fetch('/api/verify-captcha', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token: captchaToken }),
+            }).then(res => res.json());
 
-                const captchaData = await captchaResponse.json();
+            // OPTIMISATION: Authentification avec le client préchargé (en parallèle avec CAPTCHA)
+            const authPromise = supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-                if (!captchaData.success) {
-                    setError(t('auth.login.captchaInvalid') || t('register.captchaInvalid') || 'CAPTCHA invalide. Veuillez réessayer.');
-                    recaptchaRef.current?.reset();
-                    setCaptchaToken(null);
-                    setIsLoading(false);
-                    return;
-                }
-            } catch (captchaError) {
-                console.error('CAPTCHA verification error:', captchaError);
-                setError(t('auth.login.captchaError') || t('register.captchaError') || 'Erreur lors de la vérification du CAPTCHA. Veuillez réessayer.');
+            // Attendre les deux promesses en parallèle
+            const [result, captchaData] = await Promise.all([
+                authPromise,
+                captchaPromise
+            ]);
+
+            authResult = result;
+
+            // Vérifier le CAPTCHA après l'authentification (mais en parallèle)
+            if (!captchaData.success) {
+                setError(t('auth.login.captchaInvalid') || t('register.captchaInvalid') || 'CAPTCHA invalide. Veuillez réessayer.');
+                recaptchaRef.current?.reset();
+                setCaptchaToken(null);
                 setIsLoading(false);
                 return;
             }
+        } else {
+            // OPTIMISATION: Authentification avec le client préchargé
+            authResult = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
         }
 
-        const supabase = createClient();
-        const { error: authError, data } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        });
+        const { error: authError, data } = authResult!;
 
-        if (authError) {
-            setError(authError.message);
-            setIsLoading(false);
+        // OPTIMISATION: Récupérer le rôle depuis les métadonnées utilisateur si disponible
+        // Sinon, faire une requête optimisée pour récupérer uniquement le rôle
+        const userRole = data!.user.user_metadata?.role;
+        let isAdmin = false;
+        
+        if (userRole) {
+            isAdmin = userRole === 'admin';
         } else {
-            // Vérifier le rôle de l'utilisateur pour déterminer la redirection
+            // Fallback: requête optimisée uniquement si le rôle n'est pas dans les métadonnées
             const { data: profile } = await supabase
                 .from('profiles')
                 .select('role')
-                .eq('id', data.user.id)
-                .single();
-
-            // Récupérer le paramètre redirectTo
-            const redirectTo = searchParams.get('redirectTo');
+                .eq('id', data!.user.id)
+                .maybeSingle();
             
-            // Si l'utilisateur est admin
-            if (profile?.role === 'admin') {
-                // Si redirectTo est spécifié et commence par /admin, l'utiliser
-                if (redirectTo && (redirectTo === '/admin' || redirectTo.startsWith('/admin'))) {
-                    router.push(redirectTo);
-                } else {
-                    // Sinon, rediriger vers /admin par défaut pour les admins
-                    router.push("/admin");
-                }
-            } else {
-                // Si l'utilisateur n'est pas admin
-                if (redirectTo && redirectTo.startsWith('/admin')) {
-                    // Si redirectTo pointe vers admin mais l'utilisateur n'est pas admin, rediriger vers dashboard
-                    router.push("/dashboard");
-                } else if (redirectTo) {
-                    // Utiliser le redirectTo si c'est une route valide pour développeur
-                    router.push(redirectTo);
-                } else {
-                    // Rediriger vers dashboard par défaut pour les développeurs
-                    router.push("/dashboard");
-                }
-            }
-            
-            router.refresh();
+            isAdmin = profile?.role === 'admin';
         }
+
+        // OPTIMISATION: Simplification de la logique de redirection
+        const redirectTo = searchParams.get('redirectTo');
+        
+        let targetPath = '/dashboard'; // Par défaut pour les développeurs
+        
+        if (isAdmin) {
+            // Pour les admins, vérifier si redirectTo est valide pour admin
+            if (redirectTo && (redirectTo === '/admin' || redirectTo.startsWith('/admin/'))) {
+                targetPath = redirectTo;
+            } else {
+                targetPath = '/admin';
+            }
+        } else {
+            // Pour les développeurs, ignorer les redirectTo vers /admin
+            if (redirectTo && !redirectTo.startsWith('/admin')) {
+                targetPath = redirectTo;
+            }
+        }
+
+        // OPTIMISATION: Précharger la page de destination avant la redirection
+        router.prefetch(targetPath);
+
+        // OPTIMISATION: Utiliser replace() au lieu de push() pour éviter l'historique
+        // et supprimer router.refresh() car Next.js le fait automatiquement lors de la navigation
+        router.replace(targetPath);
     };
 
     return (
@@ -135,7 +164,7 @@ function LoginForm() {
                             type="email"
                             autoComplete="email"
                             required
-                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
+                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 focus:text-gray-900 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
                             placeholder="votre@email.com"
                         />
                     </div>
@@ -152,7 +181,7 @@ function LoginForm() {
                             type={showPassword ? "text" : "password"}
                             autoComplete="current-password"
                             required
-                            className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
+                            className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 focus:text-gray-900 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
                             placeholder="••••••••"
                         />
                         <button
@@ -191,14 +220,14 @@ function LoginForm() {
                 </div>
 
                 {/* CAPTCHA - Seulement si configuré */}
-                {typeof window !== 'undefined' && process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && (
+                {recaptchaSiteKey && (
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-3">
                             {t('auth.login.captchaLabel') || t('register.captchaLabel') || 'Vérification de sécurité'} *
                         </label>
                         <ReCAPTCHA
                             ref={recaptchaRef}
-                            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                            sitekey={recaptchaSiteKey}
                             onChange={(token) => setCaptchaToken(token)}
                             onExpired={() => setCaptchaToken(null)}
                             onError={() => {

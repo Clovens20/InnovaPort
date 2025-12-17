@@ -18,6 +18,7 @@ export default function RegisterPage() {
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState<string>("");
+    const [registeredName, setRegisteredName] = useState<string>("");
     const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -85,7 +86,7 @@ export default function RegisterPage() {
                     full_name: name,
                     username: email.split('@')[0],
                 },
-                emailRedirectTo: `${window.location.origin}/auth/callback`,
+                emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
             },
         });
 
@@ -100,6 +101,7 @@ export default function RegisterPage() {
 
         if (data.user) {
             setRegisteredEmail(email);
+            setRegisteredName(name);
             
             if (data.session) {
                 // Session créée immédiatement (auto-confirm activé)
@@ -139,106 +141,169 @@ export default function RegisterPage() {
     // Message de succès après inscription
     if (showSuccessMessage) {
         return (
-            <div className="max-w-md mx-auto">
-                {/* Icône de succès */}
-                <div className="flex justify-center mb-6">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-10 h-10 text-green-600" />
+            <div className="max-w-2xl mx-auto">
+                {/* Carte principale avec design professionnel */}
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                    {/* Header avec gradient Innovaport */}
+                    <div className="bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-8 py-10 text-center">
+                        <div className="flex justify-center mb-4">
+                            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-4 border-white/30">
+                                <CheckCircle className="w-12 h-12 text-white" />
+                            </div>
+                        </div>
+                        <h2 className="text-3xl font-bold text-white mb-2">
+                            {t('register.successTitle') || 'Bienvenue sur InnovaPort ! 🎉'}
+                        </h2>
+                        {registeredName && (
+                            <p className="text-lg text-white/90 font-medium">
+                                {registeredName}
+                            </p>
+                        )}
                     </div>
-                </div>
 
-                {/* Titre */}
-                <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">
-                    {t('register.successTitle') || 'Inscription réussie ! 🎉'}
-                </h2>
+                    {/* Contenu principal */}
+                    <div className="px-8 py-8 space-y-6">
+                        {/* Message de confirmation email */}
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-shrink-0">
+                                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <Mail className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                                        {t('register.emailSent') || 'Email de confirmation envoyé'}
+                                    </h3>
+                                    <p className="text-gray-700 leading-relaxed">
+                                        {t('register.emailSentDescription') || 'Nous avons envoyé un email de confirmation à l\'adresse'}{' '}
+                                        <strong className="text-[#1E3A8A] font-semibold">{registeredEmail}</strong>
+                                        {t('register.emailSentDescriptionEnd') || '. Veuillez vérifier votre boîte de réception pour activer votre compte.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
-                {/* Message principal */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <div className="flex items-start gap-3">
-                        <Mail className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <div>
-                            <p className="text-sm font-medium text-blue-900 mb-1">
-                                {t('register.emailSent') || 'Email de confirmation envoyé'}
-                            </p>
-                            <p className="text-sm text-blue-700">
-                                {t('register.emailSentDescription') || 'Nous avons envoyé un email de confirmation à'}{' '}
-                                <strong>{registeredEmail}</strong>
-                            </p>
+                        {/* Instructions étape par étape */}
+                        <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <span className="w-8 h-8 bg-[#1E3A8A] text-white rounded-lg flex items-center justify-center text-sm font-bold">!</span>
+                                {t('register.nextSteps') || 'Comment activer votre compte :'}
+                            </h3>
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-4">
+                                    <div className="flex-shrink-0 w-8 h-8 bg-[#1E3A8A] text-white rounded-full flex items-center justify-center font-bold text-sm">
+                                        1
+                                    </div>
+                                    <div className="flex-1 pt-1">
+                                        <p className="text-gray-900 font-medium mb-1">
+                                            {t('register.step1') || 'Ouvrez votre boîte de réception'}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            {t('register.step1Description') || 'Consultez l\'email que nous venons de vous envoyer à l\'adresse indiquée ci-dessus.'}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start gap-4">
+                                    <div className="flex-shrink-0 w-8 h-8 bg-[#1E3A8A] text-white rounded-full flex items-center justify-center font-bold text-sm">
+                                        2
+                                    </div>
+                                    <div className="flex-1 pt-1">
+                                        <p className="text-gray-900 font-medium mb-1">
+                                            {t('register.step2') || 'Cliquez sur le bouton de confirmation'}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            {t('register.step2Description') || 'Dans l\'email, cliquez sur le bouton "Confirmer mon email" ou sur le lien de confirmation pour activer votre compte.'}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-start gap-4">
+                                    <div className="flex-shrink-0 w-8 h-8 bg-[#1E3A8A] text-white rounded-full flex items-center justify-center font-bold text-sm">
+                                        3
+                                    </div>
+                                    <div className="flex-1 pt-1">
+                                        <p className="text-gray-900 font-medium mb-1">
+                                            {t('register.step3') || 'Accédez à votre tableau de bord'}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                            {t('register.step3Description') || 'Une fois votre email confirmé, vous serez automatiquement redirigé vers votre tableau de bord InnovaPort pour commencer à créer votre portfolio professionnel.'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Avertissement SPAM */}
+                        <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg p-5">
+                            <div className="flex items-start gap-3">
+                                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <p className="text-sm font-semibold text-amber-900 mb-2">
+                                        {t('register.checkSpam') || 'Vous ne voyez pas l\'email ?'}
+                                    </p>
+                                    <p className="text-sm text-amber-800 leading-relaxed mb-2">
+                                        {t('register.checkSpamDescription') || 'Si l\'email n\'apparaît pas dans votre boîte de réception dans les prochaines minutes, vérifiez votre dossier de courrier indésirable (SPAM) ou vos filtres email.'}
+                                    </p>
+                                    <p className="text-xs text-amber-700 bg-amber-100 rounded px-3 py-2 mt-3">
+                                        💡 <strong>Astuce :</strong> {t('register.addToContacts') || 'Ajoutez'}{' '}
+                                        <strong>noreply@mail.app.supabase.io</strong>{' '}
+                                        {t('register.addToContactsEnd') || 'à vos contacts pour recevoir tous nos emails sans problème.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Message de succès temporaire */}
+                        {message && (
+                            <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4" />
+                                    {message}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                            <Link
+                                href="/auth/login"
+                                className="flex-1 py-3 px-6 bg-gray-100 text-gray-700 text-center rounded-lg font-semibold hover:bg-gray-200 transition-colors border border-gray-300"
+                            >
+                                {t('register.backToLogin') || 'Retour à la connexion'}
+                            </Link>
+                            
+                            <button
+                                onClick={handleResendEmail}
+                                disabled={isLoading}
+                                className="flex-1 py-3 px-6 bg-[#1E3A8A] text-white rounded-lg font-semibold hover:bg-[#1E40AF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <span>{t('register.resending') || 'Envoi en cours...'}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Mail className="w-4 h-4" />
+                                        <span>{t('register.resendEmail') || 'Renvoyer l\'email'}</span>
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Avertissement SPAM */}
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-                    <div className="flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <div>
-                            <p className="text-sm font-medium text-amber-900 mb-2">
-                                ⚠️ {t('register.checkSpam') || 'Vérifiez vos courriers indésirables'}
-                            </p>
-                            <p className="text-sm text-amber-700 mb-2">
-                                {t('register.checkSpamDescription') || 'Si vous ne recevez pas l\'email dans les prochaines minutes, consultez votre dossier SPAM ou Courrier indésirable.'}
-                            </p>
-                            <p className="text-xs text-amber-600">
-                                💡 {t('register.addToContacts') || 'Conseil : Ajoutez'}{' '}
-                                <strong>noreply@mail.app.supabase.io</strong>{' '}
-                                {t('register.addToContactsEnd') || 'à vos contacts pour éviter ce problème à l\'avenir.'}
-                            </p>
-                        </div>
-                    </div>
+                {/* Footer avec informations supplémentaires */}
+                <div className="mt-6 text-center">
+                    <p className="text-sm text-gray-500">
+                        {t('register.needHelp') || 'Besoin d\'aide ?'}{' '}
+                        <Link href="/support" className="text-[#1E3A8A] hover:text-[#1E40AF] font-medium">
+                            {t('register.contactSupport') || 'Contactez notre support'}
+                        </Link>
+                    </p>
                 </div>
-
-                {/* Instructions */}
-                <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                        {t('register.nextSteps') || 'Prochaines étapes :'}
-                    </h3>
-                    <ol className="space-y-2 text-sm text-gray-700">
-                        <li className="flex items-start gap-2">
-                            <span className="font-semibold text-blue-600">1.</span>
-                            <span>{t('register.step1') || 'Ouvrez l\'email de confirmation'}</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <span className="font-semibold text-blue-600">2.</span>
-                            <span>{t('register.step2') || 'Cliquez sur le lien de confirmation'}</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <span className="font-semibold text-blue-600">3.</span>
-                            <span>{t('register.step3') || 'Vous serez redirigé vers votre tableau de bord'}</span>
-                        </li>
-                    </ol>
-                </div>
-
-                {/* Message de succès temporaire */}
-                {message && (
-                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded text-sm mb-4">
-                        {message}
-                    </div>
-                )}
-
-                {/* Bouton de retour */}
-                <Link
-                    href="/auth/login"
-                    className="block w-full py-3 bg-blue-600 text-white text-center rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                >
-                    {t('register.backToLogin') || 'Retour à la connexion'}
-                </Link>
-
-                {/* Lien de renvoi */}
-                <button
-                    onClick={handleResendEmail}
-                    disabled={isLoading}
-                    className="w-full mt-3 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {isLoading ? (
-                        <span className="flex items-center justify-center">
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            {t('register.resending') || 'Envoi en cours...'}
-                        </span>
-                    ) : (
-                        t('register.resendEmail') || 'Renvoyer l\'email de confirmation'
-                    )}
-                </button>
             </div>
         );
     }
@@ -274,7 +339,7 @@ export default function RegisterPage() {
                             name="name"
                             type="text"
                             required
-                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
+                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 focus:text-gray-900 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
                             placeholder={t('contact.placeholders.name')}
                         />
                     </div>
@@ -291,7 +356,7 @@ export default function RegisterPage() {
                             type="email"
                             autoComplete="email"
                             required
-                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
+                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 focus:text-gray-900 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
                             placeholder={t('contact.placeholders.email')}
                         />
                     </div>
@@ -309,7 +374,7 @@ export default function RegisterPage() {
                             autoComplete="new-password"
                             required
                             minLength={8}
-                            className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
+                            className="appearance-none block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 text-gray-900 focus:text-gray-900 focus:outline-none focus:ring-[#1E3A8A] focus:border-[#1E3A8A] sm:text-sm transition-colors"
                             placeholder={t('register.passwordPlaceholder')}
                         />
                         <button

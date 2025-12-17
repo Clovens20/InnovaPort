@@ -259,7 +259,7 @@ export default function ContactPage() {
                                             </label>
                                             <input
                                                 type="text"
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400"
                                                 placeholder={t('contactForm.placeholders.name')}
                                                 value={formData.name}
                                                 onChange={(e) => updateFormData('name', e.target.value)}
@@ -270,7 +270,7 @@ export default function ContactPage() {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">{t('contactForm.form.email')} *</label>
                                             <input
                                                 type="email"
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400"
                                                 placeholder={t('contactForm.placeholders.email')}
                                                 value={formData.email}
                                                 onChange={(e) => updateFormData('email', e.target.value)}
@@ -283,7 +283,7 @@ export default function ContactPage() {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">{t('contactForm.form.phone')}</label>
                                             <input
                                                 type="tel"
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400"
                                                 placeholder={t('contactForm.placeholders.phone')}
                                                 value={formData.phone}
                                                 onChange={(e) => updateFormData('phone', e.target.value)}
@@ -293,7 +293,7 @@ export default function ContactPage() {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">{t('contactForm.form.company')}</label>
                                             <input
                                                 type="text"
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400"
                                                 placeholder={t('contactForm.placeholders.company')}
                                                 value={formData.company}
                                                 onChange={(e) => updateFormData('company', e.target.value)}
@@ -304,7 +304,7 @@ export default function ContactPage() {
                                         <label className="block text-sm font-medium text-gray-700 mb-2">{t('contactForm.form.location')}</label>
                                         <input
                                             type="text"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400"
                                             placeholder={t('contactForm.placeholders.location')}
                                             value={formData.location}
                                             onChange={(e) => updateFormData('location', e.target.value)}
@@ -430,7 +430,7 @@ export default function ContactPage() {
                                                 value={otherFeaturesText}
                                                 onChange={(e) => setOtherFeaturesText(e.target.value)}
                                                 placeholder={t('contactForm.form.otherPlaceholder')}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400"
                                             />
                                         </div>
                                     )}
@@ -456,7 +456,7 @@ export default function ContactPage() {
                                         </label>
                                         <textarea
                                             rows={6}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-900 outline-none text-gray-900 placeholder-gray-400"
                                             placeholder={t('contactForm.form.descriptionPlaceholder')}
                                             value={formData.description}
                                             onChange={(e) => updateFormData('description', e.target.value)}
