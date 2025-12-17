@@ -166,13 +166,20 @@ export default function PortfolioEditorPage() {
                 })
                 .eq('id', user.id);
 
-            if (error) throw error;
+            if (error) {
+                console.error('Error saving profile:', error);
+                // Afficher le message d'erreur détaillé
+                const errorMessage = error.message || error.details || 'Erreur lors de la sauvegarde';
+                throw new Error(errorMessage);
+            }
 
             setMessage({ type: 'success', text: t('dashboard.portfolio.success') });
             setTimeout(() => setMessage(null), 3000);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving profile:', error);
-            setMessage({ type: 'error', text: t('dashboard.portfolio.error') });
+            // Afficher le message d'erreur exact à l'utilisateur
+            const errorMessage = error?.message || error?.details || t('dashboard.portfolio.error');
+            setMessage({ type: 'error', text: `Erreur: ${errorMessage}` });
         } finally {
             setSaving(false);
         }

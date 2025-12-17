@@ -246,6 +246,7 @@ export const translations: Record<Language, Translations> = {
             actions: 'Actions',
             more: 'Plus',
             less: 'Moins',
+            optional: '(optionnel)',
         },
         // Dashboard
         dashboard: {
@@ -1526,6 +1527,7 @@ export const translations: Record<Language, Translations> = {
             actions: 'Actions',
             more: 'More',
             less: 'Less',
+            optional: '(optional)',
         },
         // Dashboard
         dashboard: {
@@ -2554,7 +2556,7 @@ export const translations: Record<Language, Translations> = {
                     commitment: 'We commit to responding to your questions within 30 days.',
                 },
                 section13: {
-                    title: '13. Useful resources',
+                    title: '13. Ressources utiles',
                     authorities: 'Data protection authorities:',
                     authority1: 'Privacy Commissioner of Canada',
                     authority2: 'Commission d\'accès à l\'information du Québec',

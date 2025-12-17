@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Mail, AlertCircle, CheckCircle } from "lucide-react";
 import ReCAPTCHA from 'react-google-recaptcha';
 import { createClient } from "@/utils/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -16,6 +16,8 @@ export default function RegisterPage() {
     const [message, setMessage] = useState<string | null>(null);
     const [showPassword, setShowPassword] = useState(false);
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+    const [registeredEmail, setRegisteredEmail] = useState<string>("");
     const recaptchaRef = useRef<ReCAPTCHA>(null);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -75,21 +77,19 @@ export default function RegisterPage() {
         const supabase = createClient();
 
         // Sign up with Supabase Auth
-        // The handle_new_user trigger in Postgres (Setup in Schema) will handle profile creation
         const { error: authError, data } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: {
                     full_name: name,
-                    username: email.split('@')[0], // Générer un username basé sur l'email
+                    username: email.split('@')[0],
                 },
-                emailRedirectTo: `${window.location.origin}/auth/login`,
+                emailRedirectTo: `${window.location.origin}/auth/callback`,
             },
         });
 
         if (authError) {
-            // Log error for debugging (in production, this would go to a logging service)
             if (process.env.NODE_ENV === 'development') {
                 console.error('Registration error:', authError);
             }
@@ -99,7 +99,8 @@ export default function RegisterPage() {
         }
 
         if (data.user) {
-            // Si email confirmation est activé dans Supabase
+            setRegisteredEmail(email);
+            
             if (data.session) {
                 // Session créée immédiatement (auto-confirm activé)
                 setMessage(t('register.createSuccess'));
@@ -108,11 +109,9 @@ export default function RegisterPage() {
                     router.refresh();
                 }, 1000);
             } else {
-                // Email confirmation requise
-                setMessage(t('register.createSuccessEmail'));
-                setTimeout(() => {
-                    router.push("/auth/login?registered=true&email=" + encodeURIComponent(email));
-                }, 3000);
+                // Email confirmation requise - Afficher le message de succès
+                setShowSuccessMessage(true);
+                setIsLoading(false);
             }
         } else {
             setError(t('register.unexpectedError'));
@@ -120,6 +119,131 @@ export default function RegisterPage() {
         }
     };
 
+    const handleResendEmail = async () => {
+        setIsLoading(true);
+        const supabase = createClient();
+        
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: registeredEmail,
+        });
+
+        if (error) {
+            setError('Erreur lors du renvoi de l\'email. Veuillez réessayer.');
+        } else {
+            setMessage('Email renvoyé ! Vérifiez votre boîte de réception et vos courriers indésirables.');
+        }
+        setIsLoading(false);
+    };
+
+    // Message de succès après inscription
+    if (showSuccessMessage) {
+        return (
+            <div className="max-w-md mx-auto">
+                {/* Icône de succès */}
+                <div className="flex justify-center mb-6">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-10 h-10 text-green-600" />
+                    </div>
+                </div>
+
+                {/* Titre */}
+                <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">
+                    {t('register.successTitle') || 'Inscription réussie ! 🎉'}
+                </h2>
+
+                {/* Message principal */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                        <Mail className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p className="text-sm font-medium text-blue-900 mb-1">
+                                {t('register.emailSent') || 'Email de confirmation envoyé'}
+                            </p>
+                            <p className="text-sm text-blue-700">
+                                {t('register.emailSentDescription') || 'Nous avons envoyé un email de confirmation à'}{' '}
+                                <strong>{registeredEmail}</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Avertissement SPAM */}
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p className="text-sm font-medium text-amber-900 mb-2">
+                                ⚠️ {t('register.checkSpam') || 'Vérifiez vos courriers indésirables'}
+                            </p>
+                            <p className="text-sm text-amber-700 mb-2">
+                                {t('register.checkSpamDescription') || 'Si vous ne recevez pas l\'email dans les prochaines minutes, consultez votre dossier SPAM ou Courrier indésirable.'}
+                            </p>
+                            <p className="text-xs text-amber-600">
+                                💡 {t('register.addToContacts') || 'Conseil : Ajoutez'}{' '}
+                                <strong>noreply@mail.app.supabase.io</strong>{' '}
+                                {t('register.addToContactsEnd') || 'à vos contacts pour éviter ce problème à l\'avenir.'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Instructions */}
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                        {t('register.nextSteps') || 'Prochaines étapes :'}
+                    </h3>
+                    <ol className="space-y-2 text-sm text-gray-700">
+                        <li className="flex items-start gap-2">
+                            <span className="font-semibold text-blue-600">1.</span>
+                            <span>{t('register.step1') || 'Ouvrez l\'email de confirmation'}</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="font-semibold text-blue-600">2.</span>
+                            <span>{t('register.step2') || 'Cliquez sur le lien de confirmation'}</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="font-semibold text-blue-600">3.</span>
+                            <span>{t('register.step3') || 'Vous serez redirigé vers votre tableau de bord'}</span>
+                        </li>
+                    </ol>
+                </div>
+
+                {/* Message de succès temporaire */}
+                {message && (
+                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded text-sm mb-4">
+                        {message}
+                    </div>
+                )}
+
+                {/* Bouton de retour */}
+                <Link
+                    href="/auth/login"
+                    className="block w-full py-3 bg-blue-600 text-white text-center rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                    {t('register.backToLogin') || 'Retour à la connexion'}
+                </Link>
+
+                {/* Lien de renvoi */}
+                <button
+                    onClick={handleResendEmail}
+                    disabled={isLoading}
+                    className="w-full mt-3 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {isLoading ? (
+                        <span className="flex items-center justify-center">
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            {t('register.resending') || 'Envoi en cours...'}
+                        </span>
+                    ) : (
+                        t('register.resendEmail') || 'Renvoyer l\'email de confirmation'
+                    )}
+                </button>
+            </div>
+        );
+    }
+
+    // Formulaire d'inscription normal
     return (
         <>
             <div className="mb-6 text-center">
