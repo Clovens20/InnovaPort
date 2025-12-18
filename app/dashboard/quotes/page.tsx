@@ -12,7 +12,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import clsx from 'clsx';
-import { Mail, Phone, Clock, MoreVertical, Loader2 } from 'lucide-react';
+import { Mail, Phone, Clock, MoreVertical, Loader2, Trash2 } from 'lucide-react';
 import { Quote } from '@/types';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -54,6 +54,7 @@ export default function QuotesPage() {
     const [loading, setLoading] = useState(true);
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [activeTab, setActiveTab] = useState<'all' | 'new' | 'discussing' | 'quoted' | 'accepted' | 'rejected'>('all');
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     useEffect(() => {
         loadQuotes();
@@ -106,6 +107,31 @@ export default function QuotesPage() {
         activeTab === 'all'
             ? quotes
             : quotes.filter((q) => q.status === activeTab);
+
+    const handleDeleteQuote = async (quoteId: string) => {
+        if (!confirm(t('dashboard.quotes.deleteConfirm'))) {
+            return;
+        }
+
+        setDeletingId(quoteId);
+        try {
+            const response = await fetch(`/api/quotes/${quoteId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete quote');
+            }
+
+            // Retirer le devis de la liste
+            setQuotes(quotes.filter((q) => q.id !== quoteId));
+        } catch (error) {
+            console.error('Error deleting quote:', error);
+            alert(t('dashboard.quotes.deleteError'));
+        } finally {
+            setDeletingId(null);
+        }
+    };
 
     if (loading) {
         return (
@@ -201,14 +227,26 @@ export default function QuotesPage() {
                                     {t('dashboard.quotes.viewDetails')}
                                 </Link>
                                 <button 
-                                    className="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                                    className="px-4 py-2.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg text-sm font-semibold transition-all whitespace-nowrap flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
+                                        handleDeleteQuote(quote.id);
                                     }}
-                                    title={t('dashboard.quotes.moreOptions')}
+                                    disabled={deletingId === quote.id}
+                                    title={t('dashboard.quotes.delete')}
                                 >
-                                    <MoreVertical className="w-5 h-5" />
+                                    {deletingId === quote.id ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span>{t('dashboard.quotes.delete')}</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 className="w-4 h-4" />
+                                            <span>{t('dashboard.quotes.delete')}</span>
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>

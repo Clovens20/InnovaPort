@@ -173,21 +173,20 @@ export default function QuoteDetailPage() {
                                 <h1 className="text-2xl font-bold text-gray-900">Demande de {quote.name}</h1>
                                 <p className="text-gray-500 mt-1">Reçue le {formatDate(quote.created_at)}</p>
                             </div>
-
-                        <select
-                            value={status}
-                            onChange={(e) => handleStatusChange(e.target.value as Quote['status'])}
-                            disabled={saving}
-                            className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary outline-none disabled:opacity-50"
-                        >
-                            <option value="new">Nouvelle</option>
-                            <option value="discussing">En discussion</option>
-                            <option value="quoted">Devis envoyé</option>
-                            <option value="accepted">Acceptée</option>
-                            <option value="rejected">Refusée</option>
-                        </select>
+                            <select
+                                value={status}
+                                onChange={(e) => handleStatusChange(e.target.value as Quote['status'])}
+                                disabled={saving}
+                                className="px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-primary outline-none disabled:opacity-50"
+                            >
+                                <option value="new">Nouvelle</option>
+                                <option value="discussing">En discussion</option>
+                                <option value="quoted">Devis envoyé</option>
+                                <option value="accepted">Acceptée</option>
+                                <option value="rejected">Refusée</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
 
                 {/* Client Info */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -381,50 +380,50 @@ export default function QuoteDetailPage() {
                         )}
                     </button>
                 </div>
-            </div>
+                </div>
 
-            {/* Sidebar Actions */}
-            <div className="space-y-4">
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 sticky top-24">
-                    <h3 className="font-semibold text-gray-900 mb-4">Actions</h3>
-                    <div className="space-y-3">
-                        <a
-                            href={`mailto:${quote.email}?subject=Re: Demande de devis - ${quote.project_type}`}
-                            className="w-full px-4 py-2.5 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors flex items-center justify-center gap-2 font-medium"
-                        >
-                            <Mail className="w-4 h-4" />
-                            Envoyer un email
-                        </a>
-                        {quote && (
-                            <div className="space-y-2">
-                                <ExportQuote quote={quote} subscriptionTier={subscriptionTier} />
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="mt-6 pt-6 border-t border-gray-100">
-                        <h3 className="font-semibold text-gray-900 mb-3">Historique</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-start gap-3">
-                                <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
-                                <div>
-                                    <p className="text-sm text-gray-900">Demande reçue</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">{formatDate(quote.created_at)}</p>
-                                </div>
-                            </div>
-                            {quote.updated_at !== quote.created_at && (
-                                <div className="flex items-start gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-gray-300 mt-1.5 shrink-0" />
-                                    <div>
-                                        <p className="text-sm text-gray-900">Dernière mise à jour</p>
-                                        <p className="text-xs text-gray-500 mt-0.5">{formatDate(quote.updated_at)}</p>
-                                    </div>
+                {/* Sidebar Actions */}
+                <div className="lg:col-span-1">
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 sticky top-24">
+                        <h3 className="font-semibold text-gray-900 mb-4">Actions</h3>
+                        <div className="space-y-3">
+                            <a
+                                href={`mailto:${quote.email}?subject=Re: Demande de devis - ${quote.project_type}`}
+                                className="w-full px-4 py-2.5 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors flex items-center justify-center gap-2 font-medium"
+                            >
+                                <Mail className="w-4 h-4" />
+                                Envoyer un email
+                            </a>
+                            {quote && (
+                                <div className="space-y-2">
+                                    <ExportQuote quote={quote} subscriptionTier={subscriptionTier} />
                                 </div>
                             )}
                         </div>
+
+                        <div className="mt-6 pt-6 border-t border-gray-100">
+                            <h3 className="font-semibold text-gray-900 mb-3">Historique</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                                    <div>
+                                        <p className="text-sm text-gray-900">Demande reçue</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">{formatDate(quote.created_at)}</p>
+                                    </div>
+                                </div>
+                                {quote.updated_at !== quote.created_at && (
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-gray-300 mt-1.5 shrink-0" />
+                                        <div>
+                                            <p className="text-sm text-gray-900">Dernière mise à jour</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">{formatDate(quote.updated_at)}</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
         </div>
     );
