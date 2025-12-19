@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
                     if (!userId && subscription.customer) {
                         try {
                             const customer = await stripe.customers.retrieve(subscription.customer as string);
-                            if (typeof customer !== 'deleted' && customer.metadata?.user_id) {
+                            // Vérifier que le customer n'est pas supprimé et a des métadonnées
+                            if (!('deleted' in customer) && customer.metadata?.user_id) {
                                 userId = customer.metadata.user_id;
                                 console.log(`User ID récupéré depuis le customer: ${userId}`);
                             }
