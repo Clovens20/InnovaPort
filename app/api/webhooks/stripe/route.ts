@@ -61,12 +61,48 @@ export async function POST(request: NextRequest) {
                         { expand: ['default_payment_method'] }
                     );
 
-                    const userId = session.metadata?.user_id || subscription.metadata?.user_id;
+                    let userId = session.metadata?.user_id || subscription.metadata?.user_id;
                     const plan = session.metadata?.plan || subscription.metadata?.plan || 'pro';
                     const innovaPortPromoCode = session.metadata?.innovaport_promo_code || subscription.metadata?.innovaport_promo_code;
 
+                    // Si userId n'est pas dans les métadonnées, essayer de le récupérer depuis le customer
+                    if (!userId && subscription.customer) {
+                        try {
+                            const customer = await stripe.customers.retrieve(subscription.customer as string);
+                            if (typeof customer !== 'deleted' && customer.metadata?.user_id) {
+                                userId = customer.metadata.user_id;
+                                console.log(`User ID récupéré depuis le customer: ${userId}`);
+                            }
+                        } catch (error) {
+                            console.error('Error retrieving customer:', error);
+                        }
+                    }
+
+                    // Si toujours pas de userId, essayer de le trouver via le customer_id dans la base de données
+                    if (!userId && subscription.customer) {
+                        try {
+                            const { data: existingProfile } = await supabaseAdmin
+                                .from('profiles')
+                                .select('id')
+                                .eq('stripe_customer_id', subscription.customer as string)
+                                .single();
+                            
+                            if (existingProfile) {
+                                userId = existingProfile.id;
+                                console.log(`User ID récupéré depuis la base de données via customer_id: ${userId}`);
+                            }
+                        } catch (error) {
+                            console.error('Error finding user by customer_id:', error);
+                        }
+                    }
+
                     if (!userId) {
-                        console.error('User ID not found in session metadata');
+                        console.error('User ID not found in session metadata, subscription metadata, customer metadata, or database');
+                        console.error('Session metadata:', JSON.stringify(session.metadata, null, 2));
+                        console.error('Subscription metadata:', JSON.stringify(subscription.metadata, null, 2));
+                        console.error('Subscription ID:', subscription.id);
+                        console.error('Customer ID:', subscription.customer);
+                        // Ne pas break, mais logger l'erreur pour investigation
                         break;
                     }
 
@@ -97,7 +133,7 @@ export async function POST(request: NextRequest) {
                     // Créer ou mettre à jour l'abonnement dans la base de données
                     // TypeScript peut avoir des problèmes avec les types Stripe, donc on utilise l'accès direct
                     const subscriptionData: any = subscription;
-                    await supabaseAdmin
+                    const { error: subscriptionError } = await supabaseAdmin
                         .from('subscriptions')
                         .upsert({
                             user_id: userId,
@@ -108,37 +144,99 @@ export async function POST(request: NextRequest) {
                             current_period_start: new Date(subscriptionData.current_period_start * 1000).toISOString(),
                             current_period_end: new Date(subscriptionData.current_period_end * 1000).toISOString(),
                             cancel_at_period_end: subscription.cancel_at_period_end || false,
+                        }, {
+                            onConflict: 'stripe_subscription_id',
                         });
 
-                    // Mettre à jour le profil
-                    await supabaseAdmin
+                    if (subscriptionError) {
+                        console.error('Error upserting subscription:', subscriptionError);
+                        throw subscriptionError;
+                    }
+
+                    // Mettre à jour le profil avec le customer_id et le plan
+                    const { error: profileError } = await supabaseAdmin
                         .from('profiles')
                         .update({
                             subscription_tier: plan,
+                            stripe_customer_id: subscription.customer as string,
                             updated_at: new Date().toISOString(),
                         })
                         .eq('id', userId);
 
-                    console.log(`Subscription created for user ${userId}, plan: ${plan}`);
+                    if (profileError) {
+                        console.error('Error updating profile:', profileError);
+                        throw profileError;
+                    }
+
+                    console.log(`✅ Subscription created/updated for user ${userId}, plan: ${plan}, subscription_id: ${subscription.id}`);
                 }
                 break;
             }
 
             case 'customer.subscription.updated': {
                 const subscription = event.data.object as Stripe.Subscription;
-                const userId = subscription.metadata?.user_id;
+                let userId = subscription.metadata?.user_id;
+
+                // Si userId n'est pas dans les métadonnées, essayer de le récupérer depuis la base de données
+                if (!userId) {
+                    try {
+                        const { data: existingSub } = await supabaseAdmin
+                            .from('subscriptions')
+                            .select('user_id')
+                            .eq('stripe_subscription_id', subscription.id)
+                            .single();
+                        
+                        if (existingSub) {
+                            userId = existingSub.user_id;
+                            console.log(`User ID récupéré depuis la base de données: ${userId}`);
+                        }
+                    } catch (error) {
+                        console.error('Error finding user by subscription_id:', error);
+                    }
+                }
 
                 if (!userId) {
-                    console.error('User ID not found in subscription metadata');
+                    console.error('User ID not found in subscription metadata or database');
+                    console.error('Subscription ID:', subscription.id);
+                    console.error('Subscription metadata:', JSON.stringify(subscription.metadata, null, 2));
                     break;
                 }
+
+                // Déterminer le plan depuis le price ID si disponible
+                let plan = subscription.metadata?.plan;
+                if (!plan && subscription.items.data.length > 0) {
+                    const priceId = subscription.items.data[0].price.id;
+                    if (priceId === process.env.STRIPE_PRICE_ID_PRO) {
+                        plan = 'pro';
+                    } else if (priceId === process.env.STRIPE_PRICE_ID_PREMIUM) {
+                        plan = 'premium';
+                    }
+                }
+                // Fallback sur le plan existant dans la base de données si toujours pas trouvé
+                if (!plan) {
+                    try {
+                        const { data: existingSub } = await supabaseAdmin
+                            .from('subscriptions')
+                            .select('plan')
+                            .eq('stripe_subscription_id', subscription.id)
+                            .single();
+                        if (existingSub) {
+                            plan = existingSub.plan;
+                        }
+                    } catch (error) {
+                        console.error('Error retrieving existing plan:', error);
+                    }
+                }
+                // Dernier fallback
+                plan = plan || 'pro';
 
                 // Mettre à jour l'abonnement dans la base de données
                 // TypeScript peut avoir des problèmes avec les types Stripe, donc on utilise l'accès direct
                 const subscriptionData: any = subscription;
-                await supabaseAdmin
+                const { error: subscriptionError } = await supabaseAdmin
                     .from('subscriptions')
                     .update({
+                        plan: plan,
                         status: subscription.status === 'active' ? 'active' : 
                                subscription.status === 'trialing' ? 'trialing' :
                                subscription.status === 'past_due' ? 'past_due' : 'canceled',
@@ -149,18 +247,39 @@ export async function POST(request: NextRequest) {
                     })
                     .eq('stripe_subscription_id', subscription.id);
 
-                // Si l'abonnement est annulé, remettre au plan gratuit
+                if (subscriptionError) {
+                    console.error('Error updating subscription:', subscriptionError);
+                }
+
+                // Mettre à jour le profil selon le statut
                 if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
-                    await supabaseAdmin
+                    const { error: profileError } = await supabaseAdmin
                         .from('profiles')
                         .update({
                             subscription_tier: 'free',
                             updated_at: new Date().toISOString(),
                         })
                         .eq('id', userId);
+
+                    if (profileError) {
+                        console.error('Error updating profile to free:', profileError);
+                    }
+                } else if (subscription.status === 'active' || subscription.status === 'trialing') {
+                    // Mettre à jour le plan si l'abonnement est actif
+                    const { error: profileError } = await supabaseAdmin
+                        .from('profiles')
+                        .update({
+                            subscription_tier: plan,
+                            updated_at: new Date().toISOString(),
+                        })
+                        .eq('id', userId);
+
+                    if (profileError) {
+                        console.error('Error updating profile plan:', profileError);
+                    }
                 }
 
-                console.log(`Subscription updated for user ${userId}, status: ${subscription.status}`);
+                console.log(`✅ Subscription updated for user ${userId}, status: ${subscription.status}, plan: ${plan}`);
                 break;
             }
 

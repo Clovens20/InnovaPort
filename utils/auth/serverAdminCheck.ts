@@ -77,3 +77,24 @@ export async function getAdminProfile() {
     return profile;
 }
 
+/**
+ * Vérifie si l'utilisateur actuel est admin (pour les API routes)
+ * @returns { isAdmin: boolean } - Objet avec la propriété isAdmin
+ */
+export async function serverAdminCheck(): Promise<{ isAdmin: boolean }> {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { isAdmin: false };
+    }
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    return { isAdmin: profile?.role === 'admin' };
+}
+
