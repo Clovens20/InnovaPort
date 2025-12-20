@@ -82,18 +82,25 @@ export async function PATCH(
             .single();
 
         if (updateError) {
+            console.error('Error updating quote status:', updateError);
             return NextResponse.json(
-                { error: 'Erreur lors de la mise à jour' },
+                { error: `Erreur lors de la mise à jour: ${updateError.message || 'Erreur inconnue'}` },
                 { status: 500 }
             );
         }
 
         // Vérifier si les notifications de changement de statut sont activées
-        const { data: reminderSettings } = await supabaseAdmin
+        // Utiliser .maybeSingle() au lieu de .single() pour éviter les erreurs si aucun enregistrement n'existe
+        const { data: reminderSettings, error: reminderError } = await supabaseAdmin
             .from('quote_reminder_settings')
             .select('notify_on_status_change')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
+
+        // Ignorer l'erreur si aucun enregistrement n'existe (c'est normal)
+        if (reminderError && reminderError.code !== 'PGRST116') {
+            console.error('Error fetching reminder settings:', reminderError);
+        }
 
         const shouldNotify = reminderSettings?.notify_on_status_change !== false; // Par défaut activé
 
@@ -101,11 +108,15 @@ export async function PATCH(
         if (oldStatus !== newStatus && shouldNotify && quote.consent_contact) {
             try {
                 // Récupérer le profil du développeur
-                const { data: profile } = await supabaseAdmin
+                const { data: profile, error: profileError } = await supabaseAdmin
                     .from('profiles')
                     .select('full_name, username, email')
                     .eq('id', user.id)
-                    .single();
+                    .maybeSingle();
+
+                if (profileError) {
+                    console.error('Error fetching profile:', profileError);
+                }
 
                 await sendStatusUpdateEmail({
                     to: quote.email,
@@ -131,8 +142,13 @@ export async function PATCH(
         });
     } catch (error: any) {
         console.error('Error in PATCH /api/quotes/[id]/status:', error);
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+        });
         return NextResponse.json(
-            { error: error.message || 'Erreur serveur interne' },
+            { error: error.message || 'Erreur serveur interne', details: process.env.NODE_ENV === 'development' ? error.stack : undefined },
             { status: 500 }
         );
     }
