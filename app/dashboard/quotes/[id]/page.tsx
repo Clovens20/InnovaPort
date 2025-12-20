@@ -10,10 +10,11 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useParams, useRouter } from 'next/navigation';
-import { Mail, Phone, MapPin, Calendar, Clock, Download, Star, Save, Loader2, ArrowRight } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Clock, Download, Star, Save, Loader2, ArrowRight, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { Quote } from '@/types';
 import { ExportQuote } from '../_components/export-quote';
+import RespondToQuoteModal from '../_components/respond-to-quote-modal';
 
 // Fonction pour formater la date
 function formatDate(date: string): string {
@@ -38,6 +39,7 @@ export default function QuoteDetailPage() {
     const [status, setStatus] = useState<Quote['status']>('new');
     const [internalNotes, setInternalNotes] = useState('');
     const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'pro' | 'premium'>('free');
+    const [showRespondModal, setShowRespondModal] = useState(false);
 
     useEffect(() => {
         loadQuote();
@@ -387,6 +389,13 @@ export default function QuoteDetailPage() {
                     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 sticky top-24">
                         <h3 className="font-semibold text-gray-900 mb-4">Actions</h3>
                         <div className="space-y-3">
+                            <button
+                                onClick={() => setShowRespondModal(true)}
+                                className="w-full px-4 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors flex items-center justify-center gap-2 font-medium shadow-sm hover:shadow-md"
+                            >
+                                <MessageSquare className="w-4 h-4" />
+                                Répondre au prospect
+                            </button>
                             <a
                                 href={`mailto:${quote.email}?subject=Re: Demande de devis - ${quote.project_type}`}
                                 className="w-full px-4 py-2.5 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors flex items-center justify-center gap-2 font-medium"
@@ -425,6 +434,17 @@ export default function QuoteDetailPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de réponse */}
+            <RespondToQuoteModal
+                isOpen={showRespondModal}
+                onClose={() => setShowRespondModal(false)}
+                quote={quote}
+                onSuccess={() => {
+                    // Recharger le devis pour mettre à jour le statut
+                    loadQuote();
+                }}
+            />
         </div>
     );
 }

@@ -3,9 +3,10 @@
 import { useState, useEffect, useMemo, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { Loader2, CheckCircle2, X, ExternalLink, Copy, Check } from "lucide-react";
+import { Loader2, CheckCircle2, X, ExternalLink, Copy, Check, Plus, Edit, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/useTranslation";
+import AutoResponseTemplateModal from "./_components/auto-response-template-modal";
 
 export default function SettingsPage() {
     const { t } = useTranslation();
@@ -40,6 +41,12 @@ export default function SettingsPage() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+
+    // Réponses automatiques
+    const [autoResponseTemplates, setAutoResponseTemplates] = useState<any[]>([]);
+    const [showTemplateModal, setShowTemplateModal] = useState(false);
+    const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
+    const [loadingTemplates, setLoadingTemplates] = useState(false);
 
     // États initiaux pour détecter les changements
     const [initialUsername, setInitialUsername] = useState("");
@@ -90,6 +97,13 @@ const hasUsernameChanges = useMemo(() => {
     useEffect(() => {
         loadProfile();
     }, []);
+
+    // Charger les templates de réponses automatiques
+    useEffect(() => {
+        if (!loading) {
+            loadAutoResponseTemplates();
+        }
+    }, [loading]);
 
     const loadProfile = async () => {
         try {
@@ -159,6 +173,97 @@ const hasUsernameChanges = useMemo(() => {
             console.error("Error loading profile:", err);
             setError(t('dashboard.settings.errorLoading'));
             setLoading(false);
+        }
+    };
+
+    // Fonction pour charger les templates de réponses automatiques
+    const loadAutoResponseTemplates = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            setLoadingTemplates(true);
+            const { data, error } = await supabase
+                .from('auto_response_templates')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            setAutoResponseTemplates(data || []);
+        } catch (err) {
+            console.error('Error loading templates:', err);
+        } finally {
+            setLoadingTemplates(false);
+        }
+    };
+
+    // Fonction pour sauvegarder un template
+    const handleSaveTemplate = async (template: any) => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("Non authentifié");
+
+            if (template.id) {
+                // Mise à jour
+                const { error } = await supabase
+                    .from('auto_response_templates')
+                    .update({
+                        name: template.name,
+                        enabled: template.enabled,
+                        conditions: template.conditions,
+                        subject: template.subject,
+                        body_html: template.body_html,
+                    })
+                    .eq('id', template.id)
+                    .eq('user_id', user.id);
+
+                if (error) throw error;
+            } else {
+                // Création
+                const { error } = await supabase
+                    .from('auto_response_templates')
+                    .insert({
+                        user_id: user.id,
+                        name: template.name,
+                        enabled: template.enabled,
+                        conditions: template.conditions,
+                        subject: template.subject,
+                        body_html: template.body_html,
+                    });
+
+                if (error) throw error;
+            }
+
+            await loadAutoResponseTemplates();
+            setSuccess(template.id ? 'Template mis à jour avec succès' : 'Template créé avec succès');
+        } catch (err: any) {
+            console.error('Error saving template:', err);
+            throw err;
+        }
+    };
+
+    // Fonction pour supprimer un template
+    const handleDeleteTemplate = async (templateId: string) => {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer ce template ?')) return;
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("Non authentifié");
+
+            const { error } = await supabase
+                .from('auto_response_templates')
+                .delete()
+                .eq('id', templateId)
+                .eq('user_id', user.id);
+
+            if (error) throw error;
+
+            await loadAutoResponseTemplates();
+            setSuccess('Template supprimé avec succès');
+        } catch (err: any) {
+            console.error('Error deleting template:', err);
+            setError(err.message || 'Erreur lors de la suppression');
         }
     };
 
@@ -782,6 +887,138 @@ const hasUsernameChanges = useMemo(() => {
                     </div>
                 )}
             </div>
+
+            {/* Section Réponses automatiques */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900">Réponses automatiques</h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Configurez des réponses personnalisées envoyées automatiquement aux prospects après qu'ils aient rempli le formulaire
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => {
+                            setEditingTemplate(null);
+                            setShowTemplateModal(true);
+                        }}
+                        className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors flex items-center gap-2"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Nouveau template
+                    </button>
+                </div>
+
+                {/* Liste des templates */}
+                {loadingTemplates ? (
+                    <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-6 h-6 animate-spin text-sky-500" />
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {autoResponseTemplates.map((template) => (
+                            <div key={template.id} className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <h3 className="font-semibold text-gray-900">{template.name}</h3>
+                                            {template.enabled ? (
+                                                <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-medium">Actif</span>
+                                            ) : (
+                                                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded font-medium">Inactif</span>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-gray-600 mb-1">
+                                            <span className="font-medium">Sujet:</span> {template.subject}
+                                        </p>
+                                        {template.conditions && Object.keys(template.conditions).length > 0 && (
+                                            <div className="text-xs text-gray-500 mt-2">
+                                                <span className="font-medium">Conditions:</span>
+                                                {template.conditions.project_type && (
+                                                    <span className="ml-2">Type: {template.conditions.project_type}</span>
+                                                )}
+                                                {template.conditions.budget_range && (
+                                                    <span className="ml-2">
+                                                        Budget: {template.conditions.budget_range.min || '∞'}€ - {template.conditions.budget_range.max || '∞'}€
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setEditingTemplate(template);
+                                                setShowTemplateModal(true);
+                                            }}
+                                            className="p-2 text-sky-600 hover:bg-sky-50 rounded-lg transition-colors"
+                                            title="Modifier"
+                                        >
+                                            <Edit className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                const { error } = await supabase
+                                                    .from('auto_response_templates')
+                                                    .update({ enabled: !template.enabled })
+                                                    .eq('id', template.id);
+                                                if (!error) {
+                                                    await loadAutoResponseTemplates();
+                                                    setSuccess(template.enabled ? 'Template désactivé' : 'Template activé');
+                                                }
+                                            }}
+                                            className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+                                            title={template.enabled ? 'Désactiver' : 'Activer'}
+                                        >
+                                            {template.enabled ? (
+                                                <X className="w-4 h-4" />
+                                            ) : (
+                                                <CheckCircle2 className="w-4 h-4" />
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteTemplate(template.id)}
+                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Supprimer"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        
+                        {autoResponseTemplates.length === 0 && (
+                            <div className="text-center py-12 border border-dashed border-gray-300 rounded-lg">
+                                <p className="text-sm text-gray-500 mb-4">
+                                    Aucun template configuré. Créez-en un pour personnaliser vos réponses automatiques.
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        setEditingTemplate(null);
+                                        setShowTemplateModal(true);
+                                    }}
+                                    className="px-4 py-2 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors inline-flex items-center gap-2"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Créer un template
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Modal pour créer/éditer un template */}
+            <AutoResponseTemplateModal
+                isOpen={showTemplateModal}
+                onClose={() => {
+                    setShowTemplateModal(false);
+                    setEditingTemplate(null);
+                }}
+                template={editingTemplate}
+                onSave={handleSaveTemplate}
+            />
         </div>
     );
 }

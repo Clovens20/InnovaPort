@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendQuoteNotificationEmail, sendQuoteConfirmationEmail } from '@/utils/resend';
+import { sendQuoteNotificationEmail, sendQuoteConfirmationEmail, sendAutoResponseEmail } from '@/utils/resend';
 import { createQuoteSchema } from '@/lib/validations/schemas';
 import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit';
 
@@ -141,6 +141,20 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Fonction helper pour convertir le budget en nombre
+        const parseBudgetToNumber = (budgetStr: string): number | null => {
+            // Exemples: "1000-5000€" -> 1000, "5000+" -> 5000, "1000€" -> 1000
+            const match = budgetStr.match(/(\d+)/);
+            return match ? parseInt(match[1], 10) : null;
+        };
+
+        // Récupérer les templates de réponses automatiques activés
+        const { data: templates, error: templatesError } = await supabaseAdmin
+            .from('auto_response_templates')
+            .select('*')
+            .eq('user_id', profile.id)
+            .eq('enabled', true);
+
         // OPTIMISATION: Envoyer les deux emails en parallèle pour réduire le temps de réponse
         // Les deux emails sont indépendants et peuvent être envoyés simultanément
         const emailPromises = [
@@ -162,18 +176,96 @@ export async function POST(request: NextRequest) {
                 }
                 // Ne pas faire échouer la requête si l'email échoue
             }),
-            // Envoyer l'email de confirmation au client
-            sendQuoteConfirmationEmail({
-                to: email,
-                clientName: name,
-            }).catch((emailError) => {
-                // Log error for debugging (in production, this would go to a logging service)
-                if (process.env.NODE_ENV === 'development') {
-                    console.error('Error sending confirmation email:', emailError);
-                }
-                // Ne pas faire échouer la requête si l'email échoue
-            }),
         ];
+
+        // Gérer la réponse automatique au client
+        if (!templatesError && templates && templates.length > 0) {
+            // Trouver le template qui correspond aux conditions
+            let matchedTemplate = null;
+            
+            for (const template of templates) {
+                const conditions = template.conditions || {};
+                let matches = true;
+                
+                // Vérifier les conditions
+                if (conditions.project_type && conditions.project_type !== projectType) {
+                    matches = false;
+                }
+                
+                if (conditions.budget_range) {
+                    // Logique pour vérifier la plage de budget
+                    // Exemple: conditions.budget_range = { min: 1000, max: 5000 }
+                    const budgetNum = parseBudgetToNumber(budget);
+                    if (budgetNum !== null) {
+                        if (conditions.budget_range.min && budgetNum < conditions.budget_range.min) {
+                            matches = false;
+                        }
+                        if (conditions.budget_range.max && budgetNum > conditions.budget_range.max) {
+                            matches = false;
+                        }
+                    }
+                }
+                
+                if (matches) {
+                    matchedTemplate = template;
+                    break; // Utiliser le premier template qui correspond
+                }
+            }
+            
+            // Si un template correspond, l'utiliser
+            if (matchedTemplate) {
+                emailPromises.push(
+                    sendAutoResponseEmail({
+                        to: email,
+                        clientName: name,
+                        quoteData: {
+                            projectType,
+                            budget,
+                            description,
+                            deadline,
+                            features: Array.isArray(features) ? features : [],
+                        },
+                        template: {
+                            subject: matchedTemplate.subject,
+                            body_html: matchedTemplate.body_html,
+                        },
+                        developerName: profile.full_name || profile.username,
+                        developerEmail: profile.email || undefined,
+                    }).catch((emailError) => {
+                        if (process.env.NODE_ENV === 'development') {
+                            console.error('Error sending auto response email:', emailError);
+                        }
+                        // Ne pas faire échouer la requête si l'email échoue
+                    })
+                );
+            } else {
+                // Fallback sur l'email de confirmation par défaut
+                emailPromises.push(
+                    sendQuoteConfirmationEmail({
+                        to: email,
+                        clientName: name,
+                    }).catch((emailError) => {
+                        if (process.env.NODE_ENV === 'development') {
+                            console.error('Error sending confirmation email:', emailError);
+                        }
+                        // Ne pas faire échouer la requête si l'email échoue
+                    })
+                );
+            }
+        } else {
+            // Pas de templates configurés, utiliser l'email par défaut
+            emailPromises.push(
+                sendQuoteConfirmationEmail({
+                    to: email,
+                    clientName: name,
+                }).catch((emailError) => {
+                    if (process.env.NODE_ENV === 'development') {
+                        console.error('Error sending confirmation email:', emailError);
+                    }
+                    // Ne pas faire échouer la requête si l'email échoue
+                })
+            );
+        }
 
         // Attendre que les deux emails soient envoyés (ou échouent silencieusement)
         await Promise.allSettled(emailPromises);
