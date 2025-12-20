@@ -42,16 +42,13 @@ export function AdminSettingsClient({ initialProfile }: { initialProfile: Profil
         setMessage(null);
 
         try {
-            const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) {
-                throw new Error('Utilisateur non authentifié');
-            }
-
-            const { error } = await supabase
-                .from('profiles')
-                .update({
+            // Utiliser la route API admin qui contourne RLS
+            const response = await fetch('/api/admin/profile', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
                     full_name: profile.full_name || null,
                     username: profile.username,
                     bio: profile.bio || null,
@@ -59,10 +56,14 @@ export function AdminSettingsClient({ initialProfile }: { initialProfile: Profil
                     website: profile.website || null,
                     linkedin_url: profile.linkedin_url || null,
                     twitter_url: profile.twitter_url || null,
-                })
-                .eq('id', user.id);
+                }),
+            });
 
-            if (error) throw error;
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de la mise à jour du profil');
+            }
 
             setMessage({ type: 'success', text: 'Profil mis à jour avec succès' });
         } catch (error: any) {
@@ -97,39 +98,25 @@ export function AdminSettingsClient({ initialProfile }: { initialProfile: Profil
         setMessage(null);
 
         try {
-            const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
+            // Utiliser la route API admin pour l'upload (contourne RLS)
+            const formData = new FormData();
+            formData.append('file', avatarFile);
 
-            if (!user) {
-                throw new Error('Utilisateur non authentifié');
+            const response = await fetch('/api/admin/avatar', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de l\'upload de l\'avatar');
             }
 
-            // Upload vers Supabase Storage
-            const fileExt = avatarFile.name.split('.').pop();
-            const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-            const filePath = `avatars/${fileName}`;
-
-            const { error: uploadError } = await supabase.storage
-                .from('avatars')
-                .upload(filePath, avatarFile, {
-                    cacheControl: '3600',
-                    upsert: true,
-                });
-
-            if (uploadError) throw uploadError;
-
-            // Récupérer l'URL publique
-            const { data: { publicUrl } } = supabase.storage
-                .from('avatars')
-                .getPublicUrl(filePath);
-
-            // Mettre à jour le profil
-            const { error: updateError } = await supabase
-                .from('profiles')
-                .update({ avatar_url: publicUrl })
-                .eq('id', user.id);
-
-            if (updateError) throw updateError;
+            // Mettre à jour l'aperçu avec la nouvelle URL
+            if (data.avatar_url) {
+                setAvatarPreview(data.avatar_url);
+            }
 
             setMessage({ type: 'success', text: 'Avatar mis à jour avec succès' });
             setAvatarFile(null);
