@@ -234,15 +234,19 @@ export function UsersAdminClient({
     const handleOpenDelete = (user: User) => {
         setUserToDelete(user);
         setDeleteConfirmText('');
+        setMessage(null); // Réinitialiser les messages d'erreur
         setShowDeleteModal(true);
     };
 
     const handleDeleteUser = async () => {
         if (!userToDelete) return;
 
+        // Normaliser le texte de confirmation (trim et uppercase)
+        const normalizedText = deleteConfirmText.trim().toUpperCase();
+        
         // Vérifier que l'utilisateur a bien tapé "SUPPRIMER"
-        if (deleteConfirmText !== 'SUPPRIMER') {
-            setMessage({ type: 'error', text: 'Veuillez taper "SUPPRIMER" pour confirmer la suppression' });
+        if (normalizedText !== 'SUPPRIMER') {
+            setMessage({ type: 'error', text: 'Veuillez taper "SUPPRIMER" en majuscules pour confirmer la suppression' });
             return;
         }
 
@@ -639,6 +643,7 @@ export function UsersAdminClient({
                                     setShowDeleteModal(false);
                                     setUserToDelete(null);
                                     setDeleteConfirmText('');
+                                    setMessage(null); // Réinitialiser les messages d'erreur
                                 }}
                                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                 disabled={loading}
@@ -648,12 +653,19 @@ export function UsersAdminClient({
                         </div>
 
                         <div className="space-y-4">
+                            {/* Message d'erreur dans le modal */}
+                            {message && message.type === 'error' && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                    <p className="text-sm text-red-800 font-semibold">{message.text}</p>
+                                </div>
+                            )}
+
                             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                                 <p className="text-sm text-red-800 font-semibold mb-2">
                                     ⚠️ Attention : Cette action est irréversible !
                                 </p>
                                 <p className="text-sm text-red-700">
-                                    La suppression du compte de <strong>{userToDelete.full_name || userToDelete.username || userToDelete.email}</strong> supprimera définitivement :
+                                    La suppression du compte de <strong className="text-red-800">{userToDelete.full_name || userToDelete.username || userToDelete.email}</strong> supprimera définitivement :
                                 </p>
                                 <ul className="list-disc list-inside text-sm text-red-700 mt-2 space-y-1">
                                     <li>Le profil utilisateur</li>
@@ -672,11 +684,33 @@ export function UsersAdminClient({
                                 <input
                                     type="text"
                                     value={deleteConfirmText}
-                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                    onChange={(e) => {
+                                        setDeleteConfirmText(e.target.value);
+                                        // Réinitialiser le message d'erreur quand l'utilisateur tape
+                                        if (message && message.type === 'error') {
+                                            setMessage(null);
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        // Permettre la soumission avec Enter si le texte est correct
+                                        if (e.key === 'Enter' && deleteConfirmText.trim().toUpperCase() === 'SUPPRIMER' && !loading) {
+                                            handleDeleteUser();
+                                        }
+                                    }}
+                                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent ${
+                                        deleteConfirmText && deleteConfirmText.trim().toUpperCase() !== 'SUPPRIMER'
+                                            ? 'border-red-300 bg-red-50'
+                                            : 'border-gray-300'
+                                    }`}
                                     placeholder="SUPPRIMER"
                                     disabled={loading}
+                                    autoFocus
                                 />
+                                {deleteConfirmText && deleteConfirmText.trim().toUpperCase() !== 'SUPPRIMER' && (
+                                    <p className="text-xs text-red-600 mt-1">
+                                        Vous devez taper "SUPPRIMER" en majuscules
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -686,6 +720,7 @@ export function UsersAdminClient({
                                     setShowDeleteModal(false);
                                     setUserToDelete(null);
                                     setDeleteConfirmText('');
+                                    setMessage(null); // Réinitialiser les messages d'erreur
                                 }}
                                 disabled={loading}
                                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
@@ -694,7 +729,7 @@ export function UsersAdminClient({
                             </button>
                             <button
                                 onClick={handleDeleteUser}
-                                disabled={loading || deleteConfirmText !== 'SUPPRIMER'}
+                                disabled={loading || deleteConfirmText.trim().toUpperCase() !== 'SUPPRIMER'}
                                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {loading ? (
