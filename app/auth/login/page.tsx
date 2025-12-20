@@ -3,7 +3,7 @@
 import React, { useState, Suspense, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, Home, ArrowLeft } from "lucide-react";
 import ReCAPTCHA from 'react-google-recaptcha';
 import { createClient } from "@/utils/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -124,6 +124,17 @@ function LoginForm() {
 
     return (
         <>
+            {/* Bouton Retour à l'accueil */}
+            <div className="mb-6">
+                <Link
+                    href="/"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-[#1E3A8A] transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    {t('auth.login.backToHome') || 'Retour à l\'accueil'}
+                </Link>
+            </div>
+
             <div className="mb-6 text-center">
                 <h3 className="text-xl font-bold text-gray-900">{t('auth.login.title')}</h3>
                 <p className="text-sm text-gray-600 mt-2">{t('auth.login.subtitle')}</p>

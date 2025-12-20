@@ -12,7 +12,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import clsx from 'clsx';
-import { Mail, Phone, Clock, MoreVertical, Loader2, Trash2 } from 'lucide-react';
+import { Mail, Phone, Clock, MoreVertical, Loader2, Trash2, CheckCircle2 } from 'lucide-react';
 import { Quote } from '@/types';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -55,6 +55,7 @@ export default function QuotesPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [activeTab, setActiveTab] = useState<'all' | 'new' | 'discussing' | 'quoted' | 'accepted' | 'rejected'>('all');
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
     useEffect(() => {
         loadQuotes();
@@ -133,6 +134,58 @@ export default function QuotesPage() {
         }
     };
 
+    const handleStatusChange = async (quoteId: string, newStatus: Quote['status']) => {
+        setUpdatingStatusId(quoteId);
+        try {
+            const response = await fetch(`/api/quotes/${quoteId}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: newStatus }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to update status');
+            }
+
+            // Mettre à jour le devis dans la liste
+            setQuotes(quotes.map((q) => 
+                q.id === quoteId ? { ...q, status: newStatus } : q
+            ));
+        } catch (error) {
+            console.error('Error updating status:', error);
+            alert(error instanceof Error ? error.message : t('dashboard.quotes.statusUpdateError'));
+        } finally {
+            setUpdatingStatusId(null);
+        }
+    };
+
+    // Fonction pour obtenir le label du statut
+    const getStatusLabel = (status: Quote['status']): string => {
+        const labels: Record<Quote['status'], string> = {
+            'new': t('dashboard.quotes.tabs.new'),
+            'discussing': t('dashboard.quotes.tabs.discussing'),
+            'quoted': t('dashboard.quotes.tabs.quoted'),
+            'accepted': t('dashboard.quotes.tabs.accepted'),
+            'rejected': t('dashboard.quotes.tabs.rejected'),
+        };
+        return labels[status] || status;
+    };
+
+    // Fonction pour obtenir la couleur du statut
+    const getStatusColor = (status: Quote['status']): string => {
+        const colors: Record<Quote['status'], string> = {
+            'new': 'bg-blue-100 text-blue-700 border-blue-200',
+            'discussing': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+            'quoted': 'bg-purple-100 text-purple-700 border-purple-200',
+            'accepted': 'bg-green-100 text-green-700 border-green-200',
+            'rejected': 'bg-red-100 text-red-700 border-red-200',
+        };
+        return colors[status] || 'bg-gray-100 text-gray-700 border-gray-200';
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -185,11 +238,27 @@ export default function QuotesPage() {
                     >
                         <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
-                                {quote.status === 'new' && (
-                                    <span className="inline-block px-3 py-1 bg-primary text-white text-xs font-bold rounded-full mb-3 uppercase tracking-wide">
-                                        {t('dashboard.quotes.newBadge')}
-                                    </span>
-                                )}
+                                <div className="flex items-center gap-3 mb-3">
+                                    <select
+                                        value={quote.status}
+                                        onChange={(e) => handleStatusChange(quote.id, e.target.value as Quote['status'])}
+                                        disabled={updatingStatusId === quote.id}
+                                        className={clsx(
+                                            'px-3 py-1.5 text-xs font-semibold rounded-lg border-2 transition-all outline-none cursor-pointer',
+                                            getStatusColor(quote.status),
+                                            updatingStatusId === quote.id && 'opacity-50 cursor-not-allowed'
+                                        )}
+                                    >
+                                        <option value="new">{t('dashboard.quotes.tabs.new')}</option>
+                                        <option value="discussing">{t('dashboard.quotes.tabs.discussing')}</option>
+                                        <option value="quoted">{t('dashboard.quotes.tabs.quoted')}</option>
+                                        <option value="accepted">{t('dashboard.quotes.tabs.accepted')}</option>
+                                        <option value="rejected">{t('dashboard.quotes.tabs.rejected')}</option>
+                                    </select>
+                                    {updatingStatusId === quote.id && (
+                                        <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                                    )}
+                                </div>
 
                                 <h3 className="text-lg font-bold text-gray-900 mb-1">{quote.name}</h3>
                                 <p className="text-gray-600 font-medium mb-2">

@@ -48,6 +48,14 @@ export default function SettingsPage() {
     const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
     const [loadingTemplates, setLoadingTemplates] = useState(false);
 
+    // Paramètres de rappels
+    const [reminderSettings, setReminderSettings] = useState<any>(null);
+    const [reminderEnabled, setReminderEnabled] = useState(true);
+    const [reminderDays, setReminderDays] = useState<number[]>([3, 7, 14]);
+    const [reminderMessage, setReminderMessage] = useState("");
+    const [notifyOnStatusChange, setNotifyOnStatusChange] = useState(true);
+    const [savingReminders, setSavingReminders] = useState(false);
+
     // États initiaux pour détecter les changements
     const [initialUsername, setInitialUsername] = useState("");
     const [initialFullName, setInitialFullName] = useState("");
@@ -96,6 +104,7 @@ const hasUsernameChanges = useMemo(() => {
 // Charger le profil au démarrage
     useEffect(() => {
         loadProfile();
+        loadReminderSettings();
     }, []);
 
     // Charger les templates de réponses automatiques
@@ -173,6 +182,75 @@ const hasUsernameChanges = useMemo(() => {
             console.error("Error loading profile:", err);
             setError(t('dashboard.settings.errorLoading'));
             setLoading(false);
+        }
+    };
+
+    // Fonction pour charger les paramètres de rappels
+    const loadReminderSettings = async () => {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data, error } = await supabase
+                .from('quote_reminder_settings')
+                .select('*')
+                .eq('user_id', user.id)
+                .single();
+
+            if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+                console.error('Error loading reminder settings:', error);
+                return;
+            }
+
+            if (data) {
+                setReminderSettings(data);
+                setReminderEnabled(data.enabled ?? true);
+                setReminderDays(data.reminder_days || [3, 7, 14]);
+                setReminderMessage(data.reminder_message || '');
+                setNotifyOnStatusChange(data.notify_on_status_change !== false);
+            } else {
+                // Créer les paramètres par défaut
+                setReminderEnabled(true);
+                setReminderDays([3, 7, 14]);
+                setReminderMessage('');
+                setNotifyOnStatusChange(true);
+            }
+        } catch (err) {
+            console.error('Error loading reminder settings:', err);
+        }
+    };
+
+    // Fonction pour sauvegarder les paramètres de rappels
+    const handleSaveReminderSettings = async () => {
+        setSavingReminders(true);
+        setError(null);
+        setSuccess(null);
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Non authentifié');
+
+            const settingsData = {
+                user_id: user.id,
+                enabled: reminderEnabled,
+                reminder_days: reminderDays,
+                reminder_message: reminderMessage || null,
+                notify_on_status_change: notifyOnStatusChange,
+            };
+
+            const { error: upsertError } = await supabase
+                .from('quote_reminder_settings')
+                .upsert(settingsData, { onConflict: 'user_id' });
+
+            if (upsertError) throw upsertError;
+
+            setSuccess('Paramètres de rappels sauvegardés avec succès');
+            await loadReminderSettings();
+        } catch (err: any) {
+            console.error('Error saving reminder settings:', err);
+            setError(err.message || 'Erreur lors de la sauvegarde');
+        } finally {
+            setSavingReminders(false);
         }
     };
 
@@ -1019,6 +1097,129 @@ const hasUsernameChanges = useMemo(() => {
                 template={editingTemplate}
                 onSave={handleSaveTemplate}
             />
+
+            {/* Section Rappels automatiques */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900">Rappels automatiques</h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Configurez les rappels automatiques pour ne jamais oublier un devis en attente
+                        </p>
+                    </div>
+                    <button
+                        onClick={handleSaveReminderSettings}
+                        disabled={savingReminders}
+                        className={`px-6 py-3 rounded-lg transition-all font-semibold flex items-center gap-2 ${
+                            savingReminders
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-sky-500 text-white hover:bg-sky-600 shadow-lg shadow-sky-500/30'
+                        }`}
+                    >
+                        {savingReminders ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Enregistrement...
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle2 className="w-5 h-5" />
+                                Enregistrer
+                            </>
+                        )}
+                    </button>
+                </div>
+
+                <div className="space-y-6">
+                    {/* Activation des rappels */}
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div>
+                            <h3 className="font-medium text-gray-900">Activer les rappels automatiques</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Recevez des rappels par email pour les devis en attente
+                            </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={reminderEnabled}
+                                onChange={(e) => setReminderEnabled(e.target.checked)}
+                                className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+                        </label>
+                    </div>
+
+                    {/* Jours de rappel */}
+                    {reminderEnabled && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Jours de rappel (après combien de jours envoyer un rappel)
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {[1, 2, 3, 5, 7, 10, 14, 21, 30].map((day) => (
+                                        <button
+                                            key={day}
+                                            type="button"
+                                            onClick={() => {
+                                                if (reminderDays.includes(day)) {
+                                                    setReminderDays(reminderDays.filter(d => d !== day));
+                                                } else {
+                                                    setReminderDays([...reminderDays, day].sort((a, b) => a - b));
+                                                }
+                                            }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                reminderDays.includes(day)
+                                                    ? 'bg-sky-500 text-white'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            {day} jour{day > 1 ? 's' : ''}
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">
+                                    Sélectionnez les jours après lesquels vous souhaitez recevoir un rappel
+                                </p>
+                            </div>
+
+                            {/* Message personnalisé */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Message personnalisé pour les rappels (optionnel)
+                                </label>
+                                <textarea
+                                    value={reminderMessage}
+                                    onChange={(e) => setReminderMessage(e.target.value)}
+                                    placeholder="Ajoutez un message personnalisé qui sera inclus dans les emails de rappel..."
+                                    rows={4}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {/* Notifications de changement de statut */}
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                        <div>
+                            <h3 className="font-medium text-gray-900">Notifier les clients lors des changements de statut</h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Envoyer automatiquement un email au client quand vous changez le statut de son devis
+                            </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={notifyOnStatusChange}
+                                onChange={(e) => setNotifyOnStatusChange(e.target.checked)}
+                                className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

@@ -144,7 +144,7 @@ export const translations: Record<Language, Translations> = {
             features: {
                 basicPortfolio: 'Portfolio basique',
                 oneProject: '1 projet',
-                fiveQuotes: '5 devis/mois',
+                fiveQuotes: '3 devis/mois',
                 communitySupport: 'Support communautaire',
                 allFree: 'Tout du plan Gratuit',
                 advancedPortfolio: 'Portfolio avancé',
@@ -177,6 +177,7 @@ export const translations: Record<Language, Translations> = {
                 submitting: 'Connexion en cours...',
                 noAccount: 'Pas encore de compte ?',
                 createAccount: 'Créer un compte',
+                backToHome: 'Retour à l\'accueil',
             },
             forgotPassword: {
                 title: 'Mot de passe oublié ?',
@@ -378,8 +379,8 @@ export const translations: Record<Language, Translations> = {
                 promoCodeError: 'Erreur lors de la validation du code promo',
                 features: {
                     free: {
-                        activeProjects: '5 projets actifs',
-                        basicQuotes: 'Gestion de devis basique',
+                        activeProjects: '3 projets actifs',
+                        basicQuotes: '3 devis/mois',
                         contactForm: 'Formulaire de contact',
                         subdomain: 'Sous-domaine InnovaPort',
                         withLogo: 'Avec logo InnovaPort',
@@ -585,6 +586,7 @@ export const translations: Record<Language, Translations> = {
                 deleteConfirm: 'Êtes-vous sûr de vouloir supprimer ce devis ?',
                 deleteSuccess: 'Devis supprimé avec succès',
                 deleteError: 'Erreur lors de la suppression du devis',
+                statusUpdateError: 'Erreur lors de la mise à jour du statut',
                 moreOptions: 'Plus d\'options',
                 noQuotes: 'Aucune demande de devis pour le moment.',
                 noQuotesFilter: 'Aucune demande trouvée pour ce filtre.',
@@ -1426,7 +1428,7 @@ export const translations: Record<Language, Translations> = {
             features: {
                 basicPortfolio: 'Basic portfolio',
                 oneProject: '1 project',
-                fiveQuotes: '5 quotes/month',
+                fiveQuotes: '3 quotes/month',
                 communitySupport: 'Community support',
                 allFree: 'Everything in Free plan',
                 advancedPortfolio: 'Advanced portfolio',
@@ -1459,6 +1461,7 @@ export const translations: Record<Language, Translations> = {
                 submitting: 'Signing in...',
                 noAccount: 'Don\'t have an account yet?',
                 createAccount: 'Create an account',
+                backToHome: 'Back to Home',
             },
             forgotPassword: {
                 title: 'Forgot Password?',
@@ -1663,8 +1666,8 @@ export const translations: Record<Language, Translations> = {
                 promoCodeError: 'Error validating promo code',
                 features: {
                     free: {
-                        activeProjects: '5 active projects',
-                        basicQuotes: 'Basic quote management',
+                        activeProjects: '3 active projects',
+                        basicQuotes: '3 quotes/month',
                         contactForm: 'Contact form',
                         subdomain: 'InnovaPort subdomain',
                         withLogo: 'With InnovaPort logo',
@@ -1870,6 +1873,7 @@ export const translations: Record<Language, Translations> = {
                 deleteConfirm: 'Are you sure you want to delete this quote?',
                 deleteSuccess: 'Quote deleted successfully',
                 deleteError: 'Error deleting quote',
+                statusUpdateError: 'Error updating status',
                 moreOptions: 'More options',
                 noQuotes: 'No quote requests at the moment.',
                 noQuotesFilter: 'No requests found for this filter.',

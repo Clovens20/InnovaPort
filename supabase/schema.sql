@@ -108,6 +108,8 @@ CREATE TABLE IF NOT EXISTS quotes (
     consent_privacy BOOLEAN DEFAULT FALSE,
     status TEXT DEFAULT 'new' CHECK (status IN ('new', 'discussing', 'quoted', 'accepted', 'rejected')),
     internal_notes TEXT,
+    last_reminder_sent_at TIMESTAMPTZ, -- Dernier rappel envoyé
+    reminders_count INTEGER DEFAULT 0, -- Nombre de rappels envoyés
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -648,4 +650,98 @@ CREATE POLICY "Users can delete own auto response templates"
 
 COMMENT ON TABLE auto_response_templates IS 'Templates de réponses automatiques personnalisées pour les prospects';
 COMMENT ON COLUMN auto_response_templates.conditions IS 'Conditions JSON pour déclencher ce template (project_type, budget_range, etc.)';
+
+-- ============================================
+-- TABLE: quote_reminder_settings
+-- Stocke les paramètres de rappels automatiques pour chaque utilisateur
+-- ============================================
+CREATE TABLE IF NOT EXISTS quote_reminder_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE UNIQUE,
+    enabled BOOLEAN DEFAULT TRUE,
+    reminder_days INTEGER[] DEFAULT ARRAY[3, 7, 14], -- Jours après lesquels envoyer un rappel (ex: après 3, 7, 14 jours)
+    reminder_message TEXT, -- Message personnalisé pour les rappels
+    notify_on_status_change BOOLEAN DEFAULT TRUE, -- Notifier le client lors des changements de statut
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index
+CREATE INDEX IF NOT EXISTS idx_quote_reminder_settings_user_id ON quote_reminder_settings(user_id);
+
+-- Trigger pour updated_at
+DROP TRIGGER IF EXISTS update_quote_reminder_settings_updated_at ON quote_reminder_settings;
+CREATE TRIGGER update_quote_reminder_settings_updated_at
+    BEFORE UPDATE ON quote_reminder_settings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS
+ALTER TABLE quote_reminder_settings ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+DROP POLICY IF EXISTS "Users can view own reminder settings" ON quote_reminder_settings;
+CREATE POLICY "Users can view own reminder settings"
+    ON quote_reminder_settings FOR SELECT
+    USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own reminder settings" ON quote_reminder_settings;
+CREATE POLICY "Users can insert own reminder settings"
+    ON quote_reminder_settings FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own reminder settings" ON quote_reminder_settings;
+CREATE POLICY "Users can update own reminder settings"
+    ON quote_reminder_settings FOR UPDATE
+    USING (auth.uid() = user_id);
+
+COMMENT ON TABLE quote_reminder_settings IS 'Paramètres de rappels automatiques pour les devis';
+COMMENT ON COLUMN quote_reminder_settings.reminder_days IS 'Tableau des jours après lesquels envoyer un rappel (ex: [3, 7, 14] = rappels après 3, 7 et 14 jours)';
+
+-- ============================================
+-- TABLE: quote_reminder_settings
+-- Stocke les paramètres de rappels automatiques pour chaque utilisateur
+-- ============================================
+CREATE TABLE IF NOT EXISTS quote_reminder_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE UNIQUE,
+    enabled BOOLEAN DEFAULT TRUE,
+    reminder_days INTEGER[] DEFAULT ARRAY[3, 7, 14], -- Jours après lesquels envoyer un rappel (ex: après 3, 7, 14 jours)
+    reminder_message TEXT, -- Message personnalisé pour les rappels
+    notify_on_status_change BOOLEAN DEFAULT TRUE, -- Notifier le client lors des changements de statut
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index
+CREATE INDEX IF NOT EXISTS idx_quote_reminder_settings_user_id ON quote_reminder_settings(user_id);
+
+-- Trigger pour updated_at
+DROP TRIGGER IF EXISTS update_quote_reminder_settings_updated_at ON quote_reminder_settings;
+CREATE TRIGGER update_quote_reminder_settings_updated_at
+    BEFORE UPDATE ON quote_reminder_settings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- RLS
+ALTER TABLE quote_reminder_settings ENABLE ROW LEVEL SECURITY;
+
+-- Policies
+DROP POLICY IF EXISTS "Users can view own reminder settings" ON quote_reminder_settings;
+CREATE POLICY "Users can view own reminder settings"
+    ON quote_reminder_settings FOR SELECT
+    USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own reminder settings" ON quote_reminder_settings;
+CREATE POLICY "Users can insert own reminder settings"
+    ON quote_reminder_settings FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own reminder settings" ON quote_reminder_settings;
+CREATE POLICY "Users can update own reminder settings"
+    ON quote_reminder_settings FOR UPDATE
+    USING (auth.uid() = user_id);
+
+COMMENT ON TABLE quote_reminder_settings IS 'Paramètres de rappels automatiques pour les devis';
+COMMENT ON COLUMN quote_reminder_settings.reminder_days IS 'Tableau des jours après lesquels envoyer un rappel (ex: [3, 7, 14] = rappels après 3, 7 et 14 jours)';
 

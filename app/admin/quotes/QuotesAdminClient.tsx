@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Mail, Phone, Clock, User, Search, Filter, Settings, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Clock, User, Search, Filter, Settings, FileText, Loader2, CheckCircle2 } from 'lucide-react';
 import { QuoteFormConfig } from './QuoteFormConfig';
 
 interface Quote {
@@ -64,6 +64,36 @@ function getStatusBadge(status: string) {
     );
 }
 
+async function handleStatusChange(quoteId: string, newStatus: string, setUpdatingStatusId: (id: string | null) => void, setQuotes: React.Dispatch<React.SetStateAction<Quote[]>>) {
+    setUpdatingStatusId(quoteId);
+    try {
+        const response = await fetch(`/api/quotes/${quoteId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus }),
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Failed to update status');
+        }
+
+        // Mettre à jour le devis dans la liste
+        setQuotes((prevQuotes) => 
+            prevQuotes.map((q) => 
+                q.id === quoteId ? { ...q, status: newStatus } : q
+            )
+        );
+    } catch (error) {
+        console.error('Error updating status:', error);
+        alert(error instanceof Error ? error.message : 'Erreur lors de la mise à jour du statut');
+    } finally {
+        setUpdatingStatusId(null);
+    }
+}
+
 export function QuotesAdminClient({
     initialQuotes,
     totalQuotes,
@@ -74,9 +104,10 @@ export function QuotesAdminClient({
     newQuotes: number;
 }) {
     const [activeTab, setActiveTab] = useState<'quotes' | 'form-config'>('quotes');
-    const [quotes] = useState<Quote[]>(initialQuotes);
+    const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
+    const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
     
     // Configuration du formulaire
     const [saving, setSaving] = useState(false);
@@ -288,7 +319,27 @@ export function QuotesAdminClient({
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
                                             <h3 className="text-lg font-semibold text-gray-900">{quote.name}</h3>
-                                            {getStatusBadge(quote.status)}
+                                            <select
+                                                value={quote.status}
+                                                onChange={(e) => handleStatusChange(quote.id, e.target.value, setUpdatingStatusId, setQuotes)}
+                                                disabled={updatingStatusId === quote.id}
+                                                className={`px-3 py-1 text-xs font-semibold rounded-lg border-2 transition-all outline-none cursor-pointer ${
+                                                    quote.status === 'new' ? 'bg-blue-100 text-blue-700 border-blue-200' :
+                                                    quote.status === 'discussing' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                                                    quote.status === 'quoted' ? 'bg-purple-100 text-purple-700 border-purple-200' :
+                                                    quote.status === 'accepted' ? 'bg-green-100 text-green-700 border-green-200' :
+                                                    'bg-red-100 text-red-700 border-red-200'
+                                                } ${updatingStatusId === quote.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            >
+                                                <option value="new">Nouveau</option>
+                                                <option value="discussing">En discussion</option>
+                                                <option value="quoted">Devis envoyé</option>
+                                                <option value="accepted">Accepté</option>
+                                                <option value="rejected">Refusé</option>
+                                            </select>
+                                            {updatingStatusId === quote.id && (
+                                                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                                             <div className="flex items-center gap-1">

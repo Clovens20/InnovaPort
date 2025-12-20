@@ -219,20 +219,39 @@ export async function sendAutoResponseEmail({
                 <html>
                 <head>
                     <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <style>
-                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f5f5f5; }
                         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                        .content { background: ${BRAND_COLORS.gray[50]}; padding: 30px; border-radius: 8px; }
-                        .footer { text-align: center; margin-top: 30px; color: ${BRAND_COLORS.gray[500]}; font-size: 12px; }
+                        .email-wrapper { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                        .header { background: ${BRAND_COLORS.primary}; color: white; padding: 30px 20px; text-align: center; }
+                        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+                        .content { background: ${BRAND_COLORS.gray[50]}; padding: 30px; line-height: 1.8; }
+                        .content p { margin: 0 0 16px 0; }
+                        .content p:last-child { margin-bottom: 0; }
+                        .signature { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+                        .signature p { margin: 4px 0; }
+                        .signature strong { color: ${BRAND_COLORS.primary}; }
+                        .footer { text-align: center; margin-top: 20px; padding: 20px; color: ${BRAND_COLORS.gray[500]}; font-size: 12px; background: white; }
                     </style>
                 </head>
                 <body>
                     <div class="container">
-                        <div class="content">
-                            ${bodyHtml}
-                        </div>
-                        <div class="footer">
-                            <p>Cet email a été envoyé automatiquement par InnovaPort</p>
+                        <div class="email-wrapper">
+                            <div class="header">
+                                <h1>Réponse à votre demande</h1>
+                            </div>
+                            <div class="content">
+                                ${bodyHtml}
+                                <div class="signature">
+                                    <p>Cordialement,</p>
+                                    <p><strong>${developerName}</strong></p>
+                                    ${developerEmail ? `<p><a href="mailto:${developerEmail}" style="color: ${BRAND_COLORS.primary}; text-decoration: none;">${developerEmail}</a></p>` : ''}
+                                </div>
+                            </div>
+                            <div class="footer">
+                                <p>Cet email a été envoyé automatiquement par InnovaPort</p>
+                            </div>
                         </div>
                     </div>
                 </body>
@@ -408,6 +427,207 @@ export async function sendDeveloperResponseEmail({
         return data;
     } catch (error) {
         console.error('Failed to send developer response email:', error);
+        throw error;
+    }
+}
+
+/**
+ * Envoie un rappel de suivi au développeur pour un devis non traité
+ */
+export async function sendFollowUpReminderEmail({
+    to,
+    developerName,
+    quoteData,
+    daysSinceQuote,
+}: {
+    to: string;
+    developerName: string;
+    quoteData: {
+        id: string;
+        name: string;
+        email: string;
+        projectType: string;
+        budget: string;
+        description: string;
+        status: string;
+    };
+    daysSinceQuote: number;
+}) {
+    try {
+        const { data, error } = await resend.emails.send({
+            from: DEFAULT_FROM_EMAIL,
+            to: [to],
+            subject: `Rappel : Devis en attente depuis ${daysSinceQuote} jour${daysSinceQuote > 1 ? 's' : ''}`,
+            html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: ${BRAND_COLORS.warning}; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                        .content { background: ${BRAND_COLORS.gray[50]}; padding: 30px; border-radius: 0 0 8px 8px; }
+                        .info-box { background: white; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid ${BRAND_COLORS.warning}; }
+                        .button { display: inline-block; padding: 12px 24px; background: ${BRAND_COLORS.primary}; color: white; text-decoration: none; border-radius: 6px; margin-top: 20px; }
+                        .footer { text-align: center; margin-top: 30px; color: ${BRAND_COLORS.gray[500]}; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1>Rappel de suivi</h1>
+                        </div>
+                        <div class="content">
+                            <p>Bonjour ${developerName},</p>
+                            <p>Vous avez un devis en attente depuis <strong>${daysSinceQuote} jour${daysSinceQuote > 1 ? 's' : ''}</strong> qui nécessite votre attention.</p>
+                            
+                            <div class="info-box">
+                                <h3 style="margin-top: 0;">Informations du devis</h3>
+                                <p><strong>Client:</strong> ${quoteData.name}</p>
+                                <p><strong>Email:</strong> ${quoteData.email}</p>
+                                <p><strong>Type de projet:</strong> ${quoteData.projectType}</p>
+                                <p><strong>Budget:</strong> ${quoteData.budget}</p>
+                                <p><strong>Statut actuel:</strong> ${quoteData.status}</p>
+                            </div>
+                            
+                            <div class="info-box">
+                                <h3 style="margin-top: 0;">Description</h3>
+                                <p>${quoteData.description}</p>
+                            </div>
+                            
+                            <a href="${APP_URL}/dashboard/quotes/${quoteData.id}" class="button">
+                                Voir et répondre au devis
+                            </a>
+                        </div>
+                        <div class="footer">
+                            <p>Cet email a été envoyé automatiquement par InnovaPort</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `,
+        });
+
+        if (error) {
+            console.error('Error sending follow-up reminder email:', error);
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Failed to send follow-up reminder email:', error);
+        throw error;
+    }
+}
+
+/**
+ * Envoie une notification au client lors d'un changement de statut du devis
+ */
+export async function sendStatusUpdateEmail({
+    to,
+    clientName,
+    developerName,
+    developerEmail,
+    quoteData,
+    oldStatus,
+    newStatus,
+}: {
+    to: string;
+    clientName: string;
+    developerName: string;
+    developerEmail?: string;
+    quoteData: {
+        projectType: string;
+        budget: string;
+    };
+    oldStatus: string;
+    newStatus: string;
+}) {
+    try {
+        const statusLabels: Record<string, string> = {
+            'new': 'Nouvelle',
+            'discussing': 'En discussion',
+            'quoted': 'Devis envoyé',
+            'accepted': 'Acceptée',
+            'rejected': 'Refusée',
+        };
+
+        const statusColors: Record<string, string> = {
+            'new': BRAND_COLORS.primary,
+            'discussing': '#3B82F6',
+            'quoted': '#10B981',
+            'accepted': '#10B981',
+            'rejected': BRAND_COLORS.error,
+        };
+
+        const { data, error } = await resend.emails.send({
+            from: DEFAULT_FROM_EMAIL,
+            to: [to],
+            replyTo: developerEmail || DEFAULT_FROM_EMAIL,
+            subject: `Mise à jour de votre demande de devis - ${statusLabels[newStatus]}`,
+            html: `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: ${statusColors[newStatus]}; color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center; }
+                        .content { background: ${BRAND_COLORS.gray[50]}; padding: 30px; border-radius: 0 0 8px 8px; }
+                        .status-box { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid ${statusColors[newStatus]}; }
+                        .info-box { background: white; padding: 15px; border-radius: 6px; margin: 15px 0; }
+                        .footer { text-align: center; margin-top: 30px; color: ${BRAND_COLORS.gray[500]}; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1 style="margin: 0;">Mise à jour de votre demande</h1>
+                        </div>
+                        <div class="content">
+                            <p>Bonjour ${clientName},</p>
+                            <p>Nous vous informons que le statut de votre demande de devis a été mis à jour.</p>
+                            
+                            <div class="status-box">
+                                <p style="margin: 0; font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Ancien statut</p>
+                                <p style="margin: 5px 0 15px 0; font-size: 18px; font-weight: 600; color: #333;">${statusLabels[oldStatus]}</p>
+                                <p style="margin: 15px 0 5px 0; font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 1px;">Nouveau statut</p>
+                                <p style="margin: 5px 0 0 0; font-size: 24px; font-weight: 700; color: ${statusColors[newStatus]};">${statusLabels[newStatus]}</p>
+                            </div>
+                            
+                            <div class="info-box">
+                                <h3 style="margin-top: 0;">Détails de votre demande</h3>
+                                <p><strong>Type de projet:</strong> ${quoteData.projectType}</p>
+                                <p><strong>Budget estimé:</strong> ${quoteData.budget}</p>
+                            </div>
+                            
+                            <p>N'hésitez pas à nous contacter si vous avez des questions.</p>
+                            
+                            <p>
+                                Cordialement,<br>
+                                <strong>${developerName}</strong>
+                                ${developerEmail ? `<br><a href="mailto:${developerEmail}" style="color: ${BRAND_COLORS.primary};">${developerEmail}</a>` : ''}
+                            </p>
+                        </div>
+                        <div class="footer">
+                            <p>Cet email a été envoyé automatiquement par InnovaPort</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `,
+        });
+
+        if (error) {
+            console.error('Error sending status update email:', error);
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Failed to send status update email:', error);
         throw error;
     }
 }

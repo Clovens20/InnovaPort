@@ -94,18 +94,25 @@ export default function QuoteDetailPage() {
 
         setSaving(true);
         try {
-            const { error } = await supabase
-                .from('quotes')
-                .update({ status: newStatus })
-                .eq('id', id);
+            const response = await fetch(`/api/quotes/${id}/status`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ status: newStatus }),
+            });
 
-            if (error) throw error;
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Erreur lors de la mise à jour');
+            }
 
+            const data = await response.json();
             setStatus(newStatus);
             setQuote({ ...quote, status: newStatus });
         } catch (error) {
             console.error('Error updating status:', error);
-            alert('Erreur lors de la mise à jour du statut');
+            alert(error instanceof Error ? error.message : 'Erreur lors de la mise à jour du statut');
         } finally {
             setSaving(false);
         }

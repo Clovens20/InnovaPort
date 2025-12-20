@@ -6,6 +6,7 @@ export type SubscriptionTier = 'free' | 'pro' | 'premium';
 
 export interface SubscriptionLimits {
     maxProjects: number | null; // null = illimité
+    maxQuotesPerMonth: number | null; // null = illimité
     customDomain: boolean;
     removeBranding: boolean; // Sans logo/filigrane InnovaPort
     exportPDF: boolean;
@@ -22,7 +23,8 @@ export interface SubscriptionLimits {
 
 export const subscriptionLimits: Record<SubscriptionTier, SubscriptionLimits> = {
     free: {
-        maxProjects: 5,
+        maxProjects: 3,
+        maxQuotesPerMonth: 3,
         customDomain: false,
         removeBranding: false, // Avec logo InnovaPort
         exportPDF: false,
@@ -38,6 +40,7 @@ export const subscriptionLimits: Record<SubscriptionTier, SubscriptionLimits> = 
     },
     pro: {
         maxProjects: null, // Illimité
+        maxQuotesPerMonth: null, // Illimité
         customDomain: true,
         removeBranding: true, // Sans logo/filigrane
         exportPDF: true,
@@ -53,6 +56,7 @@ export const subscriptionLimits: Record<SubscriptionTier, SubscriptionLimits> = 
     },
     premium: {
         maxProjects: null, // Illimité
+        maxQuotesPerMonth: null, // Illimité
         customDomain: true,
         removeBranding: true,
         exportPDF: true,
@@ -84,5 +88,16 @@ export function canCreateProject(tier: SubscriptionTier, currentProjectCount: nu
  */
 export function hasFeature(tier: SubscriptionTier, feature: keyof SubscriptionLimits): boolean {
     return subscriptionLimits[tier][feature] === true;
+}
+
+/**
+ * Vérifie si l'utilisateur peut recevoir un nouveau devis ce mois-ci
+ */
+export function canReceiveQuote(tier: SubscriptionTier, currentMonthQuoteCount: number): boolean {
+    const limits = subscriptionLimits[tier];
+    if (limits.maxQuotesPerMonth === null) {
+        return true; // Illimité
+    }
+    return currentMonthQuoteCount < limits.maxQuotesPerMonth;
 }
 

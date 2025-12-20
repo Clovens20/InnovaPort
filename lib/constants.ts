@@ -43,7 +43,7 @@ export function getDicebearAvatarUrl(seed: string): string {
 /**
  * Email expéditeur par défaut (peut être surchargé par variable d'environnement)
  */
-export const DEFAULT_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'InnovaPort <noreply@innovaport.com>';
+export const DEFAULT_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'InnovaPort <noreply@innovaport.dev>';
 
 /**
  * Nom de l'application pour les emails

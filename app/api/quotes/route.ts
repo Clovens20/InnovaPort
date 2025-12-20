@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import { sendQuoteNotificationEmail, sendQuoteConfirmationEmail, sendAutoResponseEmail } from '@/utils/resend';
 import { createQuoteSchema } from '@/lib/validations/schemas';
 import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit';
+import { subscriptionLimits, canReceiveQuote } from '@/lib/subscription-limits';
 
 // Utiliser la service role key pour bypasser RLS lors de l'insertion publique
 const supabaseAdmin = createClient(
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest) {
         // Récupérer l'utilisateur par username
         const { data: profile, error: profileError } = await supabaseAdmin
             .from('profiles')
-            .select('id, username, full_name, email')
+            .select('id, username, full_name, email, subscription_tier')
             .eq('username', username)
             .single();
 
@@ -102,6 +103,38 @@ export async function POST(request: NextRequest) {
                 { error: 'Portfolio non trouvé' },
                 { status: 404 }
             );
+        }
+
+        // Vérifier la limite de devis/mois pour le plan gratuit
+        const tier = (profile.subscription_tier || 'free') as 'free' | 'pro' | 'premium';
+        const limits = subscriptionLimits[tier];
+        
+        if (limits.maxQuotesPerMonth !== null) {
+            // Calculer le début du mois en cours (UTC)
+            const now = new Date();
+            const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+            
+            // Compter les devis du mois en cours
+            const { count: monthlyQuoteCount, error: countError } = await supabaseAdmin
+                .from('quotes')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', profile.id)
+                .gte('created_at', startOfMonth.toISOString());
+
+            if (countError) {
+                console.error('Error counting monthly quotes:', countError);
+            } else {
+                // Vérifier si la limite est atteinte
+                if (!canReceiveQuote(tier, monthlyQuoteCount || 0)) {
+                    return NextResponse.json(
+                        {
+                            error: 'Limite de devis mensuelle atteinte',
+                            message: `Le plan ${tier} permet ${limits.maxQuotesPerMonth} devis par mois maximum. Vous avez déjà reçu ${monthlyQuoteCount} devis ce mois-ci. Passez au plan Pro pour recevoir des devis illimités.`,
+                        },
+                        { status: 403 }
+                    );
+                }
+            }
         }
 
         // Insérer le devis dans la base de données
@@ -143,7 +176,20 @@ export async function POST(request: NextRequest) {
 
         // Fonction helper pour convertir le budget en nombre
         const parseBudgetToNumber = (budgetStr: string): number | null => {
-            // Exemples: "1000-5000€" -> 1000, "5000+" -> 5000, "1000€" -> 1000
+            // Gérer les valeurs textuelles (small, medium, large, xl)
+            const budgetMap: Record<string, number> = {
+                'small': 2500,      // < 5 000€ -> moyenne de 2500€
+                'medium': 7500,      // 5k€ - 10k€ -> moyenne de 7500€
+                'large': 15000,     // 10k€ - 20k€ -> moyenne de 15000€
+                'xl': 25000,        // > 20 000€ -> moyenne de 25000€
+            };
+            
+            const lowerBudget = budgetStr.toLowerCase().trim();
+            if (budgetMap[lowerBudget]) {
+                return budgetMap[lowerBudget];
+            }
+            
+            // Gérer les valeurs numériques: "1000-5000€" -> 1000, "5000+" -> 5000, "1000€" -> 1000
             const match = budgetStr.match(/(\d+)/);
             return match ? parseInt(match[1], 10) : null;
         };
