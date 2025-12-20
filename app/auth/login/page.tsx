@@ -42,10 +42,8 @@ function LoginForm() {
         const email = formData.get("email") as string;
         const password = formData.get("password") as string;
 
-        // OPTIMISATION: Vérifier le CAPTCHA en parallèle avec l'authentification pour gagner du temps
+        // OPTIMISATION: Vérifier le CAPTCHA AVANT l'authentification pour éviter une requête inutile
         // Vérification du CAPTCHA (seulement si configuré)
-        let authResult: { error: any; data: any } | null = null;
-        
         if (recaptchaSiteKey) {
             if (!captchaToken) {
                 setError(t('auth.login.captchaRequired') || t('register.captchaRequired') || 'Veuillez compléter le CAPTCHA');
@@ -53,64 +51,52 @@ function LoginForm() {
                 return;
             }
 
-            // Démarrer la vérification CAPTCHA en parallèle avec l'authentification
-            const captchaPromise = fetch('/api/verify-captcha', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ token: captchaToken }),
-            }).then(res => res.json());
+            // Vérifier le CAPTCHA d'abord (plus rapide que l'auth)
+            try {
+                const captchaResponse = await fetch('/api/verify-captcha', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: captchaToken }),
+                });
+                
+                const captchaData = await captchaResponse.json();
 
-            // OPTIMISATION: Authentification avec le client préchargé (en parallèle avec CAPTCHA)
-            const authPromise = supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-
-            // Attendre les deux promesses en parallèle
-            const [result, captchaData] = await Promise.all([
-                authPromise,
-                captchaPromise
-            ]);
-
-            authResult = result;
-
-            // Vérifier le CAPTCHA après l'authentification (mais en parallèle)
-            if (!captchaData.success) {
-                setError(t('auth.login.captchaInvalid') || t('register.captchaInvalid') || 'CAPTCHA invalide. Veuillez réessayer.');
-                recaptchaRef.current?.reset();
-                setCaptchaToken(null);
+                if (!captchaData.success) {
+                    setError(t('auth.login.captchaInvalid') || t('register.captchaInvalid') || 'CAPTCHA invalide. Veuillez réessayer.');
+                    recaptchaRef.current?.reset();
+                    setCaptchaToken(null);
+                    setIsLoading(false);
+                    return;
+                }
+            } catch (captchaError) {
+                setError(t('auth.login.captchaError') || 'Erreur lors de la vérification du CAPTCHA');
                 setIsLoading(false);
                 return;
             }
-        } else {
-            // OPTIMISATION: Authentification avec le client préchargé
-            authResult = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
         }
+
+        // OPTIMISATION: Authentification avec le client préchargé (après vérification CAPTCHA)
+        const authResult = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
 
         const { error: authError, data } = authResult!;
 
-        // OPTIMISATION: Récupérer le rôle depuis les métadonnées utilisateur si disponible
-        // Sinon, faire une requête optimisée pour récupérer uniquement le rôle
-        const userRole = data!.user.user_metadata?.role;
-        let isAdmin = false;
-        
-        if (userRole) {
-            isAdmin = userRole === 'admin';
-        } else {
-            // Fallback: requête optimisée uniquement si le rôle n'est pas dans les métadonnées
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', data!.user.id)
-                .maybeSingle();
-            
-            isAdmin = profile?.role === 'admin';
+        if (authError) {
+            setError(authError.message || t('auth.login.error') || 'Erreur lors de la connexion');
+            setIsLoading(false);
+            recaptchaRef.current?.reset();
+            setCaptchaToken(null);
+            return;
         }
+
+        // OPTIMISATION: Récupérer le rôle depuis les métadonnées utilisateur si disponible
+        // Si non disponible, utiliser une valeur par défaut et laisser la page de destination vérifier
+        const userRole = data!.user.user_metadata?.role;
+        const isAdmin = userRole === 'admin';
 
         // OPTIMISATION: Simplification de la logique de redirection
         const redirectTo = searchParams.get('redirectTo');
@@ -131,11 +117,8 @@ function LoginForm() {
             }
         }
 
-        // OPTIMISATION: Précharger la page de destination avant la redirection
-        router.prefetch(targetPath);
-
-        // OPTIMISATION: Utiliser replace() au lieu de push() pour éviter l'historique
-        // et supprimer router.refresh() car Next.js le fait automatiquement lors de la navigation
+        // OPTIMISATION: Redirection immédiate sans prefetch pour réduire la latence
+        // Le prefetch peut ralentir la redirection, on laisse Next.js gérer le chargement
         router.replace(targetPath);
     };
 

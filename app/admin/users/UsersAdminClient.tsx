@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, UserPlus, Edit, Shield, User as UserIcon, Mail, Calendar, Plus, X, Save, Loader2, Trash2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 
@@ -49,6 +50,7 @@ export function UsersAdminClient({
     totalUsers: number;
     adminCount: number;
 }) {
+    const router = useRouter();
     const [users, setUsers] = useState<User[]>(initialUsers);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -107,17 +109,20 @@ export function UsersAdminClient({
                 throw new Error(data.error || 'Erreur lors de la création');
             }
 
-            // Recharger la liste des utilisateurs
-            const supabase = createClient();
-            const { data: updatedUsers } = await supabase
-                .from('profiles')
-                .select('id, username, full_name, email, role, subscription_tier, created_at')
-                .order('created_at', { ascending: false });
-
-            setUsers((updatedUsers || []) as User[]);
             setShowCreateModal(false);
             setNewUser({ email: '', password: '', full_name: '', username: '', role: 'developer' });
             setMessage({ type: 'success', text: 'Utilisateur créé avec succès' });
+            
+            // Recharger les utilisateurs depuis l'API pour synchroniser avec la base de données
+            try {
+                const refreshResponse = await fetch('/api/admin/users');
+                if (refreshResponse.ok) {
+                    const refreshData = await refreshResponse.json();
+                    setUsers(refreshData.users || []);
+                }
+            } catch (refreshError) {
+                console.error('Error refreshing users:', refreshError);
+            }
         } catch (error: any) {
             console.error('Error creating user:', error);
             setMessage({ type: 'error', text: error.message || 'Erreur lors de la création de l\'utilisateur' });
@@ -170,15 +175,35 @@ export function UsersAdminClient({
                 throw new Error(data.error || 'Erreur lors de la mise à jour');
             }
 
-            // Recharger la liste des utilisateurs
-            const supabase = createClient();
-            const { data: updatedUsers } = await supabase
-                .from('profiles')
-                .select('id, username, full_name, email, role, subscription_tier, created_at')
-                .order('created_at', { ascending: false });
+            // Mettre à jour localement l'utilisateur modifié pour un feedback immédiat
+            setUsers(prevUsers => 
+                prevUsers.map(u => 
+                    u.id === user.id 
+                        ? { ...u, subscription_tier: newTier }
+                        : u
+                )
+            );
 
-            setUsers((updatedUsers || []) as User[]);
             setMessage({ type: 'success', text: `Plan modifié avec succès : ${tierNames[newTier]}` });
+            
+            // Recharger les utilisateurs depuis l'API pour synchroniser avec la base de données
+            try {
+                const refreshResponse = await fetch('/api/admin/users');
+                if (refreshResponse.ok) {
+                    const refreshData = await refreshResponse.json();
+                    setUsers(refreshData.users || []);
+                }
+            } catch (refreshError) {
+                console.error('Error refreshing users:', refreshError);
+                // En cas d'erreur, mettre à jour localement quand même
+                setUsers(prevUsers => 
+                    prevUsers.map(u => 
+                        u.id === user.id 
+                            ? { ...u, subscription_tier: newTier }
+                            : u
+                    )
+                );
+            }
         } catch (error: any) {
             console.error('Error updating plan:', error);
             setMessage({ type: 'error', text: error.message || 'Erreur lors de la modification du plan' });
@@ -212,17 +237,20 @@ export function UsersAdminClient({
                 throw new Error(data.error || 'Erreur lors de la mise à jour');
             }
 
-            // Recharger la liste des utilisateurs
-            const supabase = createClient();
-            const { data: updatedUsers } = await supabase
-                .from('profiles')
-                .select('id, username, full_name, email, role, subscription_tier, created_at')
-                .order('created_at', { ascending: false });
-
-            setUsers((updatedUsers || []) as User[]);
             setShowEditModal(false);
             setSelectedUser(null);
             setMessage({ type: 'success', text: 'Utilisateur mis à jour avec succès' });
+            
+            // Recharger les utilisateurs depuis l'API pour synchroniser avec la base de données
+            try {
+                const refreshResponse = await fetch('/api/admin/users');
+                if (refreshResponse.ok) {
+                    const refreshData = await refreshResponse.json();
+                    setUsers(refreshData.users || []);
+                }
+            } catch (refreshError) {
+                console.error('Error refreshing users:', refreshError);
+            }
         } catch (error: any) {
             console.error('Error updating user:', error);
             setMessage({ type: 'error', text: error.message || 'Erreur lors de la mise à jour' });
@@ -269,18 +297,21 @@ export function UsersAdminClient({
                 throw new Error(data.error || 'Erreur lors de la suppression');
             }
 
-            // Recharger la liste des utilisateurs
-            const supabase = createClient();
-            const { data: updatedUsers } = await supabase
-                .from('profiles')
-                .select('id, username, full_name, email, role, subscription_tier, created_at')
-                .order('created_at', { ascending: false });
-
-            setUsers((updatedUsers || []) as User[]);
             setShowDeleteModal(false);
             setUserToDelete(null);
             setDeleteConfirmText('');
             setMessage({ type: 'success', text: `Compte de ${userName} supprimé avec succès` });
+            
+            // Recharger les utilisateurs depuis l'API pour synchroniser avec la base de données
+            try {
+                const refreshResponse = await fetch('/api/admin/users');
+                if (refreshResponse.ok) {
+                    const refreshData = await refreshResponse.json();
+                    setUsers(refreshData.users || []);
+                }
+            } catch (refreshError) {
+                console.error('Error refreshing users:', refreshError);
+            }
         } catch (error: any) {
             console.error('Error deleting user:', error);
             setMessage({ type: 'error', text: error.message || 'Erreur lors de la suppression du compte' });

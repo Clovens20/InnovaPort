@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect, useMemo, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2, CheckCircle2, X, ExternalLink, Copy, Check } from "lucide-react";
@@ -11,9 +11,17 @@ export default function SettingsPage() {
     const { t } = useTranslation();
     const router = useRouter();
     const supabase = createClient();
+    
+    // États de chargement et sauvegarde
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    
+    // Profil
     const [profile, setProfile] = useState<any>(null);
+    
+    // Champs du formulaire
     const [username, setUsername] = useState("");
     const [fullName, setFullName] = useState("");
     const [title, setTitle] = useState("");
@@ -27,12 +35,11 @@ export default function SettingsPage() {
     const [facebookUrl, setFacebookUrl] = useState("");
     const [twitterUrl, setTwitterUrl] = useState("");
     const [linkedinUrl, setLinkedinUrl] = useState("");
+    
+    // Messages
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
-    const [savingProfile, setSavingProfile] = useState(false);
-    const [avatarUploading, setAvatarUploading] = useState(false);
-    const [isDirty, setIsDirty] = useState(false);
 
     // États initiaux pour détecter les changements
     const [initialUsername, setInitialUsername] = useState("");
@@ -48,6 +55,38 @@ export default function SettingsPage() {
     const [initialTwitterUrl, setInitialTwitterUrl] = useState("");
     const [initialLinkedinUrl, setInitialLinkedinUrl] = useState("");
 
+    // Vérifier si le profil a des changements (calcul automatique avec useMemo)
+    const hasProfileChanges = useMemo(() => 
+        fullName !== initialFullName ||
+        title !== initialTitle ||
+        titleEn !== initialTitleEn ||
+        email !== initialEmail ||
+        avatarUrl !== initialAvatarUrl || 
+        bio !== initialBio ||
+        bioEn !== initialBioEn ||
+        tiktokUrl !== initialTiktokUrl ||
+        facebookUrl !== initialFacebookUrl ||
+        twitterUrl !== initialTwitterUrl ||
+        linkedinUrl !== initialLinkedinUrl,
+        [fullName, initialFullName, title, initialTitle, titleEn, initialTitleEn, 
+         email, initialEmail, avatarUrl, initialAvatarUrl, bio, initialBio, 
+         bioEn, initialBioEn, tiktokUrl, initialTiktokUrl, facebookUrl, 
+         initialFacebookUrl, twitterUrl, initialTwitterUrl, linkedinUrl, initialLinkedinUrl]
+    );
+    
+    // ✅ NOUVEAU CODE (fonctionne)
+const hasUsernameChanges = useMemo(() => {
+    const trimmedUsername = username.trim();
+    const trimmedInitial = initialUsername.trim();
+    
+    // Vérifier que le username est valide ET différent
+    if (trimmedUsername.length < 3) return false;
+    if (trimmedUsername === trimmedInitial) return false;
+    
+    return true;
+}, [username, initialUsername]);
+
+// Charger le profil au démarrage
     useEffect(() => {
         loadProfile();
     }, []);
@@ -62,42 +101,59 @@ export default function SettingsPage() {
 
             const { data, error } = await supabase
                 .from("profiles")
-                .select("username, subscription_tier, avatar_url, bio, bio_en, full_name, title, title_en, public_email, tiktok_url, facebook_url, twitter_url, linkedin_url")
+                .select("username, subscription_tier, avatar_url, bio, bio_en, full_name, title, title_en, email, tiktok_url, facebook_url, twitter_url, linkedin_url")
                 .eq("id", user.id)
                 .maybeSingle();
 
             if (error) throw error;
 
+            // Initialiser tous les champs avec des valeurs par défaut
+            const profileData = {
+                username: data?.username || "",
+                fullName: data?.full_name || "",
+                title: data?.title || "",
+                titleEn: data?.title_en || "",
+                email: data?.email || "",
+                avatarUrl: data?.avatar_url || "",
+                bio: data?.bio || "",
+                bioEn: data?.bio_en || "",
+                tiktokUrl: data?.tiktok_url || "",
+                facebookUrl: data?.facebook_url || "",
+                twitterUrl: data?.twitter_url || "",
+                linkedinUrl: data?.linkedin_url || "",
+            };
+
             setProfile(data);
-            setUsername(data?.username || "");
-            setFullName(data?.full_name || "");
-            setTitle(data?.title || "");
-            setTitleEn(data?.title_en || "");
-            setEmail(data?.public_email || "");
-            setAvatarUrl(data?.avatar_url || "");
-            setAvatarPreview(data?.avatar_url || null);
-            setBio(data?.bio || "");
-            setBioEn(data?.bio_en || "");
-            setTiktokUrl(data?.tiktok_url || "");
-            setFacebookUrl(data?.facebook_url || "");
-            setTwitterUrl(data?.twitter_url || "");
-            setLinkedinUrl(data?.linkedin_url || "");
+            
+            // Définir les valeurs actuelles
+            setUsername(profileData.username);
+            setFullName(profileData.fullName);
+            setTitle(profileData.title);
+            setTitleEn(profileData.titleEn);
+            setEmail(profileData.email);
+            setAvatarUrl(profileData.avatarUrl);
+            setAvatarPreview(profileData.avatarUrl || null);
+            setBio(profileData.bio);
+            setBioEn(profileData.bioEn);
+            setTiktokUrl(profileData.tiktokUrl);
+            setFacebookUrl(profileData.facebookUrl);
+            setTwitterUrl(profileData.twitterUrl);
+            setLinkedinUrl(profileData.linkedinUrl);
             
             // Sauvegarder les valeurs initiales
-            setInitialUsername(data?.username || "");
-            setInitialFullName(data?.full_name || "");
-            setInitialTitle(data?.title || "");
-            setInitialTitleEn(data?.title_en || "");
-            setInitialEmail(data?.public_email || "");
-            setInitialAvatarUrl(data?.avatar_url || "");
-            setInitialBio(data?.bio || "");
-            setInitialBioEn(data?.bio_en || "");
-            setInitialTiktokUrl(data?.tiktok_url || "");
-            setInitialFacebookUrl(data?.facebook_url || "");
-            setInitialTwitterUrl(data?.twitter_url || "");
-            setInitialLinkedinUrl(data?.linkedin_url || "");
+            setInitialUsername(profileData.username);
+            setInitialFullName(profileData.fullName);
+            setInitialTitle(profileData.title);
+            setInitialTitleEn(profileData.titleEn);
+            setInitialEmail(profileData.email);
+            setInitialAvatarUrl(profileData.avatarUrl);
+            setInitialBio(profileData.bio);
+            setInitialBioEn(profileData.bioEn);
+            setInitialTiktokUrl(profileData.tiktokUrl);
+            setInitialFacebookUrl(profileData.facebookUrl);
+            setInitialTwitterUrl(profileData.twitterUrl);
+            setInitialLinkedinUrl(profileData.linkedinUrl);
             
-            setIsDirty(false);
             setLoading(false);
         } catch (err) {
             console.error("Error loading profile:", err);
@@ -125,7 +181,18 @@ export default function SettingsPage() {
         return null;
     };
 
-    const handleSave = async () => {
+    // Rafraîchir le profil quand on revient sur l'onglet (seulement si pas de modifications)
+    useEffect(() => {
+        const onVisible = () => {
+            if (document.visibilityState === "visible" && !hasProfileChanges && !savingProfile && !avatarUploading) {
+                loadProfile();
+            }
+        };
+        document.addEventListener("visibilitychange", onVisible);
+        return () => document.removeEventListener("visibilitychange", onVisible);
+    }, [hasProfileChanges, savingProfile, avatarUploading]);
+// Fonction dédiée pour sauvegarder le USERNAME uniquement
+    const handleSaveUsername = async () => {
         if (profile?.subscription_tier === "free") {
             setError(t('dashboard.settings.urlCustomizationOnlyPaid'));
             return;
@@ -145,49 +212,59 @@ export default function SettingsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("Non authentifié");
 
-            // Vérifier si le username est disponible (seulement si changé)
-            if (username !== initialUsername) {
-                const { data: existing } = await supabase
-                    .from("profiles")
-                    .select("id")
-                    .eq("username", username)
-                    .neq("id", user.id)
-                    .maybeSingle();
+            // Vérifier si le username est disponible
+            const { data: existing } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("username", username)
+                .neq("id", user.id)
+                .maybeSingle();
 
-                if (existing) {
-                    setError(t('dashboard.settings.usernameTaken'));
-                    setSaving(false);
-                    return;
-                }
-
-                // Mettre à jour le username
-                const { error: updateError } = await supabase
-                    .from("profiles")
-                    .update({ username })
-                    .eq("id", user.id);
-
-                if (updateError) throw updateError;
-
-                setSuccess(t('dashboard.settings.urlUpdated'));
-                setProfile({ ...profile, username });
-                setInitialUsername(username);
-                
-                // Forcer le rafraîchissement de la page pour mettre à jour les composants
-                // Le portfolio-url-card écoute déjà les changements via realtime Supabase
-                router.refresh();
-                
-                // Petit délai avant de rediriger pour que le message de succès soit visible
-                setTimeout(() => {
-                    router.push("/dashboard");
-                }, 1500);
+            if (existing) {
+                setError(t('dashboard.settings.usernameTaken'));
+                setSaving(false);
+                return;
             }
+
+            // Mettre à jour le username uniquement
+            const { error: updateError } = await supabase
+                .from("profiles")
+                .update({ username: username })
+                .eq("id", user.id);
+
+            if (updateError) throw updateError;
+
+            // Invalider le cache du portfolio
+            try {
+                await fetch('/api/revalidate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, userId: user.id }),
+                });
+            } catch (revalidateError) {
+                console.warn('Cache revalidation warning:', revalidateError);
+            }
+
+            setSuccess(t('dashboard.settings.urlUpdated'));
+            setProfile({ ...profile, username });
+            setInitialUsername(username);
+            
+            // Rafraîchir la page
+            router.refresh();
+            
+            // Rediriger après un délai
+            setTimeout(() => {
+                router.push("/dashboard");
+            }, 1500);
         } catch (err: any) {
+            console.error("Error updating username:", err);
             setError(err.message || t('dashboard.settings.errorUpdating'));
         } finally {
             setSaving(false);
         }
     };
 
+    // Fonction pour copier l'URL
     const handleCopy = async () => {
         const baseUrl = window.location.origin;
         const portfolioUrl = `${baseUrl}/${username}`;
@@ -200,6 +277,7 @@ export default function SettingsPage() {
         }
     };
 
+    // Fonction pour uploader l'avatar
     const handleAvatarUpload = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -213,7 +291,6 @@ export default function SettingsPage() {
         const reader = new FileReader();
         reader.onloadend = () => {
             setAvatarPreview(reader.result as string);
-            setIsDirty(true);
         };
         reader.readAsDataURL(file);
 
@@ -228,20 +305,25 @@ export default function SettingsPage() {
             const ext = file.name.split(".").pop();
             const path = `avatars/${user.id}/${Date.now()}.${ext}`;
 
-            const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, {
-                upsert: true,
-                cacheControl: "3600",
-            });
+            const { error: uploadError } = await supabase.storage
+                .from("avatars")
+                .upload(path, file, {
+                    upsert: true,
+                    cacheControl: "3600",
+                });
 
             if (uploadError) throw uploadError;
 
-            const { data: publicUrlData } = supabase.storage.from("avatars").getPublicUrl(path);
+            const { data: publicUrlData } = supabase.storage
+                .from("avatars")
+                .getPublicUrl(path);
+            
             const publicUrl = publicUrlData.publicUrl;
 
             setAvatarUrl(publicUrl);
             setAvatarPreview(publicUrl);
-            setIsDirty(true);
         } catch (err: any) {
+            console.error("Error uploading avatar:", err);
             setError(err.message || t('common.errorUploading'));
             // Restaurer l'avatar précédent en cas d'erreur
             setAvatarPreview(initialAvatarUrl || null);
@@ -250,6 +332,7 @@ export default function SettingsPage() {
         }
     };
 
+    // Fonction pour sauvegarder le PROFIL (tous les champs sauf username)
     const handleSaveProfile = async () => {
         setSavingProfile(true);
         setError(null);
@@ -259,42 +342,55 @@ export default function SettingsPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) throw new Error("Non authentifié");
 
-            const { error: updateError } = await supabase
-                .from("profiles")
-                .update({
-                    full_name: fullName || null,
-                    title: title || null,
-                    title_en: titleEn || null,
-                    public_email: email || null,
-                    avatar_url: avatarUrl || null,
-                    bio: bio || null,
-                    bio_en: bioEn || null,
-                    tiktok_url: tiktokUrl || null,
-                    facebook_url: facebookUrl || null,
-                    twitter_url: twitterUrl || null,
-                    linkedin_url: linkedinUrl || null,
-                })
-                .eq("id", user.id);
+            const updateData = {
+                full_name: fullName || null,
+                title: title || null,
+                title_en: titleEn || null,
+                email: email || null,
+                avatar_url: avatarUrl || null,
+                bio: bio || null,
+                bio_en: bioEn || null,
+                tiktok_url: tiktokUrl || null,
+                facebook_url: facebookUrl || null,
+                twitter_url: twitterUrl || null,
+                linkedin_url: linkedinUrl || null,
+            };
 
-            if (updateError) throw updateError;
+            console.log('Updating profile with data:', updateData);
+
+            const { data: updatedData, error: updateError } = await supabase
+                .from("profiles")
+                .update(updateData)
+                .eq("id", user.id)
+                .select()
+                .single();
+
+            if (updateError) {
+                console.error('Error updating profile:', updateError);
+                throw updateError;
+            }
+
+            if (!updatedData) {
+                throw new Error('Aucune donnée retournée après la mise à jour');
+            }
+
+            console.log('Profile updated successfully:', updatedData);
+
+            // Invalider le cache du portfolio
+            try {
+                await fetch('/api/revalidate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, userId: user.id }),
+                });
+            } catch (revalidateError) {
+                console.warn('Cache revalidation warning:', revalidateError);
+            }
 
             setSuccess(t('dashboard.settings.successUpdating'));
-            setProfile({ 
-                ...profile, 
-                full_name: fullName,
-                title: title,
-                title_en: titleEn,
-                public_email: email,
-                avatar_url: avatarUrl, 
-                bio: bio,
-                bio_en: bioEn,
-                tiktok_url: tiktokUrl,
-                facebook_url: facebookUrl,
-                twitter_url: twitterUrl,
-                linkedin_url: linkedinUrl,
-            });
+            setProfile({ ...profile, ...updateData });
             
-            // Mettre à jour les valeurs initiales après sauvegarde
+            // Mettre à jour les valeurs initiales après sauvegarde réussie
             setInitialFullName(fullName);
             setInitialTitle(title);
             setInitialTitleEn(titleEn);
@@ -306,28 +402,18 @@ export default function SettingsPage() {
             setInitialFacebookUrl(facebookUrl);
             setInitialTwitterUrl(twitterUrl);
             setInitialLinkedinUrl(linkedinUrl);
-            setIsDirty(false);
             
             // Rafraîchir pour mettre à jour les autres composants
             router.refresh();
         } catch (err: any) {
-            setError(err.message || t('dashboard.settings.errorUpdating'));
+            console.error('Error in handleSaveProfile:', err);
+            const errorMessage = err.message || t('dashboard.settings.errorUpdating');
+            setError(errorMessage);
         } finally {
             setSavingProfile(false);
         }
     };
-
-    // Rafraîchir le profil quand on revient sur l'onglet (si pas de brouillon en cours)
-    useEffect(() => {
-        const onVisible = () => {
-            if (document.visibilityState === "visible" && !isDirty && !savingProfile && !avatarUploading) {
-                loadProfile();
-            }
-        };
-        document.addEventListener("visibilitychange", onVisible);
-        return () => document.removeEventListener("visibilitychange", onVisible);
-    }, [isDirty, savingProfile, avatarUploading]);
-
+// État de chargement
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -338,22 +424,7 @@ export default function SettingsPage() {
 
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
     const portfolioUrl = `${baseUrl}/${username}`;
-    // Seuls les plans 'pro' et 'premium' peuvent personnaliser leur URL
     const canCustomize = profile?.subscription_tier === "pro" || profile?.subscription_tier === "premium";
-    
-    // Vérifier si le profil a des changements non sauvegardés
-    const hasProfileChanges = 
-        fullName !== initialFullName ||
-        title !== initialTitle ||
-        titleEn !== initialTitleEn ||
-        email !== initialEmail ||
-        avatarUrl !== initialAvatarUrl || 
-        bio !== initialBio ||
-        bioEn !== initialBioEn ||
-        tiktokUrl !== initialTiktokUrl ||
-        facebookUrl !== initialFacebookUrl ||
-        twitterUrl !== initialTwitterUrl ||
-        linkedinUrl !== initialLinkedinUrl;
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
@@ -389,7 +460,11 @@ export default function SettingsPage() {
                     <button
                         onClick={handleSaveProfile}
                         disabled={savingProfile || !hasProfileChanges}
-                        className="px-6 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40"
+                        className={`px-6 py-3 rounded-lg transition-all font-semibold flex items-center gap-2 ${
+                            hasProfileChanges && !savingProfile
+                                ? 'bg-sky-500 text-white hover:bg-sky-600 shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 cursor-pointer'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+                        }`}
                     >
                         {savingProfile ? (
                             <>
@@ -414,10 +489,7 @@ export default function SettingsPage() {
                             <input
                                 type="text"
                                 value={fullName}
-                                onChange={(e) => {
-                                    setFullName(e.target.value);
-                                    setIsDirty(true);
-                                }}
+                                onChange={(e) => setFullName(e.target.value)}
                                 placeholder={t('dashboard.settings.fullNamePlaceholder')}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                             />
@@ -430,10 +502,7 @@ export default function SettingsPage() {
                             <input
                                 type="text"
                                 value={title}
-                                onChange={(e) => {
-                                    setTitle(e.target.value);
-                                    setIsDirty(true);
-                                }}
+                                onChange={(e) => setTitle(e.target.value)}
                                 placeholder={t('dashboard.settings.professionTitlePlaceholder')}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none mb-2 text-gray-900 placeholder:text-gray-400"
                             />
@@ -443,10 +512,7 @@ export default function SettingsPage() {
                             <input
                                 type="text"
                                 value={titleEn}
-                                onChange={(e) => {
-                                    setTitleEn(e.target.value);
-                                    setIsDirty(true);
-                                }}
+                                onChange={(e) => setTitleEn(e.target.value)}
                                 placeholder="Freelance Developer"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                             />
@@ -459,10 +525,7 @@ export default function SettingsPage() {
                             <input
                                 type="email"
                                 value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value);
-                                    setIsDirty(true);
-                                }}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder={t('dashboard.settings.publicEmailPlaceholder')}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                             />
@@ -493,10 +556,7 @@ export default function SettingsPage() {
                             </label>
                             <textarea
                                 value={bio}
-                                onChange={(e) => {
-                                    setBio(e.target.value);
-                                    setIsDirty(true);
-                                }}
+                                onChange={(e) => setBio(e.target.value)}
                                 rows={4}
                                 placeholder={t('dashboard.settings.bioPlaceholder')}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none mb-2 text-gray-900 placeholder:text-gray-400"
@@ -506,10 +566,7 @@ export default function SettingsPage() {
                             </label>
                             <textarea
                                 value={bioEn}
-                                onChange={(e) => {
-                                    setBioEn(e.target.value);
-                                    setIsDirty(true);
-                                }}
+                                onChange={(e) => setBioEn(e.target.value)}
                                 rows={4}
                                 placeholder="Creator of custom web solutions"
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
@@ -522,37 +579,37 @@ export default function SettingsPage() {
 
                     <div className="space-y-4">
                         <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl p-6 flex flex-col items-center justify-center text-center">
-                        <div className="w-32 h-32 rounded-full overflow-hidden bg-white border-2 border-gray-300 shadow-md mb-4 relative">
-                            {avatarPreview ? (
-                                <img 
-                                    src={avatarPreview} 
-                                    alt="Avatar preview" 
-                                    className="w-full h-full object-cover"
-                                    onError={() => setAvatarPreview(initialAvatarUrl || null)}
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-                                    <div className="text-center">
-                                        <div className="text-2xl mb-1">📷</div>
-                                        <div className="text-xs">{t('dashboard.settings.noPhoto')}</div>
+                            <div className="w-32 h-32 rounded-full overflow-hidden bg-white border-2 border-gray-300 shadow-md mb-4 relative">
+                                {avatarPreview ? (
+                                    <img 
+                                        src={avatarPreview} 
+                                        alt="Avatar preview" 
+                                        className="w-full h-full object-cover"
+                                        onError={() => setAvatarPreview(initialAvatarUrl || null)}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                                        <div className="text-center">
+                                            <div className="text-2xl mb-1">📷</div>
+                                            <div className="text-xs">{t('dashboard.settings.noPhoto')}</div>
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                                {avatarUploading && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                        <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                    </div>
+                                )}
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">
+                                {t('dashboard.settings.photoPreview')}
+                            </p>
                             {avatarUploading && (
-                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                    <Loader2 className="w-6 h-6 animate-spin text-white" />
-                                </div>
+                                <p className="text-xs text-blue-600 font-medium">{t('dashboard.settings.uploading')}</p>
                             )}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">
-                            {t('dashboard.settings.photoPreview')}
-                        </p>
-                        {avatarUploading && (
-                            <p className="text-xs text-blue-600 font-medium">{t('dashboard.settings.uploading')}</p>
-                        )}
-                        {avatarPreview && !avatarUploading && (
-                            <p className="text-xs text-green-600 font-medium">{t('dashboard.settings.photoReady')}</p>
-                        )}
+                            {avatarPreview && !avatarUploading && (
+                                <p className="text-xs text-green-600 font-medium">{t('dashboard.settings.photoReady')}</p>
+                            )}
                         </div>
 
                         <div className="space-y-4">
@@ -563,10 +620,7 @@ export default function SettingsPage() {
                                 <input
                                     type="url"
                                     value={tiktokUrl}
-                                    onChange={(e) => {
-                                        setTiktokUrl(e.target.value);
-                                        setIsDirty(true);
-                                    }}
+                                    onChange={(e) => setTiktokUrl(e.target.value)}
                                     placeholder="https://tiktok.com/@your-username"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                                 />
@@ -579,10 +633,7 @@ export default function SettingsPage() {
                                 <input
                                     type="url"
                                     value={facebookUrl}
-                                    onChange={(e) => {
-                                        setFacebookUrl(e.target.value);
-                                        setIsDirty(true);
-                                    }}
+                                    onChange={(e) => setFacebookUrl(e.target.value)}
                                     placeholder="https://facebook.com/your-username"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                                 />
@@ -595,10 +646,7 @@ export default function SettingsPage() {
                                 <input
                                     type="url"
                                     value={twitterUrl}
-                                    onChange={(e) => {
-                                        setTwitterUrl(e.target.value);
-                                        setIsDirty(true);
-                                    }}
+                                    onChange={(e) => setTwitterUrl(e.target.value)}
                                     placeholder="https://twitter.com/your-username"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                                 />
@@ -611,10 +659,7 @@ export default function SettingsPage() {
                                 <input
                                     type="url"
                                     value={linkedinUrl}
-                                    onChange={(e) => {
-                                        setLinkedinUrl(e.target.value);
-                                        setIsDirty(true);
-                                    }}
+                                    onChange={(e) => setLinkedinUrl(e.target.value)}
                                     placeholder="https://linkedin.com/in/your-username"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400"
                                 />
@@ -682,16 +727,14 @@ export default function SettingsPage() {
                                     type="text"
                                     value={username}
                                     onChange={(e) => {
-                                        if (canCustomize) {
-                                            setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
-                                            setError(null);
-                                            setSuccess(null);
-                                        }
+                                        const newValue = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+                                        setUsername(newValue);
+                                        setError(null);
+                                        setSuccess(null);
                                     }}
-                                    disabled={!canCustomize}
+                                    disabled={saving}
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-gray-900 placeholder:text-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-500"
                                     placeholder="your-username"
-                                    readOnly={!canCustomize}
                                 />
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
@@ -700,9 +743,13 @@ export default function SettingsPage() {
                         </div>
 
                         <button
-                            onClick={handleSave}
-                            disabled={saving || username === initialUsername}
-                            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            onClick={handleSaveUsername}
+                            disabled={saving || !hasUsernameChanges}
+                            className={`px-6 py-2 rounded-lg transition-all font-semibold flex items-center gap-2 ${
+                                hasUsernameChanges && !saving
+                                    ? 'bg-sky-500 text-white hover:bg-sky-600 cursor-pointer shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+                            }`}
                         >
                             {saving ? (
                                 <>

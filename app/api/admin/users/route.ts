@@ -127,6 +127,8 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'ID utilisateur requis' }, { status: 400 });
         }
 
+        const finalSubscriptionTier = subscription_tier || 'free';
+
         // Mettre à jour le profil
         const { error: updateError } = await supabaseAdmin
             .from('profiles')
@@ -134,7 +136,7 @@ export async function PUT(request: NextRequest) {
                 role: role,
                 full_name: full_name || null,
                 username: username,
-                subscription_tier: subscription_tier || 'free',
+                subscription_tier: finalSubscriptionTier,
             })
             .eq('id', id);
 
@@ -142,9 +144,112 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: updateError.message }, { status: 500 });
         }
 
+        // Synchroniser avec la table subscriptions
+        // Vérifier si une subscription existe déjà pour cet utilisateur
+        const { data: existingSubscription } = await supabaseAdmin
+            .from('subscriptions')
+            .select('id')
+            .eq('user_id', id)
+            .single();
+
+        if (existingSubscription) {
+            // Mettre à jour l'abonnement existant
+            const { error: subscriptionUpdateError } = await supabaseAdmin
+                .from('subscriptions')
+                .update({
+                    plan: finalSubscriptionTier,
+                    status: finalSubscriptionTier === 'free' ? 'canceled' : 'active',
+                    updated_at: new Date().toISOString(),
+                })
+                .eq('user_id', id);
+
+            if (subscriptionUpdateError) {
+                console.error('Error updating subscription:', subscriptionUpdateError);
+                // Ne pas échouer la requête si la mise à jour de subscription échoue
+                // mais logger l'erreur pour debug
+            }
+        } else {
+            // Créer un nouvel abonnement si aucun n'existe
+            const { error: subscriptionCreateError } = await supabaseAdmin
+                .from('subscriptions')
+                .insert({
+                    user_id: id,
+                    plan: finalSubscriptionTier,
+                    status: finalSubscriptionTier === 'free' ? 'canceled' : 'active',
+                });
+
+            if (subscriptionCreateError) {
+                console.error('Error creating subscription:', subscriptionCreateError);
+                // Ne pas échouer la requête si la création de subscription échoue
+                // mais logger l'erreur pour debug
+            }
+        }
+
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error('Error updating user:', error);
+        return NextResponse.json({ error: error.message || 'Erreur serveur' }, { status: 500 });
+    }
+}
+
+// Récupérer la liste des utilisateurs valides (admin uniquement)
+export async function GET(request: NextRequest) {
+    try {
+        // Vérifier que l'utilisateur est admin
+        const supabase = await createServerClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+        }
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (profile?.role !== 'admin') {
+            return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
+        }
+
+        // Récupérer tous les utilisateurs
+        const { data: allUsers, error: fetchError } = await supabaseAdmin
+            .from('profiles')
+            .select('id, username, full_name, email, role, subscription_tier, created_at')
+            .order('created_at', { ascending: false });
+
+        if (fetchError) {
+            return NextResponse.json({ error: fetchError.message }, { status: 500 });
+        }
+
+        // Filtrer les utilisateurs qui existent réellement dans auth.users
+        const validUsers = [];
+        if (allUsers && allUsers.length > 0) {
+            const userChecks = await Promise.allSettled(
+                allUsers.map(async (profileUser) => {
+                    const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(profileUser.id);
+                    if (!authError && authUser?.user) {
+                        return profileUser;
+                    }
+                    return null;
+                })
+            );
+
+            validUsers.push(
+                ...userChecks
+                    .filter((result) => result.status === 'fulfilled' && result.value !== null)
+                    .map((result) => (result as PromiseFulfilledResult<any>).value)
+            );
+        }
+
+        return NextResponse.json({ 
+            users: validUsers,
+            totalUsers: validUsers.length,
+            adminCount: validUsers.filter(u => u.role === 'admin').length
+        });
+    } catch (error: any) {
+        console.error('Error fetching users:', error);
         return NextResponse.json({ error: error.message || 'Erreur serveur' }, { status: 500 });
     }
 }
