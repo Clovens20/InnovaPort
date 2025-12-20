@@ -42,7 +42,7 @@ export async function PATCH(
         // Récupérer le devis
         const { data: quote, error: quoteError } = await supabaseAdmin
             .from('quotes')
-            .select('*, profiles!quotes_user_id_fkey(id, full_name, email)')
+            .select('*')
             .eq('id', id)
             .single();
 
@@ -100,7 +100,13 @@ export async function PATCH(
         // Envoyer une notification au client si le statut a changé et si les notifications sont activées
         if (oldStatus !== newStatus && shouldNotify && quote.consent_contact) {
             try {
-                const profile = quote.profiles as any;
+                // Récupérer le profil du développeur
+                const { data: profile } = await supabaseAdmin
+                    .from('profiles')
+                    .select('full_name, username, email')
+                    .eq('id', user.id)
+                    .single();
+
                 await sendStatusUpdateEmail({
                     to: quote.email,
                     clientName: quote.name,
