@@ -47,27 +47,30 @@ export function PromoCodesAdminClient({ initialPromoCodes }: { initialPromoCodes
         setMessage(null);
 
         try {
-            const supabase = createClient();
-
-            const { data, error } = await supabase
-                .from('promo_codes')
-                .insert({
-                    code: newPromoCode.code.toUpperCase(),
+            const response = await fetch('/api/admin/promo-codes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    code: newPromoCode.code,
                     discount_type: newPromoCode.discount_type,
                     discount_value: newPromoCode.discount_value,
                     valid_from: newPromoCode.valid_from,
                     valid_until: newPromoCode.valid_until,
                     max_uses: newPromoCode.max_uses,
-                    applicable_plans: newPromoCode.applicable_plans.length > 0 ? newPromoCode.applicable_plans : null,
+                    applicable_plans: newPromoCode.applicable_plans,
                     is_active: newPromoCode.is_active,
-                    current_uses: 0,
-                })
-                .select()
-                .single();
+                }),
+            });
 
-            if (error) throw error;
+            const result = await response.json();
 
-            setPromoCodes([data, ...promoCodes]);
+            if (!response.ok) {
+                throw new Error(result.error || 'Erreur lors de la création');
+            }
+
+            setPromoCodes([result.data, ...promoCodes]);
             setShowCreateModal(false);
             setNewPromoCode({
                 code: '',
@@ -91,18 +94,27 @@ export function PromoCodesAdminClient({ initialPromoCodes }: { initialPromoCodes
     const handleToggleActive = async (id: string, currentStatus: boolean) => {
         setLoading(true);
         try {
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('promo_codes')
-                .update({ is_active: !currentStatus })
-                .eq('id', id);
+            const response = await fetch('/api/admin/promo-codes', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id,
+                    is_active: !currentStatus,
+                }),
+            });
 
-            if (error) throw error;
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Erreur lors de la mise à jour');
+            }
 
             setPromoCodes(promoCodes.map(pc => pc.id === id ? { ...pc, is_active: !currentStatus } : pc));
         } catch (error: any) {
             console.error('Error updating promo code:', error);
-            setMessage({ type: 'error', text: 'Erreur lors de la mise à jour' });
+            setMessage({ type: 'error', text: error.message || 'Erreur lors de la mise à jour' });
         } finally {
             setLoading(false);
         }
@@ -113,19 +125,21 @@ export function PromoCodesAdminClient({ initialPromoCodes }: { initialPromoCodes
 
         setLoading(true);
         try {
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('promo_codes')
-                .delete()
-                .eq('id', id);
+            const response = await fetch(`/api/admin/promo-codes?id=${id}`, {
+                method: 'DELETE',
+            });
 
-            if (error) throw error;
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Erreur lors de la suppression');
+            }
 
             setPromoCodes(promoCodes.filter(pc => pc.id !== id));
             setMessage({ type: 'success', text: 'Code promo supprimé' });
         } catch (error: any) {
             console.error('Error deleting promo code:', error);
-            setMessage({ type: 'error', text: 'Erreur lors de la suppression' });
+            setMessage({ type: 'error', text: error.message || 'Erreur lors de la suppression' });
         } finally {
             setLoading(false);
         }
