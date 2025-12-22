@@ -248,6 +248,7 @@ export const translations: Record<Language, Translations> = {
             more: 'Plus',
             less: 'Moins',
             optional: '(optionnel)',
+            locale: 'fr-FR',
         },
         // Dashboard
         dashboard: {
@@ -356,6 +357,34 @@ export const translations: Record<Language, Translations> = {
                     invalidChars: 'Le username ne peut contenir que des lettres minuscules, chiffres et tirets',
                     startsWithDash: 'Le username ne peut pas commencer ou se terminer par un tiret',
                     consecutiveDashes: 'Le username ne peut pas contenir de tirets consécutifs',
+                },
+            },
+            analytics: {
+                title: 'Analytics et Rapports',
+                subtitle: 'Suivez les performances de votre portfolio',
+                loading: 'Chargement des données...',
+                proOnly: 'Les analytics sont disponibles uniquement avec le plan Pro ou Premium.',
+                upgradeToPro: 'Passer au plan Pro',
+                export: 'Exporter',
+                refresh: 'Actualiser',
+                filterBy: 'Filtrer par',
+                totalViews: 'Vues totales',
+                quoteClicks: 'Clics sur devis',
+                projectViews: 'Vues projets',
+                uniqueVisitors: 'Visiteurs uniques',
+                contactClicks: 'Clics contact',
+                recentEvents: 'Événements récents',
+                portfolioView: 'Vue portfolio',
+                quoteClick: 'Clic devis',
+                projectView: 'Vue projet',
+                contactClick: 'Clic contact',
+                noEvents: 'Aucun événement enregistré pour le moment',
+                periods: {
+                    day: 'Aujourd\'hui',
+                    week: 'Cette semaine',
+                    month: 'Ce mois',
+                    year: 'Cette année',
+                    all: 'Tout',
                 },
             },
             billing: {
@@ -535,25 +564,6 @@ export const translations: Record<Language, Translations> = {
                 errorRejecting: 'Erreur lors du rejet',
                 errorDeleting: 'Erreur lors de la suppression',
                 errorToggling: 'Erreur lors de la modification',
-            },
-            analytics: {
-                title: 'Analytics et Rapports',
-                subtitle: 'Suivez les performances de votre portfolio',
-                loading: 'Chargement des analytics...',
-                export: 'Exporter',
-                totalViews: 'Vues totales',
-                quoteClicks: 'Clics devis',
-                projectViews: 'Vues projets',
-                uniqueVisitors: 'Visiteurs uniques',
-                contactClicks: 'Clics contact',
-                recentEvents: 'Événements récents',
-                noEvents: 'Aucun événement enregistré',
-                portfolioView: 'Vue du portfolio',
-                quoteClick: 'Clic sur devis',
-                projectView: 'Vue de projet',
-                contactClick: 'Clic sur contact',
-                proOnly: 'Cette fonctionnalité est disponible uniquement pour les plans Pro et Premium.',
-                upgradeToPro: 'Passer au plan Pro',
             },
             projects: {
                 title: 'Mes Projets',
@@ -1645,6 +1655,34 @@ export const translations: Record<Language, Translations> = {
                     consecutiveDashes: 'Username cannot contain consecutive hyphens',
                 },
             },
+            analytics: {
+                title: 'Analytics & Reports',
+                subtitle: 'Track your portfolio performance',
+                loading: 'Loading data...',
+                proOnly: 'Analytics are available only with Pro or Premium plan.',
+                upgradeToPro: 'Upgrade to Pro',
+                export: 'Export',
+                refresh: 'Refresh',
+                filterBy: 'Filter by',
+                totalViews: 'Total Views',
+                quoteClicks: 'Quote Clicks',
+                projectViews: 'Project Views',
+                uniqueVisitors: 'Unique Visitors',
+                contactClicks: 'Contact Clicks',
+                recentEvents: 'Recent Events',
+                portfolioView: 'Portfolio View',
+                quoteClick: 'Quote Click',
+                projectView: 'Project View',
+                contactClick: 'Contact Click',
+                noEvents: 'No events recorded yet',
+                periods: {
+                    day: 'Today',
+                    week: 'This Week',
+                    month: 'This Month',
+                    year: 'This Year',
+                    all: 'All Time',
+                },
+            },
             billing: {
                 title: 'Subscription',
                 free: 'Free',
@@ -1822,25 +1860,6 @@ export const translations: Record<Language, Translations> = {
                 errorRejecting: 'Error rejecting',
                 errorDeleting: 'Error deleting',
                 errorToggling: 'Error updating',
-            },
-            analytics: {
-                title: 'Analytics & Reports',
-                subtitle: 'Track your portfolio performance',
-                loading: 'Loading analytics...',
-                export: 'Export',
-                totalViews: 'Total Views',
-                quoteClicks: 'Quote Clicks',
-                projectViews: 'Project Views',
-                uniqueVisitors: 'Unique Visitors',
-                contactClicks: 'Contact Clicks',
-                recentEvents: 'Recent Events',
-                noEvents: 'No events recorded',
-                portfolioView: 'Portfolio View',
-                quoteClick: 'Quote Click',
-                projectView: 'Project View',
-                contactClick: 'Contact Click',
-                proOnly: 'This feature is only available for Pro and Premium plans.',
-                upgradeToPro: 'Upgrade to Pro Plan',
             },
             projects: {
                 title: 'My Projects',
@@ -2598,7 +2617,10 @@ function getNestedValue(obj: Translations, path: string): string {
         } else {
             // Debug: log missing keys in development
             if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-                console.warn(`Translation key not found: "${path}" at "${key}"`);
+                console.warn(`Translation key not found: "${path}" at "${key}"`, {
+                    currentValue: value,
+                    availableKeys: value && typeof value === 'object' ? Object.keys(value) : [],
+                });
             }
             return path; // Return key if not found (fallback)
         }
@@ -2610,6 +2632,9 @@ function getNestedValue(obj: Translations, path: string): string {
     }
     
     // Si c'est un objet vide ou null, retourner le chemin
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+        console.warn(`Translation value is not a string for key: "${path}"`, { value, type: typeof value });
+    }
     return path;
 }
 

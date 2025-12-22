@@ -1,19 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
-import { BarChart3, TrendingUp, Eye, MousePointerClick, Users, Calendar, Download } from 'lucide-react';
+import { BarChart3, TrendingUp, Eye, MousePointerClick, Users, Calendar, Download, RefreshCw } from 'lucide-react';
 import { hasFeature } from '@/lib/subscription-limits';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import clsx from 'clsx';
+
+type TimePeriod = 'day' | 'week' | 'month' | 'year' | 'all';
 
 export default function AnalyticsPage() {
     const { t } = useTranslation();
     const router = useRouter();
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'pro' | 'premium'>('free');
+    const [timePeriod, setTimePeriod] = useState<TimePeriod>('month');
     const [stats, setStats] = useState({
         totalViews: 0,
         quoteClicks: 0,
@@ -22,13 +27,36 @@ export default function AnalyticsPage() {
         uniqueVisitors: 0,
     });
     const [recentEvents, setRecentEvents] = useState<any[]>([]);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    useEffect(() => {
-        loadData();
+    const getDateFilter = useCallback((period: TimePeriod): Date => {
+        const now = new Date();
+        switch (period) {
+            case 'day':
+                return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            case 'week':
+                const weekStart = new Date(now);
+                weekStart.setDate(now.getDate() - now.getDay());
+                weekStart.setHours(0, 0, 0, 0);
+                return weekStart;
+            case 'month':
+                return new Date(now.getFullYear(), now.getMonth(), 1);
+            case 'year':
+                return new Date(now.getFullYear(), 0, 1);
+            case 'all':
+            default:
+                return new Date(0); // Date très ancienne pour tout récupérer
+        }
     }, []);
 
-    const loadData = async () => {
+    const loadData = useCallback(async (silent = false) => {
         try {
+            if (!silent) {
+                setLoading(true);
+            } else {
+                setRefreshing(true);
+            }
+
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
                 router.push('/auth/login');
@@ -49,16 +77,26 @@ export default function AnalyticsPage() {
             // Vérifier si l'utilisateur a accès aux analytics
             if (!hasFeature(profile?.subscription_tier || 'free', 'analyticsReports')) {
                 setLoading(false);
+                setRefreshing(false);
                 return;
             }
 
-            // Charger les statistiques
-            const { data: events, error } = await supabase
+            // Calculer la date de début selon la période
+            const startDate = getDateFilter(timePeriod);
+            const startDateISO = startDate.toISOString();
+
+            // Charger les statistiques avec filtre de date
+            let query = supabase
                 .from('analytics')
                 .select('*')
                 .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-                .limit(100);
+                .order('created_at', { ascending: false });
+
+            if (timePeriod !== 'all') {
+                query = query.gte('created_at', startDateISO);
+            }
+
+            const { data: events, error } = await query.limit(1000);
 
             if (error) throw error;
 
@@ -85,8 +123,24 @@ export default function AnalyticsPage() {
             console.error('Error loading analytics:', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
-    };
+    }, [timePeriod, supabase, router, getDateFilter]);
+
+    useEffect(() => {
+        loadData();
+        
+        // Rafraîchissement automatique toutes les 30 secondes
+        intervalRef.current = setInterval(() => {
+            loadData(true);
+        }, 30000);
+
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [loadData]);
 
     if (loading) {
         return (
@@ -119,17 +173,61 @@ export default function AnalyticsPage() {
         );
     }
 
+    const timePeriods: { value: TimePeriod; label: string }[] = [
+        { value: 'day', label: t('dashboard.analytics.periods.day') },
+        { value: 'week', label: t('dashboard.analytics.periods.week') },
+        { value: 'month', label: t('dashboard.analytics.periods.month') },
+        { value: 'year', label: t('dashboard.analytics.periods.year') },
+        { value: 'all', label: t('dashboard.analytics.periods.all') },
+    ];
+
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.analytics.title')}</h1>
                     <p className="text-gray-600 mt-1">{t('dashboard.analytics.subtitle')}</p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                    <Download className="w-4 h-4" />
-                    {t('dashboard.analytics.export')}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => loadData(false)}
+                        disabled={refreshing}
+                        className={clsx(
+                            "px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2",
+                            refreshing && "opacity-50 cursor-not-allowed"
+                        )}
+                        title={t('dashboard.analytics.refresh')}
+                    >
+                        <RefreshCw className={clsx("w-4 h-4", refreshing && "animate-spin")} />
+                        {t('dashboard.analytics.refresh')}
+                    </button>
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                        <Download className="w-4 h-4" />
+                        {t('dashboard.analytics.export')}
+                    </button>
+                </div>
+            </div>
+
+            {/* Sélecteur de période */}
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <Calendar className="w-5 h-5 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700 mr-2">{t('dashboard.analytics.filterBy')}:</span>
+                    {timePeriods.map((period) => (
+                        <button
+                            key={period.value}
+                            onClick={() => setTimePeriod(period.value)}
+                            className={clsx(
+                                "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                                timePeriod === period.value
+                                    ? "bg-blue-600 text-white"
+                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            )}
+                        >
+                            {period.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Stats Cards */}
@@ -193,7 +291,13 @@ export default function AnalyticsPage() {
                                     </span>
                                 </div>
                                 <span className="text-xs text-gray-500">
-                                    {new Date(event.created_at).toLocaleDateString(t('common.locale'))}
+                                    {new Date(event.created_at).toLocaleDateString(t('common.locale') || 'fr-FR', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    })}
                                 </span>
                             </div>
                         ))
