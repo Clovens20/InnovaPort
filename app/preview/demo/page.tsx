@@ -1,382 +1,543 @@
-/**
- * Page: /preview/demo
- * 
- * Fonction: Page de démo montrant un vrai portfolio pour attirer les développeurs
- */
-
 'use client';
 
-import { useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Home, Loader2 } from 'lucide-react';
-import { PortfolioClient } from '@/app/[username]/portfolio-client';
-import { hexToRgba } from '@/utils/color-utils';
+import { Play, Pause, RotateCcw, ChevronRight, Check, X, User, FileText, DollarSign, BarChart3, Sparkles, MousePointer2, ArrowLeft, Home } from 'lucide-react';
+import { ExpertContactModal } from '@/app/_components/expert-contact-modal';
 
-// Données de démo réalistes pour montrer le potentiel de la plateforme
-const demoProfile = {
-    id: 'demo-user-id',
-    username: 'demo',
-    full_name: 'Alexandre Martin',
-    title: 'Développeur Full-Stack & Designer UX',
-    bio: 'Passionné par la création d\'expériences web modernes et performantes. Spécialisé en React, Next.js et Node.js. J\'aide les entreprises à transformer leurs idées en produits numériques réussis.',
-    avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alexandre',
-    primary_color: '#1E3A8A',
-    secondary_color: '#10B981',
-    template: 'modern',
-    email: 'alexandre@example.com',
-    available_for_work: true,
-    hero_title: null,
-    hero_subtitle: null,
-    hero_description: null,
-    tiktok_url: null,
-    facebook_url: null,
-    twitter_url: 'https://twitter.com/alexandre_dev',
-    linkedin_url: 'https://linkedin.com/in/alexandre-martin',
-    subscription_tier: 'pro' as const,
-    stats_years_experience: 8,
-    stats_projects_delivered: 45,
-    stats_clients_satisfied: 38,
-    stats_response_time: '24h',
-    technologies_list: ['React', 'Next.js', 'TypeScript', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
-    services: [
-        {
-            name: 'Application Web',
-            description: 'Développement d\'applications web modernes et performantes',
-            price: 'À partir de 5000€',
-            features: ['Design sur-mesure', 'Responsive', 'SEO optimisé', 'Performance'],
-            icon: 'globe',
-            targetCategories: []
-        },
-        {
-            name: 'E-commerce',
-            description: 'Solutions e-commerce complètes avec paiement sécurisé',
-            price: 'À partir de 8000€',
-            features: ['Catalogue produits', 'Paiement en ligne', 'Gestion commandes', 'Dashboard admin'],
-            icon: 'shopping',
-            targetCategories: []
-        },
-        {
-            name: 'Application Mobile',
-            description: 'Applications mobiles natives et cross-platform',
-            price: 'À partir de 10000€',
-            features: ['iOS & Android', 'Design natif', 'Notifications push', 'App Store ready'],
-            icon: 'mobile',
-            targetCategories: []
-        }
-    ],
-    work_process: [
-        {
-            step: 1,
-            title: 'Découverte',
-            description: 'Analyse de vos besoins et définition des objectifs'
-        },
-        {
-            step: 2,
-            title: 'Conception',
-            description: 'Création de maquettes et validation du design'
-        },
-        {
-            step: 3,
-            title: 'Développement',
-            description: 'Implémentation avec code propre et tests'
-        },
-        {
-            step: 4,
-            title: 'Livraison',
-            description: 'Déploiement et formation à l\'utilisation'
-        }
-    ],
-    cta_title: 'Prêt à démarrer votre projet ?',
-    cta_subtitle: 'Discutons de vos besoins et créons quelque chose d\'extraordinaire ensemble.',
-    cta_button_text: 'Demander un devis gratuit',
-    cta_footer_text: 'Réponse sous 24h • Devis gratuit • Sans engagement',
-    about_journey: 'Avec plus de 8 ans d\'expérience dans le développement web, j\'ai accompagné des dizaines d\'entreprises dans leur transformation digitale. De la startup naissante aux grandes entreprises, chaque projet est une nouvelle aventure.',
-    about_approach: 'Je crois en une approche collaborative où votre vision rencontre mon expertise technique. Ensemble, nous créons des solutions qui non seulement fonctionnent parfaitement mais qui dépassent aussi les attentes.',
-    about_why_choose: 'Choisir de travailler avec moi, c\'est opter pour la qualité, la transparence et un suivi personnalisé. Chaque ligne de code est écrite avec soin, chaque design est pensé pour l\'utilisateur final.'
-};
+export default function InnovaPortDemo() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [showCursor, setShowCursor] = useState(true);
+  const [cursorPos, setCursorPos] = useState({ x: 50, y: 50 });
+  const [showExpertModal, setShowExpertModal] = useState(false);
 
-const demoProjects = [
+  const demoSteps = [
     {
-        id: 'demo-project-1',
-        title: 'Plateforme E-commerce Moderne',
-        slug: 'plateforme-ecommerce-moderne',
-        category: 'E-commerce',
-        short_description: 'Solution e-commerce complète avec gestion de stock et paiement sécurisé',
-        full_description: 'Développement d\'une plateforme e-commerce moderne pour une marque de mode. Intégration de Stripe pour les paiements, système de gestion de stock en temps réel, et dashboard administrateur complet.',
-        technologies: ['Next.js', 'TypeScript', 'Stripe', 'PostgreSQL', 'Tailwind CSS'],
-        client_type: 'business',
-        client_name: 'Mode & Style',
-        duration_value: 3,
-        duration_unit: 'months',
-        project_url: 'https://example.com',
-        tags: 'E-commerce, Stripe, Dashboard',
-        image_url: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=600&fit=crop',
-        featured: true,
-        published: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+      title: "Créez votre Portfolio en 30 secondes",
+      description: "Choisissez un template, personnalisez vos couleurs, et vous êtes en ligne.",
+      screen: "portfolio",
+      duration: 3000
     },
     {
-        id: 'demo-project-2',
-        title: 'Application de Gestion de Projets',
-        slug: 'application-gestion-projets',
-        category: 'SaaS',
-        short_description: 'Outil collaboratif pour gérer vos projets et équipes efficacement',
-        full_description: 'Création d\'une application SaaS complète permettant aux équipes de gérer leurs projets, tâches et collaborateurs. Fonctionnalités de temps réel, notifications, et rapports avancés.',
-        technologies: ['React', 'Node.js', 'Socket.io', 'MongoDB', 'Material-UI'],
-        client_type: 'business',
-        client_name: 'TechCorp',
-        duration_value: 4,
-        duration_unit: 'months',
-        project_url: 'https://example.com',
-        tags: 'SaaS, Temps réel, Collaboration',
-        image_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop',
-        featured: true,
-        published: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+      title: "Ajoutez vos Projets facilement",
+      description: "Drag & drop vos images, ajoutez descriptions et tags. Simple et rapide.",
+      screen: "projects",
+      duration: 3000
     },
     {
-        id: 'demo-project-3',
-        title: 'Site Vitrine Premium',
-        slug: 'site-vitrine-premium',
-        category: 'Website',
-        short_description: 'Site web élégant et performant pour une agence créative',
-        full_description: 'Conception et développement d\'un site vitrine premium pour une agence créative. Design moderne, animations fluides, et optimisation SEO pour maximiser la visibilité.',
-        technologies: ['Next.js', 'Framer Motion', 'GSAP', 'Tailwind CSS'],
-        client_type: 'business',
-        client_name: 'Creative Studio',
-        duration_value: 2,
-        duration_unit: 'months',
-        project_url: 'https://example.com',
-        tags: 'Vitrine, Design, SEO',
-        image_url: 'https://images.unsplash.com/photo-1467232004584-a241de8bcf5d?w=800&h=600&fit=crop',
-        featured: false,
-        published: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+      title: "Recevez des Demandes de Devis",
+      description: "Les prospects remplissent un formulaire directement sur votre portfolio.",
+      screen: "quotes",
+      duration: 3000
     },
     {
-        id: 'demo-project-4',
-        title: 'Application Mobile Fitness',
-        slug: 'application-mobile-fitness',
-        category: 'Mobile',
-        short_description: 'App mobile pour suivre vos entraînements et votre progression',
-        full_description: 'Développement d\'une application mobile cross-platform pour le fitness. Suivi des entraînements, statistiques détaillées, et intégration avec les wearables.',
-        technologies: ['React Native', 'Firebase', 'Redux', 'Expo'],
-        client_type: 'startup',
-        client_name: 'FitLife',
-        duration_value: 5,
-        duration_unit: 'months',
-        project_url: 'https://example.com',
-        tags: 'Mobile, Fitness, Cross-platform',
-        image_url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop',
-        featured: false,
-        published: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+      title: "Gérez tout depuis un Dashboard",
+      description: "Suivez vos projets, devis et clients en temps réel. Tout centralisé.",
+      screen: "dashboard",
+      duration: 3000
+    },
+    {
+      title: "Automatisez vos Réponses",
+      description: "Notifications automatiques, rappels, et mises à jour de statut.",
+      screen: "automation",
+      duration: 3000
     }
-];
+  ];
 
-const demoTestimonials: any[] = [];
+  useEffect(() => {
+    if (isPlaying) {
+      const timer = setTimeout(() => {
+        if (currentStep < demoSteps.length - 1) {
+          setCurrentStep(currentStep + 1);
+        } else {
+          setIsPlaying(false);
+        }
+      }, demoSteps[currentStep].duration);
+      return () => clearTimeout(timer);
+    }
+  }, [isPlaying, currentStep, demoSteps]);
 
-// Fonction pour convertir les noms de polices en noms Google Fonts
-const getGoogleFontName = (fontName: string): string => {
-    const fontMap: Record<string, string> = {
-        'inter': 'Inter',
-        'poppins': 'Poppins',
-        'playfair': 'Playfair+Display',
-        'roboto': 'Roboto',
-        'montserrat': 'Montserrat',
-        'raleway': 'Raleway',
-        'oswald': 'Oswald',
-        'lora': 'Lora',
-        'merriweather': 'Merriweather',
-        'nunito': 'Nunito',
-        'ubuntu': 'Ubuntu',
-        'source-sans-pro': 'Source+Sans+Pro',
-        'work-sans': 'Work+Sans',
-        'crimson-text': 'Crimson+Text',
-        'libre-baskerville': 'Libre+Baskerville',
-        'dancing-script': 'Dancing+Script',
-        'caveat': 'Caveat',
-        'bebas-neue': 'Bebas+Neue',
-        'anton': 'Anton',
-        'lato': 'Lato',
-        'opensans': 'Open+Sans',
-        'pt-sans': 'PT+Sans',
-        'noto-sans': 'Noto+Sans',
-        'rubik': 'Rubik',
-        'quicksand': 'Quicksand',
-    };
-    return fontMap[fontName.toLowerCase()] || 'Inter';
-};
-
-// Fonction pour obtenir le nom CSS de la police
-const getFontFamily = (fontName: string): string => {
-    const fontFamilyMap: Record<string, string> = {
-        'inter': 'Inter, sans-serif',
-        'poppins': 'Poppins, sans-serif',
-        'playfair': '"Playfair Display", serif',
-        'roboto': 'Roboto, sans-serif',
-        'montserrat': 'Montserrat, sans-serif',
-        'raleway': 'Raleway, sans-serif',
-        'oswald': 'Oswald, sans-serif',
-        'lora': 'Lora, serif',
-        'merriweather': 'Merriweather, serif',
-        'nunito': 'Nunito, sans-serif',
-        'ubuntu': 'Ubuntu, sans-serif',
-        'source-sans-pro': '"Source Sans Pro", sans-serif',
-        'work-sans': '"Work Sans", sans-serif',
-        'crimson-text': '"Crimson Text", serif',
-        'libre-baskerville': '"Libre Baskerville", serif',
-        'dancing-script': '"Dancing Script", cursive',
-        'caveat': 'Caveat, cursive',
-        'bebas-neue': '"Bebas Neue", sans-serif',
-        'anton': 'Anton, sans-serif',
-        'lato': 'Lato, sans-serif',
-        'opensans': '"Open Sans", sans-serif',
-        'pt-sans': '"PT Sans", sans-serif',
-        'noto-sans': '"Noto Sans", sans-serif',
-        'rubik': 'Rubik, sans-serif',
-        'quicksand': 'Quicksand, sans-serif',
-    };
-    return fontFamilyMap[fontName.toLowerCase()] || 'Inter, sans-serif';
-};
-
-function DemoPageContent() {
-    const searchParams = useSearchParams();
-    
-    // Récupérer les paramètres de l'URL
-    const headingFont = searchParams.get('headingFont') || 'inter';
-    const bodyFont = searchParams.get('bodyFont') || 'inter';
-    const primaryColor = searchParams.get('primary') || demoProfile.primary_color || '#1E3A8A';
-    const secondaryColor = searchParams.get('secondary') || demoProfile.secondary_color || '#10B981';
-    const template = searchParams.get('template') || demoProfile.template || 'modern';
-
-    // Charger les polices Google Fonts dynamiquement
-    useEffect(() => {
-        const headingFontName = getGoogleFontName(headingFont);
-        const bodyFontName = getGoogleFontName(bodyFont);
-        
-        // Créer les liens pour charger les polices
-        const fontsToLoad = new Set([headingFontName, bodyFontName]);
-        const fontLinks: HTMLLinkElement[] = [];
-
-        fontsToLoad.forEach(font => {
-            // Vérifier si la police n'est pas déjà chargée
-            const existingLink = document.querySelector(`link[href*="${font}"]`);
-            if (!existingLink) {
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = `https://fonts.googleapis.com/css2?family=${font}:wght@400;500;600;700&display=swap`;
-                document.head.appendChild(link);
-                fontLinks.push(link);
-            }
+  useEffect(() => {
+    if (isPlaying && showCursor) {
+      const interval = setInterval(() => {
+        setCursorPos({
+          x: Math.random() * 80 + 10,
+          y: Math.random() * 80 + 10
         });
+      }, 1500);
+      return () => clearInterval(interval);
+    }
+  }, [isPlaying, showCursor]);
 
-        // Nettoyer les liens lors du démontage
-        return () => {
-            fontLinks.forEach(link => {
-                if (link.parentNode) {
-                    link.parentNode.removeChild(link);
-                }
-            });
-        };
-    }, [headingFont, bodyFont]);
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
 
-    // Styles dynamiques avec les polices
-    const style = {
-        '--primary': primaryColor,
-        '--secondary': secondaryColor,
-        '--primary-light': hexToRgba(primaryColor, 0.1),
-        '--heading-font': getFontFamily(headingFont),
-        '--body-font': getFontFamily(bodyFont),
-    } as React.CSSProperties;
+  const handleReset = () => {
+    setCurrentStep(0);
+    setIsPlaying(false);
+  };
 
-    // Mettre à jour le profil avec les couleurs de l'URL
-    const updatedProfile = {
-        ...demoProfile,
-        primary_color: primaryColor,
-        secondary_color: secondaryColor,
-        template: template,
+  const renderScreen = () => {
+    const step = demoSteps[currentStep];
+    
+    switch(step.screen) {
+      case 'portfolio':
+        return (
+          <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-lg relative">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-4xl mx-auto">
+              <div className="flex gap-2 mb-4">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="col-span-3 h-48 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white">
+                  <div className="text-center">
+                    <h2 className="text-4xl font-bold mb-2">John Doe</h2>
+                    <p className="text-xl">Développeur Web Freelance</p>
+                  </div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                {[1,2,3].map((i) => (
+                  <div key={i} className="aspect-square bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg animate-pulse"></div>
+                ))}
+              </div>
+            </div>
+            <div className="absolute bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-full font-bold animate-bounce">
+              ✓ Portfolio créé !
+            </div>
+          </div>
+        );
+      
+      case 'projects':
+        return (
+          <div className="w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 p-8 rounded-lg">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-4xl mx-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Mes Projets</h2>
+                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-all transform hover:scale-105">
+                  + Nouveau Projet
+                </button>
+              </div>
+              <div className="space-y-4">
+                {[
+                  { name: 'Site E-commerce', client: 'BelleMode Inc.', status: 'En cours', amount: '8,500$' },
+                  { name: 'Refonte Logo', client: 'TechStart', status: 'Devis envoyé', amount: '1,200$' },
+                  { name: 'App Mobile', client: 'FitnessPro', status: 'Brouillon', amount: '12,000$' }
+                ].map((project, i) => (
+                  <div key={i} className="border-2 border-slate-200 rounded-lg p-4 hover:border-blue-500 transition-all cursor-pointer hover:shadow-md">
+                    <div className="flex justify-between items-center">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-slate-900">{project.name}</h3>
+                        <p className="text-slate-600">Client: {project.client}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          project.status === 'En cours' ? 'bg-green-100 text-green-700' :
+                          project.status === 'Devis envoyé' ? 'bg-blue-100 text-blue-700' :
+                          'bg-slate-100 text-slate-700'
+                        }`}>
+                          {project.status}
+                        </span>
+                        <p className="text-xl font-bold text-blue-600 mt-2">{project.amount}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'quotes':
+        return (
+          <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-lg relative">
+            <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl mx-auto">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                  <FileText className="w-8 h-8 text-blue-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-slate-900 mb-2">Nouvelle Demande de Devis</h2>
+                <p className="text-slate-600">De: Sophie Martin (sophie@startup.com)</p>
+              </div>
+              
+              <div className="space-y-4 bg-slate-50 rounded-lg p-6">
+                <div>
+                  <label className="font-semibold text-slate-700">Type de projet:</label>
+                  <p className="text-slate-900">Création de site web e-commerce</p>
+                </div>
+                <div>
+                  <label className="font-semibold text-slate-700">Budget estimé:</label>
+                  <p className="text-slate-900">5,000$ - 10,000$</p>
+                </div>
+                <div>
+                  <label className="font-semibold text-slate-700">Délai souhaité:</label>
+                  <p className="text-slate-900">6-8 semaines</p>
+                </div>
+                <div>
+                  <label className="font-semibold text-slate-700">Description:</label>
+                  <p className="text-slate-900">Nous cherchons à créer une boutique en ligne moderne pour nos produits artisanaux...</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-4 mt-6">
+                <button className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                  <Check className="w-5 h-5" />
+                  Créer le Devis
+                </button>
+                <button className="px-6 bg-slate-200 text-slate-700 py-3 rounded-lg font-semibold hover:bg-slate-300 transition-all">
+                  Plus tard
+                </button>
+              </div>
+              
+              <div className="absolute top-4 right-4 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold animate-ping">
+                1
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'dashboard':
+        return (
+          <div className="w-full h-full bg-gradient-to-br from-slate-50 to-slate-100 p-8 rounded-lg">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-6xl mx-auto">
+              <h2 className="text-3xl font-bold text-slate-900 mb-6">Dashboard</h2>
+              
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <FileText className="w-8 h-8 opacity-80" />
+                    <span className="text-2xl font-bold">8</span>
+                  </div>
+                  <p className="text-blue-100">Projets actifs</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <DollarSign className="w-8 h-8 opacity-80" />
+                    <span className="text-2xl font-bold">5</span>
+                  </div>
+                  <p className="text-green-100">Devis en attente</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <User className="w-8 h-8 opacity-80" />
+                    <span className="text-2xl font-bold">23</span>
+                  </div>
+                  <p className="text-purple-100">Clients</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <BarChart3 className="w-8 h-8 opacity-80" />
+                    <span className="text-2xl font-bold">47K$</span>
+                  </div>
+                  <p className="text-orange-100">Revenus 2025</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-6">
+                <div className="border-2 border-slate-200 rounded-lg p-4">
+                  <h3 className="font-bold text-lg mb-4">Activité Récente</h3>
+                  <div className="space-y-3">
+                    {[
+                      { icon: '📧', text: 'Nouveau devis reçu - Sophie M.', time: 'Il y a 5 min' },
+                      { icon: '✅', text: 'Projet "Logo TechStart" complété', time: 'Il y a 2h' },
+                      { icon: '💰', text: 'Paiement reçu - 8,500$', time: 'Hier' }
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-start gap-3 p-2 hover:bg-slate-50 rounded transition-colors">
+                        <span className="text-2xl">{item.icon}</span>
+                        <div className="flex-1">
+                          <p className="font-medium text-slate-900">{item.text}</p>
+                          <p className="text-sm text-slate-500">{item.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="border-2 border-slate-200 rounded-lg p-4">
+                  <h3 className="font-bold text-lg mb-4">Tâches du jour</h3>
+                  <div className="space-y-3">
+                    {[
+                      { text: 'Envoyer proposition à BelleMode', urgent: true },
+                      { text: 'Appel client FitnessPro 14h', urgent: false },
+                      { text: 'Finaliser mockups Logo', urgent: false }
+                    ].map((task, i) => (
+                      <div key={i} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded transition-colors">
+                        <input type="checkbox" className="w-5 h-5 rounded border-2 border-slate-300" />
+                        <span className={`flex-1 ${task.urgent ? 'text-red-600 font-semibold' : 'text-slate-700'}`}>
+                          {task.text}
+                        </span>
+                        {task.urgent && <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-bold">Urgent</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 'automation':
+        return (
+          <div className="w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 p-8 rounded-lg">
+            <div className="bg-white rounded-lg shadow-xl p-8 max-w-4xl mx-auto">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+                  <Sparkles className="w-8 h-8 text-purple-600" />
+                </div>
+                <h2 className="text-3xl font-bold text-slate-900 mb-2">Automatisations Actives</h2>
+                <p className="text-slate-600">Gagnez 10-15 heures par semaine</p>
+              </div>
+              
+              <div className="space-y-4">
+                {[
+                  {
+                    title: 'Réponse automatique aux nouveaux devis',
+                    description: 'Envoie un email de confirmation dans les 2 minutes',
+                    status: 'Actif',
+                    count: '127 envoyés ce mois'
+                  },
+                  {
+                    title: 'Rappels de suivi client',
+                    description: 'Notification 3 jours après envoi de devis',
+                    status: 'Actif',
+                    count: '45 rappels envoyés'
+                  },
+                  {
+                    title: 'Mise à jour de statut projet',
+                    description: 'Notifie le client à chaque changement',
+                    status: 'Actif',
+                    count: '89 notifications'
+                  },
+                  {
+                    title: 'Facturation automatique',
+                    description: 'Génère et envoie factures à la fin de projet',
+                    status: 'Actif',
+                    count: '23 factures ce mois'
+                  }
+                ].map((auto, i) => (
+                  <div key={i} className="border-2 border-purple-200 rounded-lg p-5 hover:border-purple-400 transition-all hover:shadow-lg">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-bold text-lg text-slate-900">{auto.title}</h3>
+                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                            {auto.status}
+                          </span>
+                        </div>
+                        <p className="text-slate-600 mb-2">{auto.description}</p>
+                        <p className="text-sm text-purple-600 font-semibold">📊 {auto.count}</p>
+                      </div>
+                      <div className="ml-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center animate-pulse">
+                          <Sparkles className="w-6 h-6 text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-8 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-lg p-6 text-center">
+                <p className="text-2xl font-bold text-purple-900 mb-2">
+                  ⏰ Temps économisé ce mois : 42 heures
+                </p>
+                <p className="text-purple-700">
+                  Soit l'équivalent de 2,100$ de travail facturable !
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      
+      default:
+        return null;
+    }
     };
 
     return (
-        <div className="relative" style={style}>
-            {/* Bouton de retour en haut */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4 sm:p-8">
+      {/* Bouton de retour */}
             <div className="fixed top-4 left-4 z-50">
                 <Link
                     href="/"
                     className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg hover:bg-white transition-all text-gray-700 hover:text-gray-900 font-medium"
                 >
                     <ArrowLeft className="w-4 h-4" />
-                    <span className="hidden sm:inline">Retour à l'accueil</span>
+          <span className="hidden sm:inline">Retour</span>
                     <Home className="w-4 h-4 sm:hidden" />
                 </Link>
             </div>
 
-            {/* Bannière de démo en haut */}
-            <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2 px-4 text-center text-sm font-medium shadow-lg">
-                <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
-                    <span>✨</span>
-                    <span>Ceci est une démo du portfolio InnovaPort</span>
-                    <span>✨</span>
-                    <Link 
-                        href="/auth/register" 
-                        className="ml-4 underline hover:no-underline font-semibold"
-                    >
-                        Créer votre portfolio gratuitement →
-                    </Link>
+      <div className="max-w-7xl mx-auto pt-12">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+            Découvrez InnovaPort en Action
+          </h1>
+          <p className="text-lg sm:text-xl text-blue-200 mb-8 max-w-3xl mx-auto px-4">
+            Voyez comment InnovaPort transforme votre activité de freelance en 2 minutes
+          </p>
+        </div>
+
+        {/* Demo Screen */}
+        <div className="bg-slate-800 rounded-2xl shadow-2xl overflow-hidden mb-8">
+          <div className="relative aspect-video min-h-[400px]">
+            {renderScreen()}
+            
+            {/* Animated Cursor */}
+            {showCursor && isPlaying && (
+              <div 
+                className="absolute w-6 h-6 transition-all duration-1000 ease-in-out pointer-events-none z-10"
+                style={{ left: `${cursorPos.x}%`, top: `${cursorPos.y}%` }}
+              >
+                <MousePointer2 className="w-6 h-6 text-yellow-400 drop-shadow-lg" />
+              </div>
+            )}
+          </div>
                 </div>
+
+        {/* Controls */}
+        <div className="bg-slate-800 rounded-xl p-4 sm:p-6 mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
+            <div className="flex gap-4">
+              <button
+                onClick={handlePlayPause}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all transform hover:scale-105"
+              >
+                {isPlaying ? (
+                  <>
+                    <Pause className="w-5 h-5" />
+                    Pause
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5" />
+                    {currentStep === 0 ? 'Démarrer la Démo' : 'Reprendre'}
+                  </>
+                )}
+              </button>
+              
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 px-6 py-3 bg-slate-700 text-white rounded-lg font-semibold hover:bg-slate-600 transition-all"
+              >
+                <RotateCcw className="w-5 h-5" />
+                Recommencer
+              </button>
             </div>
 
-            {/* Portfolio avec un décalage pour la bannière */}
-            <div className="pt-12">
-                <style dangerouslySetInnerHTML={{
-                    __html: `
-                        :root {
-                            --heading-font: ${getFontFamily(headingFont)};
-                            --body-font: ${getFontFamily(bodyFont)};
-                        }
-                        h1, h2, h3, h4, h5, h6, .font-heading {
-                            font-family: var(--heading-font) !important;
-                        }
-                        body, p, span, div, a, button, input, textarea, select, .font-body {
-                            font-family: var(--body-font) !important;
-                        }
-                    `
-                }} />
-                <PortfolioClient
-                    profile={updatedProfile as any}
-                    projects={demoProjects as any}
-                    testimonials={demoTestimonials}
-                    template={template}
-                    style={style}
-                    analyticsData={{
-                        userId: 'demo',
-                        eventType: 'demo_view',
-                        path: '/preview/demo'
-                    }}
-                />
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="cursor"
+                checked={showCursor}
+                onChange={(e) => setShowCursor(e.target.checked)}
+                className="w-5 h-5 rounded"
+              />
+              <label htmlFor="cursor" className="text-white text-sm">
+                Afficher le curseur
+              </label>
             </div>
         </div>
-    );
-}
 
-export default function DemoPage() {
-    return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Chargement de la démo...</p>
+          {/* Progress Bar */}
+          <div className="mb-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-white font-semibold">
+                Étape {currentStep + 1} / {demoSteps.length}
+              </span>
+              <span className="text-blue-300 text-sm">
+                {Math.round(((currentStep + 1) / demoSteps.length) * 100)}% complété
+              </span>
                 </div>
+            <div className="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500 rounded-full"
+                style={{ width: `${((currentStep + 1) / demoSteps.length) * 100}%` }}
+              ></div>
             </div>
-        }>
-            <DemoPageContent />
-        </Suspense>
-    );
-}
+          </div>
 
+          {/* Current Step Info */}
+          <div className="bg-slate-700 rounded-lg p-4">
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-2">
+              {demoSteps[currentStep].title}
+            </h3>
+            <p className="text-blue-200 text-sm sm:text-base">
+              {demoSteps[currentStep].description}
+            </p>
+          </div>
+        </div>
+
+        {/* Step Navigator */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          {demoSteps.map((step, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                setCurrentStep(index);
+                setIsPlaying(false);
+              }}
+              className={`p-4 rounded-lg transition-all text-left ${
+                index === currentStep
+                  ? 'bg-blue-600 text-white shadow-lg scale-105'
+                  : index < currentStep
+                  ? 'bg-green-600 text-white'
+                  : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-bold">{index + 1}</span>
+                {index < currentStep && <Check className="w-5 h-5" />}
+              </div>
+              <p className="text-xs sm:text-sm font-semibold">
+                {step.title.split(' ').slice(0, 3).join(' ')}...
+              </p>
+            </button>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 sm:p-10 text-center shadow-2xl">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4">
+            Prêt à transformer votre activité ?
+          </h2>
+          <p className="text-lg sm:text-xl text-blue-100 mb-8 max-w-2xl mx-auto px-4">
+            Rejoignez les 50+ freelances qui ont déjà choisi InnovaPort pour gérer leur business
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/auth/register"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-blue-600 rounded-xl font-bold text-base sm:text-lg hover:shadow-2xl transition-all transform hover:scale-105"
+            >
+              Commencer Gratuitement
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            </Link>
+            <button
+              onClick={() => setShowExpertModal(true)}
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-500 text-white rounded-xl font-bold text-base sm:text-lg hover:bg-blue-400 transition-all border-2 border-white/20"
+            >
+              Parler à un Expert
+            </button>
+          </div>
+          <p className="text-blue-200 mt-6 text-sm sm:text-base">
+            ✓ Aucune carte bancaire requise  •  ✓ Configuration en 5 minutes  •  ✓ Support en français
+          </p>
+        </div>
+      </div>
+
+      {/* Modal Parler à un Expert */}
+      <ExpertContactModal 
+        isOpen={showExpertModal} 
+        onClose={() => setShowExpertModal(false)} 
+      />
+    </div>
+  );
+}

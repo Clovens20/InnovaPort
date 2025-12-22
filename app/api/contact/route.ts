@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { checkRateLimit, getRateLimitIdentifier } from '@/lib/rate-limit';
+import { sendContactConfirmationEmail } from '@/utils/resend';
 
 // Utiliser la service role key pour bypasser RLS lors de l'insertion publique
 const supabaseAdmin = createClient(
@@ -85,6 +86,17 @@ export async function POST(request: NextRequest) {
                 { error: 'Erreur lors de l\'enregistrement du message' },
                 { status: 500 }
             );
+        }
+
+        // Envoyer l'email de confirmation automatique
+        try {
+            await sendContactConfirmationEmail({
+                to: email,
+                name: name,
+            });
+        } catch (emailError) {
+            // Ne pas faire échouer la requête si l'email échoue
+            console.error('Error sending confirmation email:', emailError);
         }
 
         return NextResponse.json(

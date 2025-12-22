@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendStatusUpdateEmail } from '@/utils/resend';
+import { sendStatusUpdateEmail, sendQuoteCreatedEmail } from '@/utils/resend';
 import { createClient as createServerClient } from '@/utils/supabase/server';
 
 const supabaseAdmin = createClient(
@@ -62,7 +62,7 @@ export async function PATCH(
         }
 
         const body = await request.json();
-        const { status: newStatus } = body;
+        const { status: newStatus, quoteData } = body;
 
         if (!newStatus || !['new', 'discussing', 'quoted', 'accepted', 'rejected'].includes(newStatus)) {
             return NextResponse.json(
@@ -73,10 +73,43 @@ export async function PATCH(
 
         const oldStatus = quote.status;
 
-        // Mettre à jour le statut
+        // Préparer les données de mise à jour
+        const updateData: any = { status: newStatus };
+        
+        // Si des données de devis sont fournies, les stocker dans internal_notes ou créer une colonne dédiée
+        if (quoteData && typeof quoteData === 'object') {
+            try {
+                // Stocker les données du devis dans internal_notes au format JSON
+                const existingNotes = quote.internal_notes || '';
+                const quoteInfo = {
+                    title: quoteData.title || '',
+                    description: quoteData.description || '',
+                    workProposal: quoteData.workProposal || '',
+                    items: quoteData.items || [],
+                    subtotal: quoteData.subtotal || 0,
+                    tax: quoteData.tax || 0,
+                    total: quoteData.total || 0,
+                    validUntil: quoteData.validUntil || '',
+                    paymentTerms: quoteData.paymentTerms || '30',
+                    notes: quoteData.notes || '',
+                    createdAt: new Date().toISOString(),
+                };
+                
+                // Ajouter les données du devis aux notes internes
+                const quoteDataJson = JSON.stringify(quoteInfo, null, 2);
+                updateData.internal_notes = existingNotes 
+                    ? `${existingNotes}\n\n--- DEVIS CRÉÉ ---\n${quoteDataJson}`
+                    : `--- DEVIS CRÉÉ ---\n${quoteDataJson}`;
+            } catch (jsonError) {
+                console.error('Error processing quote data:', jsonError);
+                // Continuer même si le JSON échoue, on met juste à jour le statut
+            }
+        }
+
+        // Mettre à jour le statut et les données
         const { data: updatedQuote, error: updateError } = await supabaseAdmin
             .from('quotes')
-            .update({ status: newStatus })
+            .update(updateData)
             .eq('id', id)
             .select()
             .single();
@@ -104,25 +137,56 @@ export async function PATCH(
 
         const shouldNotify = reminderSettings?.notify_on_status_change !== false; // Par défaut activé
 
-        // Envoyer une notification au client si le statut a changé et si les notifications sont activées
-        if (oldStatus !== newStatus && shouldNotify && quote.consent_contact) {
+        // Récupérer le profil du développeur une seule fois
+        const { data: profile, error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .select('full_name, username, email')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (profileError) {
+            console.error('Error fetching profile:', profileError);
+        }
+
+        const developerName = profile?.full_name || profile?.username || 'Développeur';
+        const developerEmail = profile?.email;
+
+        // Si un devis complet a été créé (quoteData fourni et status = 'quoted'), envoyer l'email détaillé
+        if (quoteData && newStatus === 'quoted' && quote.consent_contact) {
             try {
-                // Récupérer le profil du développeur
-                const { data: profile, error: profileError } = await supabaseAdmin
-                    .from('profiles')
-                    .select('full_name, username, email')
-                    .eq('id', user.id)
-                    .maybeSingle();
-
-                if (profileError) {
-                    console.error('Error fetching profile:', profileError);
-                }
-
+                await sendQuoteCreatedEmail({
+                    to: quote.email,
+                    clientName: quote.name,
+                    developerName,
+                    developerEmail,
+                    quoteData: {
+                        title: quoteData.title || '',
+                        description: quoteData.description || '',
+                        workProposal: quoteData.workProposal || '',
+                        items: quoteData.items || [],
+                        subtotal: quoteData.subtotal || 0,
+                        tax: quoteData.tax || 0,
+                        total: quoteData.total || 0,
+                        validUntil: quoteData.validUntil || '',
+                        paymentTerms: quoteData.paymentTerms || '30',
+                        notes: quoteData.notes || '',
+                    },
+                    projectType: quote.project_type,
+                    quoteId: id,
+                });
+            } catch (emailError) {
+                // Ne pas faire échouer la requête si l'email échoue
+                console.error('Error sending quote created email:', emailError);
+            }
+        }
+        // Sinon, envoyer une notification de changement de statut standard
+        else if (oldStatus !== newStatus && shouldNotify && quote.consent_contact) {
+            try {
                 await sendStatusUpdateEmail({
                     to: quote.email,
                     clientName: quote.name,
-                    developerName: profile?.full_name || profile?.username || 'Développeur',
-                    developerEmail: profile?.email,
+                    developerName,
+                    developerEmail,
                     quoteData: {
                         projectType: quote.project_type,
                         budget: quote.budget,

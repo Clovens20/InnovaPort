@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Mail, Cookie, Shield, BarChart3, Settings, Target, Database, Globe, AlertCircle, CheckCircle, XCircle, Clock, ExternalLink, ChevronDown, ChevronUp, FileText } from "lucide-react";

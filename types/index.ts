@@ -110,6 +110,9 @@ export interface Quote {
     consent_contact: boolean;
     consent_privacy: boolean;
     status: 'new' | 'discussing' | 'quoted' | 'accepted' | 'rejected';
+    internal_notes: string | null;
+    last_reminder_sent_at: string | null;
+    reminders_count: number;
     created_at: string;
     updated_at: string;
 }

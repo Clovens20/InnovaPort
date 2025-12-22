@@ -12,7 +12,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import clsx from 'clsx';
-import { Mail, Phone, Clock, MoreVertical, Loader2, Trash2, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, Clock, MoreVertical, Loader2, Trash2, CheckCircle2, FileText, DollarSign, User, BarChart3, Plus, Sparkles } from 'lucide-react';
 import { Quote } from '@/types';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -48,7 +48,7 @@ function formatRelativeDate(date: string, t: (key: string) => string): string {
 }
 
 export default function QuotesPage() {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     const router = useRouter();
     const supabase = createClient();
     const [loading, setLoading] = useState(true);
@@ -228,10 +228,221 @@ export default function QuotesPage() {
         );
     }
 
+    // Calculer les statistiques
+    const stats = {
+        total: quotes.length,
+        new: quotes.filter((q) => q.status === 'new').length,
+        pending: quotes.filter((q) => q.status === 'discussing' || q.status === 'quoted').length,
+        accepted: quotes.filter((q) => q.status === 'accepted').length,
+        recent: quotes.filter((q) => {
+            const date = new Date(q.created_at);
+            const now = new Date();
+            const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+            return diffDays <= 7;
+        }).length,
+    };
+
+    // Activité récente (5 dernières)
+    const recentActivity = quotes
+        .slice(0, 5)
+        .map((quote) => ({
+            id: quote.id,
+            type: quote.status === 'new' ? 'new' : quote.status === 'accepted' ? 'accepted' : 'update',
+            message: quote.status === 'new' 
+                ? `Nouveau devis reçu - ${quote.name}`
+                : quote.status === 'accepted'
+                ? `Devis accepté - ${quote.name}`
+                : `Mise à jour - ${quote.name}`,
+            time: formatRelativeDate(quote.created_at, t),
+            quote,
+        }));
+
     return (
         <div className="space-y-6 max-w-full overflow-x-hidden">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.quotes.title')}</h1>
+            </div>
+
+            {/* Dashboard Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Projets actifs / Devis totaux */}
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+                    <div className="flex items-center justify-between mb-2">
+                        <FileText className="w-8 h-8 opacity-80" />
+                        <span className="text-2xl font-bold">{stats.total}</span>
+                    </div>
+                    <p className="text-blue-100 text-sm font-medium">Devis totaux</p>
+                </div>
+
+                {/* Devis en attente */}
+                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+                    <div className="flex items-center justify-between mb-2">
+                        <DollarSign className="w-8 h-8 opacity-80" />
+                        <span className="text-2xl font-bold">{stats.pending}</span>
+                    </div>
+                    <p className="text-green-100 text-sm font-medium">En attente</p>
+                </div>
+
+                {/* Nouveaux devis */}
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+                    <div className="flex items-center justify-between mb-2">
+                        <User className="w-8 h-8 opacity-80" />
+                        <span className="text-2xl font-bold">{stats.new}</span>
+                    </div>
+                    <p className="text-purple-100 text-sm font-medium">Nouveaux devis</p>
+                </div>
+
+                {/* Acceptés */}
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 text-white">
+                    <div className="flex items-center justify-between mb-2">
+                        <BarChart3 className="w-8 h-8 opacity-80" />
+                        <span className="text-2xl font-bold">{stats.accepted}</span>
+                    </div>
+                    <p className="text-orange-100 text-sm font-medium">Acceptés</p>
+                </div>
+            </div>
+
+            {/* Automatisations Actives */}
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-6 border-2 border-purple-200">
+                <div className="text-center mb-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+                        <Sparkles className="w-8 h-8 text-purple-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Automatisations Actives</h2>
+                    <p className="text-gray-600">Gagnez 10-15 heures par semaine</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                        {
+                            title: 'Réponse automatique aux nouveaux devis',
+                            description: 'Envoie un email de confirmation dans les 2 minutes',
+                            status: 'Actif',
+                            count: `${quotes.filter((q) => q.status === 'new').length} nouveaux ce mois`,
+                            icon: Sparkles,
+                        },
+                        {
+                            title: 'Rappels de suivi client',
+                            description: 'Notification 3 jours après envoi de devis',
+                            status: 'Actif',
+                            count: `${quotes.filter((q) => (q.reminders_count || 0) > 0).length} rappels envoyés`,
+                            icon: Sparkles,
+                        },
+                        {
+                            title: 'Mise à jour de statut projet',
+                            description: 'Notifie le client à chaque changement',
+                            status: 'Actif',
+                            count: `${quotes.filter((q) => q.status !== 'new').length} notifications`,
+                            icon: Sparkles,
+                        },
+                        {
+                            title: 'Gestion centralisée',
+                            description: 'Tous vos devis dans un seul dashboard',
+                            status: 'Actif',
+                            count: `${stats.total} devis gérés`,
+                            icon: Sparkles,
+                        },
+                    ].map((auto, i) => (
+                        <div key={i} className="bg-white border-2 border-purple-200 rounded-lg p-5 hover:border-purple-400 transition-all hover:shadow-lg">
+                            <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <h3 className="font-bold text-lg text-gray-900">{auto.title}</h3>
+                                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                                            {auto.status}
+                                        </span>
+                                    </div>
+                                    <p className="text-gray-600 mb-2 text-sm">{auto.description}</p>
+                                    <p className="text-sm text-purple-600 font-semibold">📊 {auto.count}</p>
+                                </div>
+                                <div className="ml-4">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center animate-pulse">
+                                        <auto.icon className="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                
+                <div className="mt-6 bg-gradient-to-r from-purple-100 to-indigo-100 rounded-lg p-6 text-center">
+                    <p className="text-xl font-bold text-purple-900 mb-2">
+                        ⏰ Temps économisé ce mois : {Math.round(quotes.length * 0.5)} heures
+                    </p>
+                    <p className="text-purple-700">
+                        Soit l'équivalent de {Math.round(quotes.length * 0.5 * 50)}€ de travail facturable !
+                    </p>
+                </div>
+            </div>
+
+            {/* Activité récente et Tâches */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Activité Récente */}
+                <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
+                    <h3 className="font-bold text-lg mb-4 text-gray-900">Activité Récente</h3>
+                    <div className="space-y-3">
+                        {recentActivity.length > 0 ? (
+                            recentActivity.map((activity) => (
+                                <Link
+                                    key={activity.id}
+                                    href={`/dashboard/quotes/${activity.quote.id}`}
+                                    className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded transition-colors cursor-pointer"
+                                >
+                                    <span className="text-2xl">
+                                        {activity.type === 'new' ? '📧' : activity.type === 'accepted' ? '✅' : '💰'}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-gray-900 text-sm">{activity.message}</p>
+                                        <p className="text-xs text-gray-500">{activity.time}</p>
+                                    </div>
+                                </Link>
+                            ))
+                        ) : (
+                            <p className="text-sm text-gray-500 text-center py-4">Aucune activité récente</p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Tâches du jour */}
+                <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
+                    <h3 className="font-bold text-lg mb-4 text-gray-900">Tâches du jour</h3>
+                    <div className="space-y-3">
+                        {quotes.filter((q) => q.status === 'new' || q.status === 'discussing').slice(0, 3).map((quote) => (
+                            <div
+                                key={quote.id}
+                                className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded transition-colors"
+                            >
+                                <input
+                                    type="checkbox"
+                                    className="w-5 h-5 rounded border-2 border-gray-300 cursor-pointer"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Optionnel: marquer comme fait
+                                    }}
+                                />
+                                <Link
+                                    href={`/dashboard/quotes/${quote.id}`}
+                                    className={`flex-1 text-sm ${
+                                        quote.status === 'new' ? 'text-red-600 font-semibold' : 'text-gray-700'
+                                    }`}
+                                >
+                                    {quote.status === 'new' 
+                                        ? `Répondre à ${quote.name}`
+                                        : `Suivre devis - ${quote.name}`
+                                    }
+                                </Link>
+                                {quote.status === 'new' && (
+                                    <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-bold">
+                                        Urgent
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                        {quotes.filter((q) => q.status === 'new' || q.status === 'discussing').length === 0 && (
+                            <p className="text-sm text-gray-500 text-center py-4">Aucune tâche urgente</p>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Tabs */}
@@ -333,6 +544,15 @@ export default function QuotesPage() {
                             </div>
 
                             <div className="flex gap-2 flex-shrink-0 lg:ml-4 lg:self-start">
+                                {quote.status !== 'quoted' && quote.status !== 'accepted' && quote.status !== 'rejected' && (
+                                    <Link
+                                        href={`/dashboard/quotes/create/${quote.id}`}
+                                        className="px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-semibold transition-all whitespace-nowrap flex items-center justify-center gap-2 shadow-sm hover:shadow-md min-w-[140px]"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        {language === 'fr' ? 'Créer le devis' : 'Create Quote'}
+                                    </Link>
+                                )}
                                 <Link
                                     href={`/dashboard/quotes/${quote.id}`}
                                     className="px-5 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 text-sm font-semibold transition-all whitespace-nowrap flex items-center justify-center shadow-sm hover:shadow-md min-w-[120px]"

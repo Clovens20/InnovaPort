@@ -36,6 +36,8 @@ export function MessagesClient() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'read' | 'replied' | 'archived'>('all');
     const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
+    const [replyText, setReplyText] = useState('');
+    const [isReplying, setIsReplying] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -348,7 +350,83 @@ export function MessagesClient() {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+                                {/* Reply Section */}
+                                <div className="pt-4 border-t border-gray-200">
+                                    <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                                        {language === 'fr' ? 'Répondre au message' : 'Reply to message'}
+                                    </h3>
+                                    <textarea
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        placeholder={language === 'fr' ? 'Tapez votre réponse ici...' : 'Type your reply here...'}
+                                        rows={4}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-gray-900 placeholder:text-gray-400"
+                                    />
+                                    <div className="flex gap-2 mt-3">
+                                        <button
+                                            onClick={async () => {
+                                                if (!replyText.trim() || !selectedMessage) return;
+                                                
+                                                setIsReplying(true);
+                                                try {
+                                                    // Envoyer la réponse via l'API
+                                                    const response = await fetch(`/api/admin/messages/${selectedMessage.id}/reply`, {
+                                                        method: 'POST',
+                                                        headers: {
+                                                            'Content-Type': 'application/json',
+                                                        },
+                                                        body: JSON.stringify({
+                                                            replyMessage: replyText.trim(),
+                                                        }),
+                                                    });
+
+                                                    const data = await response.json();
+
+                                                    if (!response.ok) {
+                                                        throw new Error(data.error || 'Erreur lors de l\'envoi de la réponse');
+                                                    }
+
+                                                    // Marquer comme répondu et recharger les données
+                                                    await updateMessageStatus(selectedMessage.id, 'replied');
+                                                    setReplyText('');
+                                                    
+                                                    // Afficher un message de succès
+                                                    alert(language === 'fr' 
+                                                        ? 'Réponse envoyée avec succès !'
+                                                        : 'Reply sent successfully!'
+                                                    );
+                                                } catch (error) {
+                                                    console.error('Error replying:', error);
+                                                    alert(
+                                                        error instanceof Error 
+                                                            ? error.message 
+                                                            : (language === 'fr' 
+                                                                ? 'Erreur lors de l\'envoi de la réponse'
+                                                                : 'Error sending reply')
+                                                    );
+                                                } finally {
+                                                    setIsReplying(false);
+                                                }
+                                            }}
+                                            disabled={!replyText.trim() || isReplying}
+                                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <Reply className="w-4 h-4" />
+                                            {isReplying 
+                                                ? (language === 'fr' ? 'Envoi...' : 'Sending...')
+                                                : (language === 'fr' ? 'Envoyer la réponse' : 'Send Reply')
+                                            }
+                                        </button>
+                                        <button
+                                            onClick={() => setReplyText('')}
+                                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                                        >
+                                            {language === 'fr' ? 'Effacer' : 'Clear'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200 mt-4">
                                     {selectedMessage.status === 'new' && (
                                         <button
                                             onClick={() => updateMessageStatus(selectedMessage.id, 'read')}

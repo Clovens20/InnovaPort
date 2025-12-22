@@ -8,7 +8,7 @@ import { useTranslation } from "@/lib/i18n/useTranslation";
 import { LanguageSwitcher } from "@/app/_components/language-switcher";
 
 export default function DocumentationPage() {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
 
     return (
         <div className="min-h-screen bg-white">
@@ -89,7 +89,7 @@ export default function DocumentationPage() {
                                 <a href="#api" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
                                     {t('docs.api')}
                                 </a>
-                                <a href="#faq" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
+                                <a href="/faq" className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg">
                                     {t('docs.faq')}
                                 </a>
                             </nav>
@@ -179,31 +179,25 @@ export default function DocumentationPage() {
                             </div>
                         </section>
 
-                        {/* FAQ */}
+                        {/* FAQ - Link to dedicated FAQ page */}
                         <section id="faq" className="scroll-mt-24">
                             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                                 <Users className="w-8 h-8 text-[#1E3A8A]" aria-hidden="true" />
                                 {t('docs.faq')}
                             </h2>
-                            <div className="space-y-6">
-                                <div className="bg-gray-50 rounded-lg p-6">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">{t('docs.faqItems.q1')}</h3>
-                                    <p className="text-gray-700">
-                                        {t('docs.faqItems.a1')}
-                                    </p>
-                                </div>
-                                <div className="bg-gray-50 rounded-lg p-6">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">{t('docs.faqItems.q2')}</h3>
-                                    <p className="text-gray-700">
-                                        {t('docs.faqItems.a2')}
-                                    </p>
-                                </div>
-                                <div className="bg-gray-50 rounded-lg p-6">
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">{t('docs.faqItems.q3')}</h3>
-                                    <p className="text-gray-700">
-                                        {t('docs.faqItems.a3')}
-                                    </p>
-                                </div>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
+                                <p className="text-gray-700 mb-6">
+                                    {language === 'fr'
+                                        ? 'Consultez notre FAQ complète avec plus de 20 questions et réponses détaillées.'
+                                        : 'Check out our complete FAQ with over 20 detailed questions and answers.'
+                                    }
+                                </p>
+                                <Link
+                                    href="/faq"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#1E3A8A] text-white rounded-lg font-semibold hover:bg-[#1E40AF] transition-colors"
+                                >
+                                    {language === 'fr' ? 'Voir toutes les questions' : 'View all questions'}
+                                </Link>
                             </div>
                         </section>
                     </div>

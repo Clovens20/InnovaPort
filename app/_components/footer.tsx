@@ -59,6 +59,7 @@ export function Footer() {
         { href: '/docs', label: language === 'fr' ? 'Documentation' : 'Documentation' },
         { href: '/blog', label: language === 'fr' ? 'Blog' : 'Blog' },
         { href: '/support', label: language === 'fr' ? 'Support' : 'Support' },
+        { href: '/faq', label: language === 'fr' ? 'FAQ' : 'FAQ' },
         { href: '/contact', label: language === 'fr' ? 'Contact' : 'Contact' },
     ];
 

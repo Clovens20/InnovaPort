@@ -1,5 +1,7 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Mail, Shield, Database, Target, Scale, Share2, Clock, Lock, UserCheck, Cookie, Globe, Users, FileText, AlertCircle, MessageCircle } from "lucide-react";

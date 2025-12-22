@@ -22,7 +22,7 @@ export default function SupportPage() {
             icon: MessageSquare,
             title: t('support.faq'),
             description: t('support.faqDesc'),
-            href: '/docs#faq',
+            href: '/faq',
             color: 'green',
         },
         {
@@ -34,28 +34,6 @@ export default function SupportPage() {
         },
     ];
 
-    const faqItems = [
-        {
-            question: t('support.faqItems.q1'),
-            answer: t('support.faqItems.a1'),
-        },
-        {
-            question: t('support.faqItems.q2'),
-            answer: t('support.faqItems.a2'),
-        },
-        {
-            question: t('support.faqItems.q3'),
-            answer: t('support.faqItems.a3'),
-        },
-        {
-            question: t('support.faqItems.q4'),
-            answer: t('support.faqItems.a4'),
-        },
-        {
-            question: t('support.faqItems.q5'),
-            answer: t('support.faqItems.a5'),
-        },
-    ];
 
     const colorClasses = {
         blue: 'bg-blue-100 text-blue-600',
@@ -142,24 +120,24 @@ export default function SupportPage() {
                 </div>
             </section>
 
-            {/* FAQ Section */}
+            {/* FAQ Section - Link to dedicated FAQ page */}
             <section className="bg-gray-50 py-12 sm:py-16">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-8 text-center">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
                         {t('support.faqTitle')}
                     </h2>
-                    <div className="space-y-4">
-                        {faqItems.map((item, index) => (
-                            <div key={index} className="bg-white rounded-lg border border-gray-200 p-6">
-                                <h3 className="text-lg font-bold text-gray-900 mb-2">
-                                    {item.question}
-                                </h3>
-                                <p className="text-gray-700">
-                                    {item.answer}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
+                    <p className="text-gray-600 mb-8">
+                        {language === 'fr' 
+                            ? 'Consultez notre FAQ complète pour trouver des réponses à toutes vos questions.'
+                            : 'Check out our complete FAQ to find answers to all your questions.'
+                        }
+                    </p>
+                    <Link
+                        href="/faq"
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#1E3A8A] text-white rounded-lg font-semibold hover:bg-[#1E40AF] transition-colors"
+                    >
+                        {language === 'fr' ? 'Voir toutes les questions' : 'View all questions'}
+                    </Link>
                 </div>
             </section>
 
