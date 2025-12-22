@@ -313,7 +313,8 @@ export async function POST(request: NextRequest) {
             locale: stripeLocale as Stripe.Checkout.SessionCreateParams.Locale,
             success_url: successUrl,
             cancel_url: cancelUrl,
-            allow_promotion_codes: true, // Permettre les codes promo Stripe
+            // IMPORTANT: allow_promotion_codes et discounts ne peuvent pas être utilisés simultanément
+            // On définira allow_promotion_codes seulement s'il n'y a pas de code promo InnovaPort
             billing_address_collection: 'required', // Collecter l'adresse de facturation
             metadata: {
                 user_id: user.id,
@@ -339,6 +340,12 @@ export async function POST(request: NextRequest) {
                 },
             },
         };
+
+        // Permettre les codes promo Stripe seulement s'il n'y a pas de code promo InnovaPort
+        // Si un code promo InnovaPort est appliqué, on utilisera discounts à la place
+        if (!innovaPortPromoCode) {
+            sessionConfig.allow_promotion_codes = true;
+        }
 
         // Logique conditionnelle : utiliser SOIT customer SOIT customer_email, jamais les deux
         // Stripe n'accepte qu'un seul de ces paramètres à la fois
