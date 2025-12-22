@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useParams, useRouter } from 'next/navigation';
-import { Mail, Phone, MapPin, Calendar, Clock, Download, Star, Save, Loader2, ArrowRight, MessageSquare } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Clock, Download, Star, Save, Loader2, ArrowRight, MessageSquare, DollarSign, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Quote } from '@/types';
 import { ExportQuote } from '../_components/export-quote';
@@ -40,6 +40,8 @@ export default function QuoteDetailPage() {
     const [internalNotes, setInternalNotes] = useState('');
     const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'pro' | 'premium'>('free');
     const [showRespondModal, setShowRespondModal] = useState(false);
+    const [negotiationResponse, setNegotiationResponse] = useState('');
+    const [respondingToNegotiation, setRespondingToNegotiation] = useState(false);
 
     useEffect(() => {
         loadQuote();
@@ -136,6 +138,58 @@ export default function QuoteDetailPage() {
             alert('Erreur lors de l\'enregistrement des notes');
         } finally {
             setSaving(false);
+        }
+    };
+
+    // Fonction pour extraire les négociations depuis les notes internes
+    const extractNegotiations = (notes: string | null) => {
+        if (!notes) return [];
+        
+        const negotiations: Array<{ date: string; message: string }> = [];
+        const regex = /--- NÉGOCIATION CLIENT ---\nDate: ([^\n]+)\nMessage: ([^\n]+(?:\n(?!---)[^\n]+)*)/g;
+        let match;
+        
+        while ((match = regex.exec(notes)) !== null) {
+            negotiations.push({
+                date: match[1],
+                message: match[2].trim(),
+            });
+        }
+        
+        return negotiations;
+    };
+
+    // Fonction pour répondre à une négociation
+    const handleRespondToNegotiation = async (accept: boolean) => {
+        if (!quote) return;
+
+        setRespondingToNegotiation(true);
+        try {
+            const response = await fetch(`/api/quotes/${id}/respond-negotiation`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    accept,
+                    responseMessage: negotiationResponse,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erreur lors de l\'envoi de la réponse');
+            }
+
+            // Recharger le devis
+            await loadQuote();
+            setNegotiationResponse('');
+            alert(accept ? 'Négociation acceptée ! Le client a été notifié.' : 'Négociation refusée. Le client a été notifié.');
+        } catch (error: any) {
+            console.error('Error responding to negotiation:', error);
+            alert(error.message || 'Erreur lors de l\'envoi de la réponse');
+        } finally {
+            setRespondingToNegotiation(false);
         }
     };
 
@@ -360,6 +414,91 @@ export default function QuoteDetailPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Negotiations Section */}
+                {quote.status === 'discussing' && extractNegotiations(quote.internal_notes).length > 0 && (
+                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-6 rounded-lg shadow-sm border-2 border-orange-200">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-orange-100 rounded-lg">
+                                <DollarSign className="w-6 h-6 text-orange-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-semibold text-gray-900">Demande de Négociation</h2>
+                                <p className="text-sm text-gray-600">Le client souhaite négocier le prix</p>
+                            </div>
+                        </div>
+
+                        {extractNegotiations(quote.internal_notes).map((negotiation, index) => (
+                            <div key={index} className="mb-4 p-4 bg-white rounded-lg border border-orange-200">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <AlertCircle className="w-4 h-4 text-orange-600" />
+                                            <span className="text-xs font-medium text-orange-600">
+                                                Négociation reçue le {negotiation.date}
+                                            </span>
+                                        </div>
+                                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                            <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                                {negotiation.message || 'Aucun message spécifique'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Votre réponse (optionnel)
+                                    </label>
+                                    <textarea
+                                        rows={4}
+                                        value={negotiationResponse}
+                                        onChange={(e) => setNegotiationResponse(e.target.value)}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none resize-none"
+                                        placeholder="Ex: Je peux réduire le prix à $X si nous réduisons la portée à..."
+                                    />
+                                    
+                                    <div className="flex gap-3 mt-4">
+                                        <button
+                                            onClick={() => handleRespondToNegotiation(true)}
+                                            disabled={respondingToNegotiation}
+                                            className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            {respondingToNegotiation ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    Envoi...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle className="w-4 h-4" />
+                                                    Accepter la négociation
+                                                </>
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => handleRespondToNegotiation(false)}
+                                            disabled={respondingToNegotiation}
+                                            className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        >
+                                            {respondingToNegotiation ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    Envoi...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <XCircle className="w-4 h-4" />
+                                                    Refuser la négociation
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 {/* Internal Notes */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
