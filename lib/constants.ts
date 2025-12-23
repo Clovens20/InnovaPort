@@ -62,6 +62,11 @@ export const APP_NAME = 'InnovaPort';
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 /**
+ * URL complète du logo InnovaPort pour les emails
+ */
+export const LOGO_URL = `${APP_URL}/innovaport-logo.png`;
+
+/**
  * Domaine de l'application (extrait de APP_URL)
  */
 export function getAppDomain(): string {

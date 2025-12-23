@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, type ChangeEvent } from "react";
+import { useState, useEffect, useMemo, useCallback, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Loader2, CheckCircle2, X, ExternalLink, Copy, Check, Plus, Edit, Trash2 } from "lucide-react";
@@ -11,7 +11,8 @@ import AutoResponseTemplateModal from "./_components/auto-response-template-moda
 export default function SettingsPage() {
     const { t } = useTranslation();
     const router = useRouter();
-    const supabase = createClient();
+    // Mémoriser le client Supabase pour éviter les re-créations à chaque render
+    const supabase = useMemo(() => createClient(), []);
     
     // États de chargement et sauvegarde
     const [loading, setLoading] = useState(true);
@@ -70,51 +71,8 @@ export default function SettingsPage() {
     const [initialTwitterUrl, setInitialTwitterUrl] = useState("");
     const [initialLinkedinUrl, setInitialLinkedinUrl] = useState("");
 
-    // Vérifier si le profil a des changements (calcul automatique avec useMemo)
-    const hasProfileChanges = useMemo(() => 
-        fullName !== initialFullName ||
-        title !== initialTitle ||
-        titleEn !== initialTitleEn ||
-        email !== initialEmail ||
-        avatarUrl !== initialAvatarUrl || 
-        bio !== initialBio ||
-        bioEn !== initialBioEn ||
-        tiktokUrl !== initialTiktokUrl ||
-        facebookUrl !== initialFacebookUrl ||
-        twitterUrl !== initialTwitterUrl ||
-        linkedinUrl !== initialLinkedinUrl,
-        [fullName, initialFullName, title, initialTitle, titleEn, initialTitleEn, 
-         email, initialEmail, avatarUrl, initialAvatarUrl, bio, initialBio, 
-         bioEn, initialBioEn, tiktokUrl, initialTiktokUrl, facebookUrl, 
-         initialFacebookUrl, twitterUrl, initialTwitterUrl, linkedinUrl, initialLinkedinUrl]
-    );
-    
-    // ✅ NOUVEAU CODE (fonctionne)
-const hasUsernameChanges = useMemo(() => {
-    const trimmedUsername = username.trim();
-    const trimmedInitial = initialUsername.trim();
-    
-    // Vérifier que le username est valide ET différent
-    if (trimmedUsername.length < 3) return false;
-    if (trimmedUsername === trimmedInitial) return false;
-    
-    return true;
-}, [username, initialUsername]);
-
-// Charger le profil au démarrage
-    useEffect(() => {
-        loadProfile();
-        loadReminderSettings();
-    }, []);
-
-    // Charger les templates de réponses automatiques
-    useEffect(() => {
-        if (!loading) {
-            loadAutoResponseTemplates();
-        }
-    }, [loading]);
-
-    const loadProfile = async () => {
+    // Déclarer les fonctions AVANT les useMemo et useEffect qui les utilisent
+    const loadProfile = useCallback(async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
@@ -183,10 +141,10 @@ const hasUsernameChanges = useMemo(() => {
             setError(t('dashboard.settings.errorLoading'));
             setLoading(false);
         }
-    };
+    }, [supabase, router, t]);
 
     // Fonction pour charger les paramètres de rappels
-    const loadReminderSettings = async () => {
+    const loadReminderSettings = useCallback(async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
@@ -218,7 +176,7 @@ const hasUsernameChanges = useMemo(() => {
         } catch (err) {
             console.error('Error loading reminder settings:', err);
         }
-    };
+    }, [supabase]);
 
     // Fonction pour sauvegarder les paramètres de rappels
     const handleSaveReminderSettings = async () => {
@@ -255,7 +213,7 @@ const hasUsernameChanges = useMemo(() => {
     };
 
     // Fonction pour charger les templates de réponses automatiques
-    const loadAutoResponseTemplates = async () => {
+    const loadAutoResponseTemplates = useCallback(async () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
@@ -274,7 +232,51 @@ const hasUsernameChanges = useMemo(() => {
         } finally {
             setLoadingTemplates(false);
         }
-    };
+    }, [supabase]);
+
+    // Vérifier si le profil a des changements (calcul automatique avec useMemo)
+    const hasProfileChanges = useMemo(() => 
+        fullName !== initialFullName ||
+        title !== initialTitle ||
+        titleEn !== initialTitleEn ||
+        email !== initialEmail ||
+        avatarUrl !== initialAvatarUrl || 
+        bio !== initialBio ||
+        bioEn !== initialBioEn ||
+        tiktokUrl !== initialTiktokUrl ||
+        facebookUrl !== initialFacebookUrl ||
+        twitterUrl !== initialTwitterUrl ||
+        linkedinUrl !== initialLinkedinUrl,
+        [fullName, initialFullName, title, initialTitle, titleEn, initialTitleEn, 
+         email, initialEmail, avatarUrl, initialAvatarUrl, bio, initialBio, 
+         bioEn, initialBioEn, tiktokUrl, initialTiktokUrl, facebookUrl, 
+         initialFacebookUrl, twitterUrl, initialTwitterUrl, linkedinUrl, initialLinkedinUrl]
+    );
+    
+    // Vérifier si le username a des changements
+    const hasUsernameChanges = useMemo(() => {
+        const trimmedUsername = username.trim();
+        const trimmedInitial = initialUsername.trim();
+        
+        // Vérifier que le username est valide ET différent
+        if (trimmedUsername.length < 3) return false;
+        if (trimmedUsername === trimmedInitial) return false;
+        
+        return true;
+    }, [username, initialUsername]);
+
+    // Charger le profil au démarrage (après les déclarations de fonctions)
+    useEffect(() => {
+        loadProfile();
+        loadReminderSettings();
+    }, [loadProfile, loadReminderSettings]);
+
+    // Charger les templates de réponses automatiques
+    useEffect(() => {
+        if (!loading) {
+            loadAutoResponseTemplates();
+        }
+    }, [loading, loadAutoResponseTemplates]);
 
     // Fonction pour sauvegarder un template
     const handleSaveTemplate = async (template: any) => {
@@ -373,7 +375,7 @@ const hasUsernameChanges = useMemo(() => {
         };
         document.addEventListener("visibilitychange", onVisible);
         return () => document.removeEventListener("visibilitychange", onVisible);
-    }, [hasProfileChanges, savingProfile, avatarUploading]);
+    }, [hasProfileChanges, savingProfile, avatarUploading, loadProfile]);
 // Fonction dédiée pour sauvegarder le USERNAME uniquement
     const handleSaveUsername = async () => {
         if (profile?.subscription_tier === "free") {

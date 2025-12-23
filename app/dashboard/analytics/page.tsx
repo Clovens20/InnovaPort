@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { BarChart3, TrendingUp, Eye, MousePointerClick, Users, Calendar, Download, RefreshCw } from 'lucide-react';
@@ -14,7 +14,8 @@ type TimePeriod = 'day' | 'week' | 'month' | 'year' | 'all';
 export default function AnalyticsPage() {
     const { t } = useTranslation();
     const router = useRouter();
-    const supabase = createClient();
+    // Mémoriser le client Supabase pour éviter les re-créations à chaque render
+    const supabase = useMemo(() => createClient(), []);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [subscriptionTier, setSubscriptionTier] = useState<'free' | 'pro' | 'premium'>('free');
@@ -125,7 +126,7 @@ export default function AnalyticsPage() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [timePeriod, supabase, router, getDateFilter]);
+    }, [timePeriod, getDateFilter, supabase, router]);
 
     useEffect(() => {
         loadData();

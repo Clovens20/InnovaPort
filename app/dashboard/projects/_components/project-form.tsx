@@ -225,15 +225,18 @@ export default function ProjectForm() {
     // Générer le slug automatiquement depuis le titre
     useEffect(() => {
         if (formData.title) {
-            const slug = formData.title
+            const newSlug = formData.title
                 .toLowerCase()
                 .normalize('NFD')
                 .replace(/[\u0300-\u036f]/g, '')
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/(^-|-$)/g, '');
-            setFormData(prev => ({ ...prev, slug }));
+            // Éviter les mises à jour inutiles si le slug est déjà le même
+            if (newSlug !== formData.slug) {
+                setFormData(prev => ({ ...prev, slug: newSlug }));
+            }
         }
-    }, [formData.title]);
+    }, [formData.title, formData.slug]);
 
     const handleSave = async (published: boolean = false) => {
         // Validation

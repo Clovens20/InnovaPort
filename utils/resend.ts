@@ -7,7 +7,7 @@
  */
 
 import { Resend } from 'resend';
-import { DEFAULT_FROM_EMAIL, APP_URL, BRAND_COLORS } from '@/lib/constants';
+import { DEFAULT_FROM_EMAIL, APP_URL, BRAND_COLORS, LOGO_URL } from '@/lib/constants';
 
 if (!process.env.RESEND_API_KEY) {
     throw new Error('RESEND_API_KEY is not set in environment variables');
@@ -130,8 +130,9 @@ export async function sendQuoteConfirmationEmail({
                 </head>
                 <body>
                     <div class="container">
-                        <div class="header">
-                            <h1>Demande reçue ✓</h1>
+                        <div class="header" style="text-align: center; padding-bottom: 30px;">
+                            <img src="${LOGO_URL}" alt="InnovaPort Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+                            <h1 style="margin-top: 0;">Demande reçue ✓</h1>
                         </div>
                         <div class="content">
                             <p>Bonjour ${clientName},</p>
@@ -238,8 +239,9 @@ export async function sendAutoResponseEmail({
                 <body>
                     <div class="container">
                         <div class="email-wrapper">
-                            <div class="header">
-                                <h1>Réponse à votre demande</h1>
+                            <div class="header" style="text-align: center; padding-bottom: 30px;">
+                                <img src="${LOGO_URL}" alt="InnovaPort Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+                                <h1 style="margin-top: 0;">Réponse à votre demande</h1>
                             </div>
                             <div class="content">
                                 ${bodyHtml}
@@ -342,8 +344,9 @@ export async function sendDeveloperResponseEmail({
                 </head>
                 <body>
                     <div class="container">
-                        <div class="header">
-                            <h1 style="margin: 0;">Réponse à votre demande</h1>
+                        <div class="header" style="text-align: center; padding-bottom: 30px;">
+                            <img src="${LOGO_URL}" alt="InnovaPort Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+                            <h1 style="margin-top: 0;">Réponse à votre demande</h1>
                         </div>
                         <div class="content">
                             <p>Bonjour ${clientName},</p>
@@ -583,8 +586,9 @@ export async function sendStatusUpdateEmail({
                 </head>
                 <body>
                     <div class="container">
-                        <div class="header">
-                            <h1 style="margin: 0;">Mise à jour de votre demande</h1>
+                        <div class="header" style="text-align: center; padding-bottom: 30px;">
+                            <img src="${LOGO_URL}" alt="InnovaPort Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+                            <h1 style="margin-top: 0;">Mise à jour de votre demande</h1>
                         </div>
                         <div class="content">
                             <p>Bonjour ${clientName},</p>
@@ -667,9 +671,10 @@ export async function sendContactConfirmationEmail({
                 </head>
                 <body>
                     <div class="container">
-                        <div class="header">
+                        <div class="header" style="text-align: center; padding-bottom: 30px;">
+                            <img src="${LOGO_URL}" alt="InnovaPort Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
                             <div class="icon">✓</div>
-                            <h1>Message reçu avec succès !</h1>
+                            <h1 style="margin-top: 0;">Message reçu avec succès !</h1>
                         </div>
                         <div class="content">
                             <p style="font-size: 18px; color: #333; margin-bottom: 20px;">Bonjour ${name},</p>
@@ -778,8 +783,9 @@ export async function sendAdminReplyEmail({
                 </head>
                 <body>
                     <div class="container">
-                        <div class="header">
-                            <h1>Réponse à votre message</h1>
+                        <div class="header" style="text-align: center; padding-bottom: 30px;">
+                            <img src="${LOGO_URL}" alt="InnovaPort Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+                            <h1 style="margin-top: 0;">Réponse à votre message</h1>
                         </div>
                         <div class="content">
                             <p style="font-size: 16px; color: #333; margin-bottom: 20px;">Bonjour ${clientName},</p>
@@ -912,8 +918,9 @@ export async function sendQuoteCreatedEmail({
                 </head>
                 <body>
                     <div class="container">
-                        <div class="header">
-                            <h1>📋 Votre Devis est Prêt !</h1>
+                        <div class="header" style="text-align: center; padding-bottom: 30px;">
+                            <img src="${LOGO_URL}" alt="InnovaPort Logo" style="max-width: 200px; height: auto; margin-bottom: 20px;" />
+                            <h1 style="margin-top: 0;">📋 Votre Devis est Prêt !</h1>
                             <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">${quoteData.title}</p>
                         </div>
                         <div class="content">
