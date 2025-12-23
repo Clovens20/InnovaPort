@@ -213,10 +213,19 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
         }
 
-        // Récupérer tous les utilisateurs
+        // Récupérer tous les utilisateurs avec leur plan actuel depuis subscriptions
         const { data: allUsers, error: fetchError } = await supabaseAdmin
             .from('profiles')
-            .select('id, username, full_name, email, role, subscription_tier, created_at')
+            .select(`
+                id, 
+                username, 
+                full_name, 
+                email, 
+                role, 
+                subscription_tier,
+                created_at,
+                subscriptions!left(plan, status)
+            `)
             .order('created_at', { ascending: false });
 
         if (fetchError) {
@@ -239,7 +248,19 @@ export async function GET(request: NextRequest) {
             validUsers.push(
                 ...userChecks
                     .filter((result) => result.status === 'fulfilled' && result.value !== null)
-                    .map((result) => (result as PromiseFulfilledResult<any>).value)
+                    .map((result) => {
+                        const user = (result as PromiseFulfilledResult<any>).value;
+                        // Utiliser le plan depuis subscriptions si disponible, sinon subscription_tier
+                        const subscriptions = Array.isArray(user.subscriptions) ? user.subscriptions : (user.subscriptions ? [user.subscriptions] : []);
+                        const activeSubscription = subscriptions.find((sub: any) => sub.status === 'active') || subscriptions[0];
+                        const currentPlan = activeSubscription?.plan || user.subscription_tier || 'free';
+                        
+                        return {
+                            ...user,
+                            current_plan: currentPlan, // Plan actuel depuis subscriptions
+                            subscription_tier: currentPlan, // Pour compatibilité avec l'interface
+                        };
+                    })
             );
         }
 

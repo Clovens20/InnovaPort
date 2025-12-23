@@ -141,19 +141,23 @@ export const analyticsEventTypes = [
     'quote_click',
     'project_view',
     'contact_click',
+    'page_view',
 ] as const;
 
 /**
  * Schéma pour l'enregistrement d'un événement analytics
+ * userId est optionnel pour permettre le tracking des visiteurs anonymes du site principal
  */
 export const createAnalyticsSchema = z.object({
     userId: z
-        .string({ message: 'L\'ID utilisateur est requis' })
-        .uuid('Format UUID invalide pour l\'ID utilisateur'),
+        .string()
+        .uuid('Format UUID invalide pour l\'ID utilisateur')
+        .optional()
+        .nullable(),
     
     eventType: z
         .enum(analyticsEventTypes, {
-            message: 'Type d\'événement invalide. Les valeurs autorisées sont: portfolio_view, quote_click, project_view, contact_click',
+            message: 'Type d\'événement invalide. Les valeurs autorisées sont: portfolio_view, quote_click, project_view, contact_click, page_view',
         }),
     
     path: z

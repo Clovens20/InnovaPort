@@ -43,10 +43,19 @@ export default async function AdminUsersPage() {
         }
     );
 
-    // Récupérer tous les utilisateurs avec leur rôle et plan
+    // Récupérer tous les utilisateurs avec leur rôle et plan actuel depuis subscriptions
     const { data: allUsers, error } = await supabase
         .from('profiles')
-        .select('id, username, full_name, email, role, subscription_tier, created_at')
+        .select(`
+            id, 
+            username, 
+            full_name, 
+            email, 
+            role, 
+            subscription_tier,
+            created_at,
+            subscriptions!left(plan, status)
+        `)
         .order('created_at', { ascending: false });
 
     if (error) {
@@ -61,7 +70,18 @@ export default async function AdminUsersPage() {
             allUsers.map(async (profileUser) => {
                 const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(profileUser.id);
                 if (!authError && authUser?.user) {
-                    return profileUser;
+                    // Utiliser le plan depuis subscriptions si disponible, sinon subscription_tier
+                    const subscriptions = Array.isArray(profileUser.subscriptions) 
+                        ? profileUser.subscriptions 
+                        : (profileUser.subscriptions ? [profileUser.subscriptions] : []);
+                    const activeSubscription = subscriptions.find((sub: any) => sub.status === 'active') || subscriptions[0];
+                    const currentPlan = activeSubscription?.plan || profileUser.subscription_tier || 'free';
+                    
+                    return {
+                        ...profileUser,
+                        current_plan: currentPlan, // Plan actuel depuis subscriptions
+                        subscription_tier: currentPlan, // Pour compatibilité avec l'interface
+                    };
                 }
                 return null;
             })

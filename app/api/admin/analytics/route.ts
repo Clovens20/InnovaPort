@@ -31,14 +31,21 @@ export async function GET(request: NextRequest) {
         // Récupérer les paramètres de filtre
         const { searchParams } = new URL(request.url);
         const period = searchParams.get('period') || 'week'; // day, week, month, year
+        const filterType = searchParams.get('filter') || 'all'; // all, site-only
         const startDate = getStartDate(period);
 
-        // Récupérer tous les analytics de la période
-        const { data: analytics, error } = await supabase
+        // Récupérer tous les analytics de la période avec toutes les colonnes nécessaires
+        // On récupère tous les événements et on filtre ensuite pour:
+        // - user_id IS NULL (visiteurs anonymes du site principal)
+        // - event_type = 'page_view' (pages vues du site principal)
+        // - OU les événements avec user_id mais qui sont des pages du site principal
+        let query = supabase
             .from('analytics')
-            .select('*')
+            .select('id, user_id, event_type, event, path, referrer, user_agent, ip_address, metadata, created_at')
             .gte('created_at', startDate.toISOString())
             .order('created_at', { ascending: false });
+
+        const { data: analytics, error } = await query;
 
         if (error) {
             console.error('Error fetching analytics:', error);
@@ -53,9 +60,6 @@ export async function GET(request: NextRequest) {
             '/faq',
             '/docs',
             '/support',
-            '/admin',
-            '/dashboard',
-            '/auth',
             '/checkout',
             '/conditions-utilisation',
             '/mentions-legales',
@@ -63,10 +67,30 @@ export async function GET(request: NextRequest) {
             '/politique-cookies',
         ];
 
-        // Filtrer pour ne garder que les visites du site principal innovaport.dev
-        // Exclure les portfolios utilisateurs (qui ont un username dans le path)
-        const filteredAnalytics = (analytics || []).filter(item => {
-            if (!item.path) return true; // Les événements sans path sont considérés comme site principal
+        // Filtrer les analytics selon le type de filtre
+        // Si filterType = 'all', on inclut tous les événements
+        // Si filterType = 'site-only', on filtre pour ne garder que le site principal
+        const filteredAnalytics = filterType === 'all' 
+            ? (analytics || [])
+            : (analytics || []).filter(item => {
+            // Gérer les deux noms de colonnes : event_type (nouveau) ou event (ancien)
+            const eventType = item.event_type || item.event;
+            
+            // Si user_id est NULL, c'est un visiteur anonyme du site principal
+            if (!item.user_id) {
+                return true;
+            }
+            
+            // Si event_type est 'page_view', c'est probablement du site principal
+            // (les portfolios utilisent 'portfolio_view')
+            if (eventType === 'page_view') {
+                return true;
+            }
+            
+            // Si pas de path, on garde (peut être un événement générique)
+            if (!item.path) {
+                return true;
+            }
             
             const path = item.path.toLowerCase();
             
@@ -75,7 +99,7 @@ export async function GET(request: NextRequest) {
                 return true;
             }
             
-            // Si le path commence par "/blog/", "/legal/", "/preview/", etc., on le garde
+            // Si le path commence par "/blog/", "/legal/", "/preview/", "/quotes/", "/checkout/", "/auth/", on le garde
             if (path.startsWith('/blog/') || 
                 path.startsWith('/legal/') || 
                 path.startsWith('/preview/') ||
@@ -108,11 +132,20 @@ export async function GET(request: NextRequest) {
         });
 
         // Calculer les statistiques
+        // Gérer les deux noms de colonnes : event_type (nouveau) ou event (ancien)
         const stats = {
             totalVisits: filteredAnalytics.length,
             uniqueVisitors: new Set(filteredAnalytics.map(a => a.ip_address).filter(Boolean)).size,
-            pageViews: filteredAnalytics.filter(a => a.event_type === 'page_view' || !a.event_type).length,
-            clicks: filteredAnalytics.filter(a => a.event_type === 'click').length,
+            pageViews: filteredAnalytics.filter(a => {
+                const eventType = a.event_type || a.event;
+                return eventType === 'page_view' || eventType === 'portfolio_view';
+            }).length,
+            clicks: filteredAnalytics.filter(a => {
+                const eventType = a.event_type || a.event;
+                return eventType === 'quote_click' || 
+                       eventType === 'contact_click' || 
+                       eventType === 'click';
+            }).length,
         };
 
         // Grouper par date pour les graphiques
@@ -123,6 +156,8 @@ export async function GET(request: NextRequest) {
             stats,
             groupedByDate,
             period,
+            filterType,
+            totalInDatabase: analytics?.length || 0,
         });
     } catch (error) {
         console.error('Error in GET /api/admin/analytics:', error);

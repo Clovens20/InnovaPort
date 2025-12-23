@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         // Insérer l'événement analytics
         // Support pour les deux structures : event_type (nouveau) ou event (ancien)
         // Support pour user_id (nouveau) ou profile_id (ancien)
+        // user_id peut être NULL pour les visiteurs anonymes du site principal
         const insertData: any = {
             path: path || null,
             referrer: referrer || null,
@@ -92,9 +93,14 @@ export async function POST(request: NextRequest) {
             ip_address: ipAddress,
         };
 
-        // Utiliser user_id si disponible, sinon profile_id
-        insertData.user_id = userId;
-        insertData.profile_id = userId; // Fallback pour compatibilité
+        // Utiliser user_id si disponible (peut être null pour visiteurs anonymes)
+        if (userId) {
+            insertData.user_id = userId;
+            insertData.profile_id = userId; // Fallback pour compatibilité
+        } else {
+            // Pour les visiteurs anonymes, on ne définit pas user_id (sera NULL en DB)
+            insertData.user_id = null;
+        }
 
         // Utiliser event_type si disponible, sinon event
         if (eventType) {

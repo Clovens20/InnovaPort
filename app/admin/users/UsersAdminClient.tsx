@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, UserPlus, Edit, Shield, User as UserIcon, Mail, Calendar, Plus, X, Save, Loader2, Trash2 } from 'lucide-react';
+import { ArrowLeft, UserPlus, Edit, Shield, User as UserIcon, Mail, Calendar, Plus, X, Save, Loader2, Trash2, RefreshCw } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 
 interface User {
@@ -266,6 +266,51 @@ export function UsersAdminClient({
         setShowDeleteModal(true);
     };
 
+    const handleSyncSubscriptions = async () => {
+        if (!confirm('Voulez-vous synchroniser les abonnements ? Cela créera des entrées dans la table subscriptions pour les utilisateurs qui ont un plan pro/premium dans profiles mais pas d\'abonnement.')) {
+            return;
+        }
+
+        setLoading(true);
+        setMessage(null);
+
+        try {
+            const response = await fetch('/api/admin/sync-subscriptions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Erreur lors de la synchronisation');
+            }
+
+            setMessage({ 
+                type: 'success', 
+                text: data.message || `${data.synced || 0} abonnement(s) synchronisé(s) avec succès` 
+            });
+            
+            // Recharger les utilisateurs depuis l'API pour voir les changements
+            try {
+                const refreshResponse = await fetch('/api/admin/users');
+                if (refreshResponse.ok) {
+                    const refreshData = await refreshResponse.json();
+                    setUsers(refreshData.users || []);
+                }
+            } catch (refreshError) {
+                console.error('Error refreshing users:', refreshError);
+            }
+        } catch (error: any) {
+            console.error('Error syncing subscriptions:', error);
+            setMessage({ type: 'error', text: error.message || 'Erreur lors de la synchronisation des abonnements' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleDeleteUser = async () => {
         if (!userToDelete) return;
 
@@ -336,13 +381,23 @@ export function UsersAdminClient({
                         <h1 className="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
                         <p className="text-gray-600 mt-1">Créez des admins et gérez les utilisateurs du système</p>
                     </div>
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center gap-2"
-                    >
-                        <UserPlus className="w-4 h-4" />
-                        Créer un utilisateur
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleSyncSubscriptions}
+                            disabled={loading}
+                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                            Synchroniser les abonnements
+                        </button>
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center gap-2"
+                        >
+                            <UserPlus className="w-4 h-4" />
+                            Créer un utilisateur
+                        </button>
+                    </div>
                 </div>
             </div>
 

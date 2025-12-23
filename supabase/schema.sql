@@ -78,6 +78,9 @@ CREATE TABLE IF NOT EXISTS projects (
     image_url TEXT,
     featured BOOLEAN DEFAULT FALSE,
     published BOOLEAN DEFAULT FALSE,
+    revenue_amount INTEGER DEFAULT NULL, -- Montant du revenu en centimes (ex: 10000 = 100.00€)
+    revenue_currency TEXT DEFAULT 'EUR', -- Devise du revenu
+    revenue_date TIMESTAMPTZ DEFAULT NULL, -- Date de génération du revenu
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(user_id, slug)
@@ -135,11 +138,12 @@ CREATE TABLE IF NOT EXISTS subscriptions (
 -- ============================================
 -- TABLE: analytics
 -- Stocke les analytics de visites et clics
+-- user_id peut être NULL pour les visiteurs anonymes du site principal
 -- ============================================
 CREATE TABLE IF NOT EXISTS analytics (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-    event_type TEXT NOT NULL CHECK (event_type IN ('portfolio_view', 'quote_click', 'project_view', 'contact_click')),
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE, -- NULL pour visiteurs anonymes
+    event_type TEXT NOT NULL CHECK (event_type IN ('portfolio_view', 'quote_click', 'project_view', 'contact_click', 'page_view')),
     path TEXT,
     referrer TEXT,
     user_agent TEXT,

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Mail, MessageSquare, Calendar, User, Search, Filter, CheckCircle, XCircle, Archive, Reply, Eye, ArrowLeft } from 'lucide-react';
+import { Mail, MessageSquare, Calendar, User, Search, Filter, CheckCircle, XCircle, Archive, Reply, Eye, ArrowLeft, Trash2 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import Link from 'next/link';
 
@@ -98,6 +98,35 @@ export function MessagesClient() {
         if (selectedMessage?.id === messageId) {
             setSelectedMessage({ ...selectedMessage, ...updateData });
         }
+    };
+
+    const deleteMessage = async (messageId: string) => {
+        if (!confirm(language === 'fr' 
+            ? 'Êtes-vous sûr de vouloir supprimer ce message ? Cette action est irréversible.'
+            : 'Are you sure you want to delete this message? This action cannot be undone.')) {
+            return;
+        }
+
+        const supabase = createClient();
+        const { error } = await supabase
+            .from('contact_messages')
+            .delete()
+            .eq('id', messageId);
+
+        if (error) {
+            console.error('Error deleting message:', error);
+            alert(language === 'fr' 
+                ? 'Erreur lors de la suppression du message'
+                : 'Error deleting message');
+            return;
+        }
+
+        // Si le message supprimé était sélectionné, désélectionner
+        if (selectedMessage?.id === messageId) {
+            setSelectedMessage(null);
+        }
+
+        await loadData();
     };
 
     const filteredContactMessages = contactMessages.filter(msg => {
@@ -269,35 +298,52 @@ export function MessagesClient() {
                                     filteredContactMessages.map((message) => (
                                         <div
                                             key={message.id}
-                                            onClick={() => setSelectedMessage(message)}
-                                            className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                                            className={`p-4 hover:bg-gray-50 transition-colors ${
                                                 selectedMessage?.id === message.id ? 'bg-blue-50' : ''
                                             }`}
                                         >
-                                            <div className="flex items-start justify-between mb-2">
-                                                <div className="flex-1">
-                                                    <h3 className="font-semibold text-gray-900 mb-1">
-                                                        {message.name}
-                                                    </h3>
-                                                    <p className="text-sm text-gray-600 mb-1">{message.email}</p>
-                                                    {message.subject && (
-                                                        <p className="text-sm font-medium text-gray-900 mb-2">
-                                                            {message.subject}
-                                                        </p>
-                                                    )}
+                                            <div 
+                                                onClick={() => setSelectedMessage(message)}
+                                                className="cursor-pointer"
+                                            >
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div className="flex-1">
+                                                        <h3 className="font-semibold text-gray-900 mb-1">
+                                                            {message.name}
+                                                        </h3>
+                                                        <p className="text-sm text-gray-600 mb-1">{message.email}</p>
+                                                        {message.subject && (
+                                                            <p className="text-sm font-medium text-gray-900 mb-2">
+                                                                {message.subject}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(message.status)}`}>
+                                                        {language === 'fr' 
+                                                            ? { new: 'Nouveau', read: 'Lu', replied: 'Répondu', archived: 'Archivé' }[message.status]
+                                                            : { new: 'New', read: 'Read', replied: 'Replied', archived: 'Archived' }[message.status]}
+                                                    </span>
                                                 </div>
-                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(message.status)}`}>
-                                                    {language === 'fr' 
-                                                        ? { new: 'Nouveau', read: 'Lu', replied: 'Répondu', archived: 'Archivé' }[message.status]
-                                                        : { new: 'New', read: 'Read', replied: 'Replied', archived: 'Archived' }[message.status]}
-                                                </span>
+                                                <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                                                    {message.message}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {formatDate(message.created_at)}
+                                                </p>
                                             </div>
-                                            <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                                                {message.message}
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                                {formatDate(message.created_at)}
-                                            </p>
+                                            <div className="flex justify-end mt-2 pt-2 border-t border-gray-200">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        deleteMessage(message.id);
+                                                    }}
+                                                    className="px-3 py-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+                                                    title={language === 'fr' ? 'Supprimer' : 'Delete'}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                    {language === 'fr' ? 'Supprimer' : 'Delete'}
+                                                </button>
+                                            </div>
                                         </div>
                                     ))
                                 )}
@@ -464,6 +510,13 @@ export function MessagesClient() {
                                             {language === 'fr' ? 'Archiver' : 'Archive'}
                                         </button>
                                     )}
+                                    <button
+                                        onClick={() => deleteMessage(selectedMessage.id)}
+                                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        {language === 'fr' ? 'Supprimer' : 'Delete'}
+                                    </button>
                                 </div>
                             </div>
                         ) : (

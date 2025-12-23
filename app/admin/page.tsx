@@ -160,6 +160,12 @@ export default async function AdminPage() {
                             description="Voir tous les visiteurs qui ont cliqué sur le lien www.innovaport.dev avec graphiques et statistiques."
                             href="/admin/analytics"
                         />
+                        <AdminCard
+                            icon={<DollarSign className="w-5 h-5 text-green-600" />}
+                            title="Revenus"
+                            description="Suivre les revenus générés par les projets avec graphiques et statistiques détaillées."
+                            href="/admin/revenue"
+                        />
                     </div>
 
                     {/* Message de sécurité */}
