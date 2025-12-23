@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, FolderKanban, MessageSquareQuote, Palette, CreditCard, LogOut, Plus, Settings, Globe, Star, BarChart3, Menu, X } from "lucide-react";
+import { LayoutDashboard, FolderKanban, MessageSquareQuote, Palette, CreditCard, LogOut, Plus, Settings, Globe, Star, BarChart3, Menu, X, Server } from "lucide-react";
 import clsx from "clsx";
 import { createClient } from "@/utils/supabase/client";
 import { useTranslation } from "@/lib/i18n/useTranslation";
@@ -21,6 +21,7 @@ export function Sidebar() {
         { href: "/dashboard/quotes", label: t('dashboard.sidebar.quotes'), icon: MessageSquareQuote },
         { href: "/dashboard/testimonials", label: t('dashboard.sidebar.testimonials'), icon: Star },
         { href: "/dashboard/portfolio", label: t('dashboard.sidebar.portfolio'), icon: Globe },
+        { href: "/dashboard/domains", label: t('dashboard.sidebar.domains') || 'Domaines', icon: Server },
         { href: "/dashboard/analytics", label: t('dashboard.sidebar.analytics'), icon: BarChart3 },
         { href: "/dashboard/appearance", label: t('dashboard.sidebar.appearance'), icon: Palette },
         { href: "/dashboard/billing", label: t('dashboard.sidebar.subscription'), icon: CreditCard },

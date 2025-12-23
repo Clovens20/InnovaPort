@@ -28,11 +28,14 @@ function LoginForm() {
     });
 
     // Sauvegarder "Se souvenir de moi" dans localStorage en temps réel
+    // Cette préférence persiste indéfiniment (même après déconnexion et fermeture du navigateur)
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (rememberMe) {
+                // Sauvegarder la préférence pour toujours (localStorage ne expire pas)
                 localStorage.setItem('rememberMe', 'true');
             } else {
+                // Supprimer seulement si l'utilisateur décoche explicitement
                 localStorage.removeItem('rememberMe');
             }
         }
@@ -98,8 +101,9 @@ function LoginForm() {
         }
 
         // OPTIMISATION: Authentification avec le client préchargé (après vérification CAPTCHA)
-        // La session sera persistante (Supabase gère automatiquement la durée via les cookies)
-        // Si "Se souvenir de moi" est coché, la préférence est sauvegardée pour les prochaines connexions
+        // La session Supabase est persistante par défaut via les cookies HTTP-only dans le middleware
+        // La préférence "Se souvenir de moi" est sauvegardée dans localStorage pour pré-remplir la case
+        // Cette préférence persiste indéfiniment (même après déconnexion et fermeture du navigateur)
         const authResult = await supabase.auth.signInWithPassword({
             email,
             password,

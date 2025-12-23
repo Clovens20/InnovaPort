@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, type ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
-import { Loader2, CheckCircle2, X, ExternalLink, Copy, Check, Plus, Edit, Trash2 } from "lucide-react";
+import { Loader2, CheckCircle2, X, ExternalLink, Copy, Check, Plus, Edit, Trash2, Globe } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/useTranslation";
 import AutoResponseTemplateModal from "./_components/auto-response-template-modal";
@@ -945,23 +945,68 @@ export default function SettingsPage() {
                                 t('dashboard.settings.save')
                             )}
                         </button>
+
+                        {/* Section Domaines personnalisés */}
+                        <div className="mt-6 pt-6 border-t border-gray-200">
+                            <div className="flex items-center justify-between mb-3">
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                                        🌐 Domaine personnalisé
+                                    </h3>
+                                    <p className="text-xs text-gray-500">
+                                        Utilisez votre propre domaine (ex: monsite.com) au lieu de innovaport.dev
+                                    </p>
+                                </div>
+                            </div>
+                            <Link
+                                href="/dashboard/domains"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1E40AF] transition-colors text-sm font-medium"
+                            >
+                                <Globe className="w-4 h-4" />
+                                Gérer les domaines
+                            </Link>
+                        </div>
                     </div>
                 ) : (
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                        <div className="flex items-start gap-4">
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-gray-900 mb-1">
-                                    {t('dashboard.settings.upgradeToPro')}
-                                </h3>
-                                <p className="text-sm text-gray-600 mb-4">
-                                    {t('dashboard.settings.upgradeToProDesc')}
-                                </p>
-                                <Link
-                                    href="/dashboard/billing"
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-semibold"
-                                >
-                                    {t('dashboard.settings.viewPlans')}
-                                </Link>
+                    <div className="space-y-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                            <div className="flex items-start gap-4">
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-900 mb-1">
+                                        {t('dashboard.settings.upgradeToPro')}
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        {t('dashboard.settings.upgradeToProDesc')}
+                                    </p>
+                                    <Link
+                                        href="/dashboard/billing"
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-semibold"
+                                    >
+                                        {t('dashboard.settings.viewPlans')}
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Section Domaines personnalisés - Upgrade requis */}
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                            <div className="flex items-start gap-4">
+                                <Globe className="w-6 h-6 text-blue-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-900 mb-1">
+                                        🌐 Domaine personnalisé
+                                    </h3>
+                                    <p className="text-sm text-gray-600 mb-4">
+                                        Utilisez votre propre domaine (ex: monsite.com) au lieu de innovaport.dev. 
+                                        Disponible avec les plans Pro et Premium.
+                                    </p>
+                                    <Link
+                                        href="/dashboard/billing"
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1E40AF] transition-colors text-sm font-medium"
+                                    >
+                                        Voir les plans
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>

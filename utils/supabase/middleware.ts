@@ -38,6 +38,66 @@ export async function updateSession(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     const pathname = request.nextUrl.pathname
+    const hostname = request.headers.get('host') || ''
+
+    // Gestion des domaines personnalisés
+    // Vérifier si c'est un domaine personnalisé (pas localhost ni le domaine principal)
+    const isCustomDomain = hostname && 
+                          !hostname.includes('localhost') && 
+                          !hostname.includes('127.0.0.1') &&
+                          !hostname.includes('.vercel.app') &&
+                          hostname !== process.env.NEXT_PUBLIC_DOMAIN;
+
+    if (isCustomDomain) {
+        try {
+            // Chercher le domaine dans la base de données
+            const { data: domainConfig, error: domainError } = await supabase
+                .from('custom_domains')
+                .select('user_id, slug, subdomain, domain, ssl_status')
+                .eq('domain', hostname.split(':')[0]) // Enlever le port si présent
+                .is('subdomain', null)
+                .eq('ssl_status', 'active')
+                .single();
+
+            // Si pas de domaine racine, chercher un sous-domaine
+            if (domainError || !domainConfig) {
+                const domainParts = hostname.split('.');
+                if (domainParts.length >= 3) {
+                    const subdomain = domainParts[0];
+                    const domain = domainParts.slice(1).join('.');
+                    
+                    const { data: subdomainConfig, error: subdomainError } = await supabase
+                        .from('custom_domains')
+                        .select('user_id, slug, subdomain, domain, ssl_status')
+                        .eq('domain', domain.split(':')[0])
+                        .eq('subdomain', subdomain)
+                        .eq('ssl_status', 'active')
+                        .single();
+
+                    if (!subdomainError && subdomainConfig) {
+                        // Rediriger vers le portfolio avec le slug ou user_id
+                        const targetSlug = subdomainConfig.slug || subdomainConfig.user_id;
+                        const targetPath = `/${targetSlug}${pathname === '/' ? '' : pathname}`;
+                        
+                        const url = request.nextUrl.clone();
+                        url.pathname = targetPath;
+                        return NextResponse.rewrite(url);
+                    }
+                }
+            } else {
+                // Rediriger vers le portfolio avec le slug ou user_id
+                const targetSlug = domainConfig.slug || domainConfig.user_id;
+                const targetPath = `/${targetSlug}${pathname === '/' ? '' : pathname}`;
+                
+                const url = request.nextUrl.clone();
+                url.pathname = targetPath;
+                return NextResponse.rewrite(url);
+            }
+        } catch (error) {
+            // En cas d'erreur, continuer normalement
+            console.error('Error handling custom domain:', error);
+        }
+    }
 
     // Protection des routes /dashboard : nécessite une authentification
     if (!user && pathname.startsWith('/dashboard')) {
