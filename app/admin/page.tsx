@@ -1,7 +1,7 @@
 // app/admin/page.tsx
 import React from "react";
 import Link from "next/link";
-import { Shield, Settings, DollarSign, FileText, Palette, Users, Globe, MessageSquare, Zap } from "lucide-react";
+import { Shield, Settings, DollarSign, FileText, Palette, Users, Globe, MessageSquare, Zap, BarChart3 } from "lucide-react";
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { LogoutButton } from './_components/logout-button';
@@ -153,6 +153,12 @@ export default async function AdminPage() {
                             title="Automatisation"
                             description="Gérer les templates de réponses automatiques, les rappels et les notifications pour tous les utilisateurs."
                             href="/admin/automation"
+                        />
+                        <AdminCard
+                            icon={<BarChart3 className="w-5 h-5 text-indigo-600" />}
+                            title="Analytics"
+                            description="Voir tous les visiteurs qui ont cliqué sur le lien www.innovaport.dev avec graphiques et statistiques."
+                            href="/admin/analytics"
                         />
                     </div>
 

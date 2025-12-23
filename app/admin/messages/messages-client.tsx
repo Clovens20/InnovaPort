@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { Mail, MessageSquare, Calendar, User, Search, Filter, CheckCircle, XCircle, Archive, Reply, Eye } from 'lucide-react';
+import { Mail, MessageSquare, Calendar, User, Search, Filter, CheckCircle, XCircle, Archive, Reply, Eye, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import Link from 'next/link';
 
 interface ContactMessage {
     id: string;
@@ -140,6 +141,15 @@ export function MessagesClient() {
         <div className="space-y-6">
             {/* Header */}
             <div>
+                <Link
+                    href="/admin"
+                    className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                        {language === 'fr' ? 'Retour au panneau admin' : 'Back to admin panel'}
+                    </span>
+                </Link>
                 <h1 className="text-3xl font-bold text-gray-900">
                     {language === 'fr' ? 'Messages et Inscriptions' : 'Messages & Subscriptions'}
                 </h1>
