@@ -88,12 +88,12 @@ export function AnalyticsAdminClient() {
         loadData(true); // Afficher le spinner au chargement initial
     }, [loadData]);
 
-    // Rafraîchir automatiquement toutes les 30 secondes (temps réel)
+    // Rafraîchir automatiquement toutes les 10 secondes (temps réel)
     useEffect(() => {
         const interval = setInterval(() => {
             // Actualiser silencieusement en arrière-plan (sans afficher le spinner)
             loadData();
-        }, 30000); // 30 secondes
+        }, 10000); // 10 secondes pour un rafraîchissement plus fréquent
 
         return () => clearInterval(interval);
     }, [loadData]);
@@ -113,11 +113,15 @@ export function AnalyticsAdminClient() {
             }
             const diagnosticsData = await response.json();
             setDiagnostics(diagnosticsData);
+            
+            // Recharger aussi les données principales après le diagnostic
+            // pour s'assurer que les statistiques sont à jour
+            loadData();
         } catch (error) {
             console.error('Error running diagnostics:', error);
             setDiagnostics({ error: 'Erreur lors du diagnostic' });
         }
-    }, []);
+    }, [loadData]);
 
     // Calculer les statistiques supplémentaires
     const topPages = useMemo(() => {
@@ -166,6 +170,75 @@ export function AnalyticsAdminClient() {
             return eventType === eventTypeFilter;
         });
     }, [data, eventTypeFilter]);
+
+    // Recalculer les statistiques en fonction des données filtrées
+    const filteredStats = useMemo(() => {
+        if (!filteredAnalytics.length) {
+            return {
+                totalVisits: 0,
+                uniqueVisitors: 0,
+                pageViews: 0,
+                clicks: 0,
+            };
+        }
+
+        const uniqueIPs = new Set(filteredAnalytics.map(a => a.ip_address).filter(Boolean));
+        
+        const pageViews = filteredAnalytics.filter(a => {
+            const eventType = a.event_type || a.event;
+            return eventType === 'page_view' || eventType === 'portfolio_view';
+        }).length;
+
+        const clicks = filteredAnalytics.filter(a => {
+            const eventType = a.event_type || a.event;
+            return eventType === 'quote_click' || 
+                   eventType === 'contact_click' || 
+                   eventType === 'click';
+        }).length;
+
+        return {
+            totalVisits: filteredAnalytics.length,
+            uniqueVisitors: uniqueIPs.size,
+            pageViews: pageViews,
+            clicks: clicks,
+        };
+    }, [filteredAnalytics]);
+
+    // Recalculer groupedByDate en fonction des données filtrées
+    const filteredGroupedByDate = useMemo(() => {
+        if (!filteredAnalytics.length) return [];
+        
+        const grouped: { [key: string]: number } = {};
+        const period = timePeriod;
+
+        filteredAnalytics.forEach(item => {
+            const date = new Date(item.created_at);
+            let key: string;
+
+            switch (period) {
+                case 'day':
+                    key = date.toLocaleDateString('fr-FR', { hour: '2-digit' });
+                    break;
+                case 'week':
+                    key = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+                    break;
+                case 'month':
+                    key = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+                    break;
+                case 'year':
+                    key = date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+                    break;
+                default:
+                    key = date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+            }
+
+            grouped[key] = (grouped[key] || 0) + 1;
+        });
+
+        return Object.entries(grouped)
+            .map(([date, count]) => ({ date, count }))
+            .sort((a, b) => a.date.localeCompare(b.date));
+    }, [filteredAnalytics, timePeriod]);
 
     const COLORS = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
 
@@ -216,6 +289,12 @@ export function AnalyticsAdminClient() {
                             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                             {language === 'fr' ? 'Actualiser' : 'Refresh'}
                         </button>
+                        {data && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span>{language === 'fr' ? 'Temps réel (10s)' : 'Real-time (10s)'}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -355,31 +434,31 @@ export function AnalyticsAdminClient() {
                         <StatCard
                             icon={<Eye className="w-6 h-6" />}
                             title={language === 'fr' ? 'Visites totales' : 'Total Visits'}
-                            value={data.stats.totalVisits}
+                            value={filteredStats.totalVisits}
                             color="blue"
                         />
                         <StatCard
                             icon={<Users className="w-6 h-6" />}
                             title={language === 'fr' ? 'Visiteurs uniques' : 'Unique Visitors'}
-                            value={data.stats.uniqueVisitors}
+                            value={filteredStats.uniqueVisitors}
                             color="green"
                         />
                         <StatCard
                             icon={<BarChart3 className="w-6 h-6" />}
                             title={language === 'fr' ? 'Pages vues' : 'Page Views'}
-                            value={data.stats.pageViews}
+                            value={filteredStats.pageViews}
                             color="purple"
                         />
                         <StatCard
                             icon={<MousePointerClick className="w-6 h-6" />}
                             title={language === 'fr' ? 'Clics' : 'Clicks'}
-                            value={data.stats.clicks}
+                            value={filteredStats.clicks}
                             color="orange"
                         />
                     </div>
 
                     {/* Graphique principal */}
-                    {data.groupedByDate.length > 0 && (
+                    {filteredGroupedByDate.length > 0 && (
                         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
                             <div className="mb-6 flex items-center justify-between">
                                 <div>
@@ -419,7 +498,7 @@ export function AnalyticsAdminClient() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     {chartType === 'area' ? (
                                         <AreaChart
-                                            data={data.groupedByDate}
+                                            data={filteredGroupedByDate}
                                             margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
                                         >
                                             <defs>
@@ -471,7 +550,7 @@ export function AnalyticsAdminClient() {
                                         </AreaChart>
                                     ) : chartType === 'line' ? (
                                         <LineChart
-                                            data={data.groupedByDate}
+                                            data={filteredGroupedByDate}
                                             margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
                                         >
                                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
@@ -516,7 +595,7 @@ export function AnalyticsAdminClient() {
                                         </LineChart>
                                     ) : (
                                         <BarChart
-                                            data={data.groupedByDate}
+                                            data={filteredGroupedByDate}
                                             margin={{ top: 10, right: 30, left: 0, bottom: 60 }}
                                         >
                                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
