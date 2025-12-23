@@ -17,6 +17,26 @@ function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
     const recaptchaRef = useRef<ReCAPTCHA>(null);
+    
+    // État pour "Se souvenir de moi" - chargé depuis localStorage
+    const [rememberMe, setRememberMe] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('rememberMe');
+            return saved === 'true';
+        }
+        return false;
+    });
+
+    // Sauvegarder "Se souvenir de moi" dans localStorage en temps réel
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if (rememberMe) {
+                localStorage.setItem('rememberMe', 'true');
+            } else {
+                localStorage.removeItem('rememberMe');
+            }
+        }
+    }, [rememberMe]);
 
     // Vérifier s'il y a une erreur dans l'URL (par exemple depuis le callback)
     useEffect(() => {
@@ -78,6 +98,8 @@ function LoginForm() {
         }
 
         // OPTIMISATION: Authentification avec le client préchargé (après vérification CAPTCHA)
+        // La session sera persistante (Supabase gère automatiquement la durée via les cookies)
+        // Si "Se souvenir de moi" est coché, la préférence est sauvegardée pour les prochaines connexions
         const authResult = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -199,9 +221,11 @@ function LoginForm() {
                             id="remember-me"
                             name="remember-me"
                             type="checkbox"
-                            className="h-4 w-4 text-[#1E3A8A] focus:ring-[#1E3A8A] border-gray-300 rounded"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="h-4 w-4 text-[#1E3A8A] focus:ring-[#1E3A8A] border-gray-300 rounded cursor-pointer transition-colors"
                         />
-                        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+                        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 cursor-pointer">
                             {t('auth.login.remember')}
                         </label>
                     </div>
