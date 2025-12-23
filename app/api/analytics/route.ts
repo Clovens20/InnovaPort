@@ -117,19 +117,38 @@ export async function POST(request: NextRequest) {
             insertData.meta = {};
         }
 
-        const { error: insertError } = await supabaseAdmin
+        const { data: insertedData, error: insertError } = await supabaseAdmin
             .from('analytics')
-            .insert(insertData);
+            .insert(insertData)
+            .select('id, created_at');
 
         if (insertError) {
             // Log error for debugging (in production, this would go to a logging service)
-            if (process.env.NODE_ENV === 'development') {
-                console.error('Error inserting analytics:', insertError);
-            }
+            console.error('❌ Error inserting analytics:', {
+                error: insertError,
+                insertData,
+                message: insertError.message,
+                details: insertError.details,
+                hint: insertError.hint,
+            });
             return NextResponse.json(
-                { error: 'Erreur lors de l\'enregistrement de l\'analytics' },
+                { 
+                    error: 'Erreur lors de l\'enregistrement de l\'analytics',
+                    details: process.env.NODE_ENV === 'development' ? insertError.message : undefined
+                },
                 { status: 500 }
             );
+        }
+
+        // Log success in development
+        if (process.env.NODE_ENV === 'development') {
+            console.log('✅ Analytics event inserted:', {
+                id: insertedData?.[0]?.id,
+                eventType: insertData.event_type,
+                path: insertData.path,
+                userId: insertData.user_id,
+                createdAt: insertedData?.[0]?.created_at,
+            });
         }
 
         const response = NextResponse.json(

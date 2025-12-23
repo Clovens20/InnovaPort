@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { BarChart3, Users, MousePointerClick, Eye, ArrowLeft, RefreshCw, Calendar, Globe, TrendingUp } from 'lucide-react';
+import { BarChart3, Users, MousePointerClick, Eye, ArrowLeft, RefreshCw, Calendar, Globe, TrendingUp, Bug } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import {
@@ -35,6 +35,10 @@ interface AnalyticsData {
     };
     groupedByDate: { date: string; count: number }[];
     period: string;
+    totalInDatabase?: number;
+    filteredCount?: number;
+    startDate?: string;
+    endDate?: string;
 }
 
 export function AnalyticsAdminClient() {
@@ -53,13 +57,26 @@ export function AnalyticsAdminClient() {
             const response = await fetch(`/api/admin/analytics?period=${timePeriod}&filter=all`);
             
             if (!response.ok) {
-                throw new Error('Erreur lors du chargement des analytics');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Erreur lors du chargement des analytics');
             }
 
             const analyticsData = await response.json();
+            
+            // Log pour diagnostic
+            console.log('📊 Analytics data loaded:', {
+                total: analyticsData.analytics?.length || 0,
+                stats: analyticsData.stats,
+                period: analyticsData.period,
+                filterType: analyticsData.filterType,
+                totalInDatabase: analyticsData.totalInDatabase,
+            });
+            
             setData(analyticsData);
         } catch (error) {
-            console.error('Error loading analytics:', error);
+            console.error('❌ Error loading analytics:', error);
+            // Afficher un message d'erreur à l'utilisateur
+            setData(null);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -83,6 +100,24 @@ export function AnalyticsAdminClient() {
 
     const [chartType, setChartType] = useState<'area' | 'line' | 'bar'>('area');
     const [eventTypeFilter, setEventTypeFilter] = useState<'all' | 'page_view' | 'portfolio_view' | 'quote_click' | 'contact_click'>('all');
+    const [diagnostics, setDiagnostics] = useState<any>(null);
+    const [showDiagnostics, setShowDiagnostics] = useState(false);
+
+    // Fonction pour exécuter le diagnostic
+    const runDiagnostics = useCallback(async () => {
+        try {
+            setShowDiagnostics(true);
+            const response = await fetch('/api/admin/analytics/debug');
+            if (!response.ok) {
+                throw new Error('Erreur lors du diagnostic');
+            }
+            const diagnosticsData = await response.json();
+            setDiagnostics(diagnosticsData);
+        } catch (error) {
+            console.error('Error running diagnostics:', error);
+            setDiagnostics({ error: 'Erreur lors du diagnostic' });
+        }
+    }, []);
 
     // Calculer les statistiques supplémentaires
     const topPages = useMemo(() => {
@@ -165,38 +200,147 @@ export function AnalyticsAdminClient() {
                                 : 'Visitor statistics for www.innovaport.dev'}
                         </p>
                     </div>
-                    <button
-                        onClick={() => loadData(true)}
-                        disabled={refreshing}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                    >
-                        <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                        {language === 'fr' ? 'Actualiser' : 'Refresh'}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={runDiagnostics}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                            <Bug className="w-4 h-4" />
+                            {language === 'fr' ? 'Diagnostic' : 'Diagnostics'}
+                        </button>
+                        <button
+                            onClick={() => loadData(true)}
+                            disabled={refreshing}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                            {language === 'fr' ? 'Actualiser' : 'Refresh'}
+                        </button>
+                    </div>
                 </div>
             </div>
 
+            {/* Diagnostic Panel */}
+            {showDiagnostics && diagnostics && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-semibold text-gray-900">
+                            {language === 'fr' ? 'Diagnostic du système analytics' : 'Analytics System Diagnostics'}
+                        </h2>
+                        <button
+                            onClick={() => setShowDiagnostics(false)}
+                            className="text-gray-500 hover:text-gray-700"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    {diagnostics.error ? (
+                        <div className="text-red-600">{diagnostics.error}</div>
+                    ) : diagnostics.diagnostics ? (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="p-4 bg-blue-50 rounded-lg">
+                                    <div className="text-sm text-gray-600">{language === 'fr' ? 'Total événements' : 'Total Events'}</div>
+                                    <div className="text-2xl font-bold text-blue-600">{diagnostics.diagnostics.totalEvents || 0}</div>
+                                </div>
+                                <div className="p-4 bg-green-50 rounded-lg">
+                                    <div className="text-sm text-gray-600">{language === 'fr' ? 'Visiteurs anonymes' : 'Anonymous Visitors'}</div>
+                                    <div className="text-2xl font-bold text-green-600">{diagnostics.diagnostics.anonymousVisitors || 0}</div>
+                                </div>
+                                <div className="p-4 bg-purple-50 rounded-lg">
+                                    <div className="text-sm text-gray-600">{language === 'fr' ? 'Pages vues' : 'Page Views'}</div>
+                                    <div className="text-2xl font-bold text-purple-600">{diagnostics.diagnostics.pageViewEvents || 0}</div>
+                                </div>
+                                <div className="p-4 bg-orange-50 rounded-lg">
+                                    <div className="text-sm text-gray-600">{language === 'fr' ? '7 derniers jours' : 'Last 7 Days'}</div>
+                                    <div className="text-2xl font-bold text-orange-600">{diagnostics.diagnostics.last7DaysEvents || 0}</div>
+                                </div>
+                            </div>
+                            {Object.keys(diagnostics.diagnostics.eventTypeCounts || {}).length > 0 && (
+                                <div>
+                                    <h3 className="font-semibold text-gray-900 mb-2">{language === 'fr' ? 'Événements par type' : 'Events by Type'}</h3>
+                                    <div className="space-y-1">
+                                        {Object.entries(diagnostics.diagnostics.eventTypeCounts).map(([type, count]: [string, any]) => (
+                                            <div key={type} className="flex justify-between text-sm">
+                                                <span className="text-gray-600">{type}</span>
+                                                <span className="font-medium">{count}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {diagnostics.diagnostics.recentEvents && diagnostics.diagnostics.recentEvents.length > 0 && (
+                                <div>
+                                    <h3 className="font-semibold text-gray-900 mb-2">{language === 'fr' ? '10 derniers événements' : '10 Recent Events'}</h3>
+                                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                                        {diagnostics.diagnostics.recentEvents.map((event: any) => (
+                                            <div key={event.id} className="p-2 bg-gray-50 rounded text-xs">
+                                                <div className="font-medium">{event.event_type || 'unknown'}</div>
+                                                <div className="text-gray-600">{event.path || 'N/A'}</div>
+                                                <div className="text-gray-500">{new Date(event.created_at).toLocaleString()}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {diagnostics.recommendations && diagnostics.recommendations.length > 0 && (
+                                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                    <h3 className="font-semibold text-yellow-900 mb-2">{language === 'fr' ? 'Recommandations' : 'Recommendations'}</h3>
+                                    <ul className="list-disc list-inside space-y-1 text-sm text-yellow-800">
+                                        {diagnostics.recommendations.map((rec: string, idx: number) => (
+                                            <li key={idx}>{rec}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="text-center py-4 text-gray-500">
+                            {language === 'fr' ? 'Chargement du diagnostic...' : 'Loading diagnostics...'}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Filtres de période */}
             <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center gap-2 flex-wrap">
-                    <Calendar className="w-5 h-5 text-gray-500" />
-                    <span className="text-sm font-medium text-gray-700">
-                        {language === 'fr' ? 'Période:' : 'Period:'}
-                    </span>
-                    {(['day', 'week', 'month', 'year'] as TimePeriod[]).map((period) => (
-                        <button
-                            key={period}
-                            onClick={() => setTimePeriod(period)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                timePeriod === period
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                        >
-                            {periodLabels[period]}
-                        </button>
-                    ))}
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <Calendar className="w-5 h-5 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-700">
+                            {language === 'fr' ? 'Période:' : 'Period:'}
+                        </span>
+                        {(['day', 'week', 'month', 'year'] as TimePeriod[]).map((period) => (
+                            <button
+                                key={period}
+                                onClick={() => setTimePeriod(period)}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    timePeriod === period
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                {periodLabels[period]}
+                            </button>
+                        ))}
+                    </div>
+                    {data && (
+                        <div className="text-xs text-gray-500">
+                            {language === 'fr' 
+                                ? `${data.totalInDatabase || 0} événements au total dans la base`
+                                : `${data.totalInDatabase || 0} total events in database`}
+                        </div>
+                    )}
                 </div>
+                {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (
+                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                            {language === 'fr' 
+                                ? '⚠️ Vous êtes en localhost. Les données affichées sont celles de la base de données Supabase. Pour voir les données de production, visitez www.innovaport.dev.'
+                                : '⚠️ You are on localhost. The displayed data is from the Supabase database. To see production data, visit www.innovaport.dev.'}
+                        </p>
+                    </div>
+                )}
             </div>
 
             {loading ? (
@@ -587,8 +731,44 @@ export function AnalyticsAdminClient() {
                     </div>
                 </>
             ) : (
-                <div className="text-center py-12 text-gray-500">
-                    {language === 'fr' ? 'Aucune donnée disponible' : 'No data available'}
+                <div className="text-center py-12">
+                    <div className="max-w-md mx-auto">
+                        <div className="mb-4">
+                            <Eye className="w-16 h-16 mx-auto text-gray-400" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                            {language === 'fr' ? 'Aucune donnée disponible' : 'No data available'}
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                            {language === 'fr' 
+                                ? `Aucun événement analytics trouvé pour la période sélectionnée (${periodLabels[timePeriod]}).`
+                                : `No analytics events found for the selected period (${periodLabels[timePeriod]}).`}
+                        </p>
+                        <div className="space-y-2 text-sm text-gray-500">
+                            <p>
+                                {language === 'fr' 
+                                    ? '💡 Conseils pour voir des données :'
+                                    : '💡 Tips to see data:'}
+                            </p>
+                            <ul className="list-disc list-inside space-y-1 text-left max-w-sm mx-auto">
+                                <li>
+                                    {language === 'fr' 
+                                        ? 'Visitez le site www.innovaport.dev pour générer des événements'
+                                        : 'Visit www.innovaport.dev to generate events'}
+                                </li>
+                                <li>
+                                    {language === 'fr' 
+                                        ? 'Essayez une période plus longue (30 jours ou 12 mois)'
+                                        : 'Try a longer period (30 days or 12 months)'}
+                                </li>
+                                <li>
+                                    {language === 'fr' 
+                                        ? 'Utilisez le bouton "Diagnostic" pour vérifier les données dans Supabase'
+                                        : 'Use the "Diagnostics" button to check data in Supabase'}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

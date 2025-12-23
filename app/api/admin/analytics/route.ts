@@ -48,8 +48,28 @@ export async function GET(request: NextRequest) {
         const { data: analytics, error } = await query;
 
         if (error) {
-            console.error('Error fetching analytics:', error);
-            return NextResponse.json({ error: 'Erreur lors de la récupération des analytics' }, { status: 500 });
+            console.error('❌ Error fetching analytics:', error);
+            return NextResponse.json({ 
+                error: 'Erreur lors de la récupération des analytics',
+                details: process.env.NODE_ENV === 'development' ? error.message : undefined
+            }, { status: 500 });
+        }
+
+        // Log pour diagnostic
+        if (process.env.NODE_ENV === 'development') {
+            console.log('📊 Analytics fetched:', {
+                total: analytics?.length || 0,
+                period,
+                filterType,
+                startDate: startDate.toISOString(),
+                sample: analytics?.slice(0, 3).map(a => ({
+                    id: a.id,
+                    event_type: a.event_type || a.event,
+                    path: a.path,
+                    user_id: a.user_id,
+                    created_at: a.created_at,
+                })),
+            });
         }
 
         // Pages connues du site principal innovaport.dev
@@ -158,6 +178,9 @@ export async function GET(request: NextRequest) {
             period,
             filterType,
             totalInDatabase: analytics?.length || 0,
+            filteredCount: filteredAnalytics.length,
+            startDate: startDate.toISOString(),
+            endDate: new Date().toISOString(),
         });
     } catch (error) {
         console.error('Error in GET /api/admin/analytics:', error);

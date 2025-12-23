@@ -27,14 +27,31 @@ function shouldExcludePath(path: string): boolean {
 
 // Fonction pour envoyer l'événement analytics
 async function trackPageView(path: string, referrer: string | null) {
-    // En développement, tracker quand même mais logger les erreurs
-    // En production, tracker silencieusement
-    const isDev = process.env.NODE_ENV === 'development';
+    // Toujours tracker en production, logger en développement
+    const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
     
     try {
         // Ne pas tracker les pages exclues
         if (shouldExcludePath(path)) {
+            if (isDev) {
+                console.log('⏭️ Page excluded from tracking:', path);
+            }
             return;
+        }
+
+        // Préparer les données à envoyer
+        const payload = {
+            eventType: 'page_view',
+            path: path,
+            referrer: referrer,
+            metadata: {
+                timestamp: new Date().toISOString(),
+                hostname: typeof window !== 'undefined' ? window.location.hostname : null,
+            },
+        };
+
+        if (isDev) {
+            console.log('📊 Tracking page view:', payload);
         }
 
         const response = await fetch('/api/analytics', {
@@ -42,32 +59,23 @@ async function trackPageView(path: string, referrer: string | null) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                eventType: 'page_view',
-                path: path,
-                referrer: referrer,
-                metadata: {
-                    timestamp: new Date().toISOString(),
-                    // Ajouter d'autres métadonnées si nécessaire
-                },
-            }),
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
             // Logger les erreurs pour déboguer
+            console.error('❌ Failed to track page view:', response.status, errorText);
+            // En production, on peut aussi logger dans un service externe
+        } else {
+            const result = await response.json();
             if (isDev) {
-                console.warn('Failed to track page view:', response.status, errorText);
+                console.log('✅ Page view tracked successfully:', path, result);
             }
-        } else if (isDev) {
-            // En dev, confirmer que le tracking fonctionne
-            console.log('✅ Page view tracked:', path);
         }
     } catch (error) {
         // Logger les erreurs pour déboguer
-        if (isDev) {
-            console.error('Error tracking page view:', error);
-        }
+        console.error('❌ Error tracking page view:', error);
     }
 }
 

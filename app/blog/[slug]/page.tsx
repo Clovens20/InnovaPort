@@ -113,7 +113,7 @@ export default function BlogPostPage() {
             date: '5 Janvier 2025',
             category: 'Marketing',
             readTime: '6 min',
-            image: 'https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=1200&h=800&fit=crop&q=80',
+            image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&h=800&fit=crop&q=80',
             slug: 'optimiser-presence-online-freelance',
             content: `
                 <h2>Introduction</h2>
@@ -337,7 +337,7 @@ export default function BlogPostPage() {
             date: 'January 5, 2025',
             category: 'Marketing',
             readTime: '6 min',
-            image: 'https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=1200&h=800&fit=crop&q=80',
+            image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&h=800&fit=crop&q=80',
             slug: 'optimize-online-presence-freelancer',
             content: `
                 <h2>Introduction</h2>
@@ -554,28 +554,35 @@ export default function BlogPostPage() {
                 </header>
 
                 {/* Featured Image */}
-                {post.image ? (
-                    <div className="mb-12 rounded-2xl overflow-hidden shadow-2xl">
-                        <div className="relative h-96 sm:h-[500px] bg-gradient-to-br from-blue-100 to-indigo-100">
-                            <Image
-                                src={post.image}
-                                alt={post.title}
-                                fill
-                                className="object-cover"
-                                priority
-                                quality={90}
-                                sizes="(max-width: 768px) 100vw, 896px"
-                                unoptimized={false}
-                            />
-                        </div>
+                <div className="mb-12 rounded-2xl overflow-hidden shadow-2xl">
+                    <div className="relative h-96 sm:h-[500px] bg-gradient-to-br from-blue-100 to-indigo-100">
+                        {post.image ? (
+                            <>
+                                <Image
+                                    src={post.image}
+                                    alt={post.title}
+                                    fill
+                                    className="object-cover"
+                                    priority
+                                    quality={90}
+                                    sizes="(max-width: 768px) 100vw, 896px"
+                                    unoptimized={post.image.includes('unsplash.com')}
+                                />
+                                {/* Overlay pour améliorer la lisibilité du texte si nécessaire */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none"></div>
+                            </>
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-200 to-indigo-200">
+                                <div className="text-center">
+                                    <svg className="w-24 h-24 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p className="text-gray-500 font-medium">{post.title}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                ) : (
-                    <div className="mb-12 rounded-2xl overflow-hidden shadow-2xl">
-                        <div className="relative h-96 sm:h-[500px] bg-gradient-to-br from-blue-200 to-indigo-200 flex items-center justify-center">
-                            <span className="text-gray-400 text-lg">Image</span>
-                        </div>
-                    </div>
-                )}
+                </div>
 
                 {/* Article Body */}
                 <div

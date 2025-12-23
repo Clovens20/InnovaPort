@@ -58,7 +58,7 @@ export default function BlogPage() {
             date: '5 Janvier 2025',
             category: 'Marketing',
             readTime: '6 min',
-            image: 'https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=1200&h=800&fit=crop&q=80',
+            image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&h=800&fit=crop&q=80',
             slug: 'optimiser-presence-online-freelance',
         },
         {
@@ -125,7 +125,7 @@ export default function BlogPage() {
             date: 'January 5, 2025',
             category: 'Marketing',
             readTime: '6 min',
-            image: 'https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=1200&h=800&fit=crop&q=80',
+            image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&h=800&fit=crop&q=80',
             slug: 'optimize-online-presence-freelancer',
         },
         {
