@@ -80,13 +80,37 @@ export default function SettingsPage() {
                 return;
             }
 
+            // OPTIMISATION CRITIQUE: Charger d'abord subscription_tier et username uniquement
+            // pour débloquer le rendu immédiatement (requête ultra-légère)
+            const { data: tierData, error: tierError } = await supabase
+                .from("profiles")
+                .select("subscription_tier, username")
+                .eq("id", user.id)
+                .maybeSingle();
+
+            if (tierError) throw tierError;
+            
+            // Mettre à jour le profil avec le tier et username immédiatement pour débloquer le rendu
+            if (tierData) {
+                setProfile(tierData);
+                setUsername(tierData.username || "");
+                setInitialUsername(tierData.username || "");
+                // Définir loading à false immédiatement pour afficher la page
+                setLoading(false);
+            }
+
+            // Charger ensuite les autres données du profil en arrière-plan (non bloquant)
             const { data, error } = await supabase
                 .from("profiles")
                 .select("username, subscription_tier, avatar_url, bio, bio_en, full_name, title, title_en, email, tiktok_url, facebook_url, twitter_url, linkedin_url")
                 .eq("id", user.id)
                 .maybeSingle();
 
-            if (error) throw error;
+            if (error) {
+                console.error("Error loading full profile:", error);
+                // Ne pas bloquer si l'erreur survient après le chargement initial
+                return;
+            }
 
             // Initialiser tous les champs avec des valeurs par défaut
             const profileData = {
@@ -135,13 +159,16 @@ export default function SettingsPage() {
             setInitialTwitterUrl(profileData.twitterUrl);
             setInitialLinkedinUrl(profileData.linkedinUrl);
             
-            setLoading(false);
+            // Le loading a déjà été mis à false plus tôt, pas besoin de le refaire
         } catch (err) {
             console.error("Error loading profile:", err);
-            setError(t('dashboard.settings.errorLoading'));
-            setLoading(false);
+            // Ne pas bloquer le rendu si l'erreur survient après le chargement initial
+            if (!profile) {
+                setError(t('dashboard.settings.errorLoading'));
+                setLoading(false);
+            }
         }
-    }, [supabase, router, t]);
+    }, [supabase, router, t, profile]);
 
     // Fonction pour charger les paramètres de rappels
     const loadReminderSettings = useCallback(async () => {
@@ -265,18 +292,23 @@ export default function SettingsPage() {
         return true;
     }, [username, initialUsername]);
 
-    // Charger le profil au démarrage (après les déclarations de fonctions)
+    // OPTIMISATION: Charger le profil en priorité pour débloquer le rendu rapidement
     useEffect(() => {
         loadProfile();
-        loadReminderSettings();
-    }, [loadProfile, loadReminderSettings]);
+    }, [loadProfile]);
 
-    // Charger les templates de réponses automatiques
+    // OPTIMISATION: Charger les autres données en parallèle (non bloquant pour le rendu)
     useEffect(() => {
         if (!loading) {
-            loadAutoResponseTemplates();
+            // Charger les paramètres de rappels et templates en parallèle
+            Promise.all([
+                loadReminderSettings(),
+                loadAutoResponseTemplates()
+            ]).catch(err => {
+                console.error('Error loading additional settings:', err);
+            });
         }
-    }, [loading, loadAutoResponseTemplates]);
+    }, [loading, loadReminderSettings, loadAutoResponseTemplates]);
 
     // Fonction pour sauvegarder un template
     const handleSaveTemplate = async (template: any) => {
@@ -598,18 +630,19 @@ export default function SettingsPage() {
             setSavingProfile(false);
         }
     };
-// État de chargement
-    if (loading) {
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const portfolioUrl = `${baseUrl}/${username || '...'}`;
+    const canCustomize = profile?.subscription_tier === "pro" || profile?.subscription_tier === "premium";
+
+    // OPTIMISATION: Afficher un loader minimal seulement si le profil n'existe pas du tout
+    // Le subscription_tier est chargé en priorité, donc si profile existe, on peut afficher la page
+    if (loading && !profile) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
-
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const portfolioUrl = `${baseUrl}/${username}`;
-    const canCustomize = profile?.subscription_tier === "pro" || profile?.subscription_tier === "premium";
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
@@ -960,7 +993,8 @@ export default function SettingsPage() {
                             </div>
                             <Link
                                 href="/dashboard/domains"
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1E40AF] transition-colors text-sm font-medium"
+                                prefetch={true}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-[#1E3A8A] text-white rounded-lg hover:bg-[#1E40AF] transition-colors text-sm font-medium shadow-sm hover:shadow-md"
                             >
                                 <Globe className="w-4 h-4" />
                                 Gérer les domaines
