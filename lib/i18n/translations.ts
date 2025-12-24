@@ -31,7 +31,7 @@ export const translations: Record<Language, Translations> = {
             subtitle: 'Transformez votre chaos administratif en système automatisé',
             subtitle2: 'Une seule plateforme pour gérer projets, devis et portfolios.',
             startFree: 'Commencer Gratuitement',
-            viewDemo: 'Voir une démo (2min)',
+            viewDemo: '🎬 Démo Interactive',
         },
         // Home Dashboard Preview
         home: {
@@ -1456,7 +1456,7 @@ export const translations: Record<Language, Translations> = {
             subtitle: 'Transform your administrative chaos into an automated system',
             subtitle2: 'One platform to manage projects, quotes and portfolios.',
             startFree: 'Start Free',
-            viewDemo: 'View Demo (2min)',
+            viewDemo: '🎬 Interactive Demo',
         },
         // Home Dashboard Preview
         home: {
