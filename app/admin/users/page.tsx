@@ -43,8 +43,8 @@ export default async function AdminUsersPage() {
         }
     );
 
-    // Récupérer tous les utilisateurs avec leur rôle et plan actuel depuis subscriptions
-    const { data: allUsers, error } = await supabase
+    // Récupérer tous les utilisateurs (sans jointure pour éviter l'erreur de relation)
+    const { data: allUsers, error: usersError } = await supabase
         .from('profiles')
         .select(`
             id, 
@@ -53,14 +53,42 @@ export default async function AdminUsersPage() {
             email, 
             role, 
             subscription_tier,
-            created_at,
-            subscriptions!left(plan, status)
+            created_at
         `)
         .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error('Error fetching users:', error);
+    // Récupérer toutes les subscriptions séparément
+    const { data: allSubscriptions, error: subscriptionsError } = await supabase
+        .from('subscriptions')
+        .select('user_id, plan, status')
+        .order('created_at', { ascending: false });
+
+    if (usersError) {
+        console.error('❌ Error fetching users:', usersError);
     }
+    if (subscriptionsError) {
+        console.error('❌ Error fetching subscriptions:', subscriptionsError);
+    }
+
+    // Créer un map des subscriptions par user_id pour un accès rapide
+    const subscriptionsMap = new Map();
+    if (allSubscriptions && allSubscriptions.length > 0) {
+        allSubscriptions.forEach((sub: any) => {
+            if (!subscriptionsMap.has(sub.user_id)) {
+                subscriptionsMap.set(sub.user_id, []);
+            }
+            subscriptionsMap.get(sub.user_id).push(sub);
+        });
+    }
+
+    // Log pour diagnostic
+    console.log('📊 Users fetch result:', {
+        usersError: usersError?.message,
+        subscriptionsError: subscriptionsError?.message,
+        allUsersCount: allUsers?.length || 0,
+        allSubscriptionsCount: allSubscriptions?.length || 0,
+        sample: allUsers?.slice(0, 2),
+    });
 
     // Traiter tous les utilisateurs de la table profiles
     // Afficher tous les utilisateurs, qu'ils aient un plan gratuit ou payant
@@ -68,17 +96,21 @@ export default async function AdminUsersPage() {
     if (allUsers && allUsers.length > 0) {
         // Pour chaque utilisateur, déterminer son plan actuel
         for (const profileUser of allUsers) {
-            // Utiliser le plan depuis subscriptions si disponible, sinon subscription_tier
-            const subscriptions = Array.isArray(profileUser.subscriptions) 
-                ? profileUser.subscriptions 
-                : (profileUser.subscriptions ? [profileUser.subscriptions] : []);
-            const activeSubscription = subscriptions.find((sub: any) => sub.status === 'active') || subscriptions[0];
+            // Récupérer les subscriptions depuis le map
+            const userSubscriptions = subscriptionsMap.get(profileUser.id) || [];
+            const activeSubscription = userSubscriptions.find((sub: any) => sub.status === 'active') || userSubscriptions[0];
+            
+            // Utiliser le plan depuis subscriptions si disponible, sinon subscription_tier depuis profiles
             const currentPlan = activeSubscription?.plan || profileUser.subscription_tier || 'free';
             
             validUsers.push({
-                ...profileUser,
-                current_plan: currentPlan, // Plan actuel depuis subscriptions
+                id: profileUser.id,
+                username: profileUser.username || '',
+                full_name: profileUser.full_name || null,
+                email: profileUser.email || null,
+                role: profileUser.role || null,
                 subscription_tier: currentPlan, // Pour compatibilité avec l'interface
+                created_at: profileUser.created_at || new Date().toISOString(),
             });
         }
     }
@@ -86,6 +118,15 @@ export default async function AdminUsersPage() {
     // Compter tous les utilisateurs (gratuits et payants)
     const totalUsers = validUsers.length;
     const adminCount = validUsers.filter(u => u.role === 'admin').length;
+
+    // Log pour diagnostic (toujours actif pour voir les problèmes en production)
+    console.log('📊 Users processed:', {
+        totalInDB: allUsers?.length || 0,
+        validUsers: validUsers.length,
+        totalUsers,
+        adminCount,
+        sample: validUsers.slice(0, 3),
+    });
 
     return (
         <UsersAdminClient
