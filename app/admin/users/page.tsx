@@ -62,39 +62,28 @@ export default async function AdminUsersPage() {
         console.error('Error fetching users:', error);
     }
 
-    // Filtrer les utilisateurs qui existent réellement dans auth.users
-    // Utiliser Promise.all pour paralléliser les vérifications
+    // Traiter tous les utilisateurs de la table profiles
+    // Afficher tous les utilisateurs, qu'ils aient un plan gratuit ou payant
     const validUsers = [];
     if (allUsers && allUsers.length > 0) {
-        const userChecks = await Promise.allSettled(
-            allUsers.map(async (profileUser) => {
-                const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(profileUser.id);
-                if (!authError && authUser?.user) {
-                    // Utiliser le plan depuis subscriptions si disponible, sinon subscription_tier
-                    const subscriptions = Array.isArray(profileUser.subscriptions) 
-                        ? profileUser.subscriptions 
-                        : (profileUser.subscriptions ? [profileUser.subscriptions] : []);
-                    const activeSubscription = subscriptions.find((sub: any) => sub.status === 'active') || subscriptions[0];
-                    const currentPlan = activeSubscription?.plan || profileUser.subscription_tier || 'free';
-                    
-                    return {
-                        ...profileUser,
-                        current_plan: currentPlan, // Plan actuel depuis subscriptions
-                        subscription_tier: currentPlan, // Pour compatibilité avec l'interface
-                    };
-                }
-                return null;
-            })
-        );
-
-        validUsers.push(
-            ...userChecks
-                .filter((result) => result.status === 'fulfilled' && result.value !== null)
-                .map((result) => (result as PromiseFulfilledResult<any>).value)
-        );
+        // Pour chaque utilisateur, déterminer son plan actuel
+        for (const profileUser of allUsers) {
+            // Utiliser le plan depuis subscriptions si disponible, sinon subscription_tier
+            const subscriptions = Array.isArray(profileUser.subscriptions) 
+                ? profileUser.subscriptions 
+                : (profileUser.subscriptions ? [profileUser.subscriptions] : []);
+            const activeSubscription = subscriptions.find((sub: any) => sub.status === 'active') || subscriptions[0];
+            const currentPlan = activeSubscription?.plan || profileUser.subscription_tier || 'free';
+            
+            validUsers.push({
+                ...profileUser,
+                current_plan: currentPlan, // Plan actuel depuis subscriptions
+                subscription_tier: currentPlan, // Pour compatibilité avec l'interface
+            });
+        }
     }
 
-    // Compter uniquement les utilisateurs valides
+    // Compter tous les utilisateurs (gratuits et payants)
     const totalUsers = validUsers.length;
     const adminCount = validUsers.filter(u => u.role === 'admin').length;
 
