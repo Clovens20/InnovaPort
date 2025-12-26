@@ -30,6 +30,22 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  // Redirection de innovaport.dev vers www.innovaport.dev
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'innovaport.dev',
+          },
+        ],
+        destination: 'https://www.innovaport.dev/:path*',
+        permanent: true,
+      },
+    ];
+  },
   // Headers de sécurité HTTP
   async headers() {
     return [

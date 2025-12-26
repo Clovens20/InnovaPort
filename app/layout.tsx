@@ -18,11 +18,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.innovaport.dev'),
   title: "InnovaPort - Gérez vos Projets & Devis en un clic",
   description: "La plateforme tout-en-un pour les freelances et agences. Créez des portfolios époustouflants, recevez des demandes de devis qualifiées et gérez votre business.",
   icons: {
     icon: "/innovaport-logo.png",
     apple: "/innovaport-logo.png",
+  },
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    url: 'https://www.innovaport.dev',
+    siteName: 'InnovaPort',
+    locale: 'fr_FR',
+    type: 'website',
   },
 };
 
